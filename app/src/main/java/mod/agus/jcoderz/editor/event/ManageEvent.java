@@ -13,131 +13,131 @@ public class ManageEvent {
     /**
      * Used in {@link a.a.a.oq#getEventsForClass(Gx)} to retrieve extra Events of Components.
      */
-    public static void addExtraEvents(Gx gx, ArrayList<String> events) {
-        if (gx.a("RatingBar")) {
+    public static void addExtraEvents(Gx classInfo, ArrayList<String> events) {
+        if (classInfo.a("RatingBar")) {
             events.add("onRatingChanged");
         }
-        if (gx.a("TimePicker")) {
+        if (classInfo.a("TimePicker")) {
             events.add("onTimeChanged");
         }
-        if (gx.a("DatePicker")) {
+        if (classInfo.a("DatePicker")) {
             events.add("onDateChanged");
         }
-        if (gx.a("VideoView")) {
+        if (classInfo.a("VideoView")) {
             events.add("onPrepared");
             events.add("onError");
             events.add("onCompletion");
         }
-        if (gx.a("SearchView")) {
+        if (classInfo.a("SearchView")) {
             events.add("onQueryTextSubmit");
             events.add("onQueryTextChanged");
         }
-        if (gx.a("ListView")) {
+        if (classInfo.a("ListView")) {
             events.add("onScrollChanged");
             events.add("onScrolled");
         }
-        if (gx.a("RecyclerView")) {
+        if (classInfo.a("RecyclerView")) {
             events.add("onBindCustomView");
             events.add("onRecyclerScrollChanged");
             events.add("onRecyclerScrolled");
         }
-        if (gx.a("GridView")) {
+        if (classInfo.a("GridView")) {
             events.add("onItemClicked");
             events.add("onItemLongClicked");
             events.add("onBindCustomView");
         }
-        if (gx.a("Spinner")) {
+        if (classInfo.a("Spinner")) {
             events.add("onBindCustomView");
         }
-        if (gx.a("ViewPager")) {
+        if (classInfo.a("ViewPager")) {
             events.add("onBindCustomView");
             events.add("onPageScrolled");
             events.add("onPageSelected");
             events.add("onPageChanged");
         }
-        if (gx.a("TabLayout")) {
+        if (classInfo.a("TabLayout")) {
             events.add("onTabSelected");
             events.add("onTabUnselected");
             events.add("onTabReselected");
         }
-        if (gx.a("BottomNavigationView")) {
+        if (classInfo.a("BottomNavigationView")) {
             events.add("onNavigationItemSelected");
         }
-        if (gx.a("PatternLockView")) {
+        if (classInfo.a("PatternLockView")) {
             events.add("onPatternLockStarted");
             events.add("onPatternLockProgress");
             events.add("onPatternLockComplete");
             events.add("onPatternLockCleared");
         }
-        if (gx.a("WaveSideBar")) {
+        if (classInfo.a("WaveSideBar")) {
             events.add("onLetterSelected");
         }
-        EventsHandler.addEvents(gx, events);
+        EventsHandler.addEvents(classInfo, events);
     }
 
     /**
      * Used in {@link a.a.a.oq#getListenersForClass(Gx)}
      * to get extra listeners for Components and Widgets.
      */
-    public static void addExtraListeners(Gx gx, ArrayList<String> listeners) {
-        if (gx.a("RatingBar")) {
+    public static void addExtraListeners(Gx classInfo, ArrayList<String> listeners) {
+        if (classInfo.a("RatingBar")) {
             listeners.add("OnRatingBarChangeListener");
         }
-        if (gx.a("TimePicker")) {
+        if (classInfo.a("TimePicker")) {
             listeners.add("OnTimeChangeListener");
         }
-        if (gx.a("DatePicker")) {
+        if (classInfo.a("DatePicker")) {
             listeners.add("OnDateChangeListener");
         }
-        if (gx.a("VideoView")) {
+        if (classInfo.a("VideoView")) {
             listeners.add("OnPreparedListener");
             listeners.add("OnErrorListener");
             listeners.add("OnCompletionListener");
         }
-        if (gx.a("SearchView")) {
+        if (classInfo.a("SearchView")) {
             listeners.add("OnQueryTextListener");
         }
-        if (gx.a("TimePickerDialog")) {
+        if (classInfo.a("TimePickerDialog")) {
             listeners.add("OnTimeSetListener");
         }
-        if (gx.a("DatePickerDialog")) {
+        if (classInfo.a("DatePickerDialog")) {
             listeners.add("OnDateSetListener");
         }
-        if (gx.a("FragmentAdapter")) {
+        if (classInfo.a("FragmentAdapter")) {
             listeners.add("FragmentStatePagerAdapter");
         }
-        if (gx.a("RewardedVideoAd")) {
+        if (classInfo.a("RewardedVideoAd")) {
             listeners.add("rewardedAdLoadCallback");
             listeners.add("fullScreenContentCallback");
             listeners.add("onUserEarnedRewardListener");
         }
-        if (gx.a("ListView")) {
+        if (classInfo.a("ListView")) {
             listeners.add("OnScrollListener");
         }
-        if (gx.a("RecyclerView")) {
+        if (classInfo.a("RecyclerView")) {
             listeners.add("OnRecyclerScrollListener");
         }
-        if (gx.a("GridView")) {
+        if (classInfo.a("GridView")) {
             listeners.add("OnGridItemClickListener");
             listeners.add("OnGridItemLongClickListener");
         }
-        if (gx.a("ViewPager")) {
+        if (classInfo.a("ViewPager")) {
             listeners.add("OnPageChangeListener");
             listeners.add("OnAdapterChangeListener");
         }
-        if (gx.a("TabLayout")) {
+        if (classInfo.a("TabLayout")) {
             listeners.add("OnTabSelectedListener");
         }
-        if (gx.a("BottomNavigationView")) {
+        if (classInfo.a("BottomNavigationView")) {
             listeners.add("OnNavigationItemSelected");
         }
-        if (gx.a("PatternLockView")) {
+        if (classInfo.a("PatternLockView")) {
             listeners.add("PatternLockViewListener");
         }
-        if (gx.a("WaveSideBar")) {
+        if (classInfo.a("WaveSideBar")) {
             listeners.add("OnLetterSelectedListener");
         }
-        if (gx.a("FirebaseAuth")) {
+        if (classInfo.a("FirebaseAuth")) {
             listeners.add("authUpdateEmailComplete");
             listeners.add("authUpdatePasswordComplete");
             listeners.add("authEmailVerificationSent");
@@ -146,13 +146,13 @@ public class ManageEvent {
             listeners.add("authUpdateProfileComplete");
             listeners.add("googleSignInListener");
         }
-        if (gx.a("FirebasePhoneAuth")) {
+        if (classInfo.a("FirebasePhoneAuth")) {
             listeners.add("OnVerificationStateChangedListener");
         }
-        if (gx.a("FirebaseCloudMessage")) {
+        if (classInfo.a("FirebaseCloudMessage")) {
             listeners.add("OnCompleteListenerFCM");
         }
-        EventsHandler.addListeners(gx, listeners);
+        EventsHandler.addListeners(classInfo, listeners);
     }
 
     /**
@@ -663,7 +663,7 @@ public class ManageEvent {
     }
 
     /**
-     * @return Code of extra listeners, used in {@link a.a.a.Lx#getListenerCode(String, String, String)}
+     * @return Code of extra listeners, used in {@link Lx#getListenerCode(String, String, String)}
      */
     public static String g(String listenerName, String targetId, String listenerLogic) {
         return switch (listenerName) {
@@ -878,8 +878,8 @@ public class ManageEvent {
         };
     }
 
-    public static void addExtraComponentEvents(Gx gx, ArrayList<String> list) {
-        if (gx.a("RewardedVideoAd")) {
+    public static void addExtraComponentEvents(Gx classInfo, ArrayList<String> list) {
+        if (classInfo.a("RewardedVideoAd")) {
             list.add("onRewardAdLoaded");
             list.add("onRewardAdFailedToLoad");
             list.add("onUserEarnedReward");
@@ -887,17 +887,17 @@ public class ManageEvent {
             list.add("onAdFailedToShowFullScreenContent");
             list.add("onAdShowedFullScreenContent");
         }
-        if (gx.a("FragmentAdapter")) {
+        if (classInfo.a("FragmentAdapter")) {
             list.add("onTabAdded");
             list.add("onFragmentAdded");
         }
-        if (gx.a("TimePickerDialog")) {
+        if (classInfo.a("TimePickerDialog")) {
             list.add("onTimeSet");
         }
-        if (gx.a("DatePickerDialog")) {
+        if (classInfo.a("DatePickerDialog")) {
             list.add("onDateSet");
         }
-        if (gx.a("FirebaseAuth")) {
+        if (classInfo.a("FirebaseAuth")) {
             list.add("onUpdateEmailComplete");
             list.add("onUpdatePasswordComplete");
             list.add("onEmailVerificationSent");
@@ -906,19 +906,19 @@ public class ManageEvent {
             list.add("onUpdateProfileComplete");
             list.add("onGoogleSignIn");
         }
-        if (gx.a("FirebasePhoneAuth")) {
+        if (classInfo.a("FirebasePhoneAuth")) {
             list.add("onVerificationCompleted");
             list.add("onVerificationFailed");
             list.add("onCodeSent");
         }
-        if (gx.a("FirebaseCloudMessage")) {
+        if (classInfo.a("FirebaseCloudMessage")) {
             list.add("onCompleteRegister");
         }
-        if (gx.a("FirebaseGoogleLogin")) {
+        if (classInfo.a("FirebaseGoogleLogin")) {
             list.add("onAccountPicker");
             list.add("onAccountPickerCancelled");
         }
-        EventsHandler.addEvents(gx, list);
+        EventsHandler.addEvents(classInfo, list);
     }
 
     public static String i(String targetId, String eventName) {

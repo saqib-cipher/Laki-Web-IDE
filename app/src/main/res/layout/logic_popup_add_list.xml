@@ -20,7 +20,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:checked="true"
-                android:text="@string/logic_variable_type_number" />
+                android:text="variable_type_number" />
 
             <RadioButton
                 android:id="@+id/rb_string"
@@ -32,7 +32,7 @@
                 android:id="@+id/rb_map"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:text="@string/logic_variable_type_map" />
+                android:text="variable_type_map" />
         </RadioGroup>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -40,7 +40,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="@string/logic_editor_hint_enter_variable_name"
+            android:hint="enter_variable_name"
             android:importantForAutofill="noExcludeDescendants">
 
             <com.google.android.material.textfield.TextInputEditText

@@ -53,10 +53,9 @@ import laki.webide.widgets.IconCustomWidget;
 public class PaletteWidget extends LinearLayout {
 
     public MaterialCardView cardView;
+    public MaterialCardView btnEditHead;
     private LinearLayout layoutContainer;
-    private LinearLayout widgetsContainer;
-    private TextView titleLayouts;
-    private TextView titleWidgets;
+    public LinearLayout widgetsContainer;
     private CustomScrollView scrollView;
 
     public PaletteWidget(Context context) {
@@ -154,12 +153,9 @@ public class PaletteWidget extends LinearLayout {
         wB.a(context, this, R.layout.palette_widget);
         layoutContainer = findViewById(R.id.layout);
         widgetsContainer = findViewById(R.id.widget);
-        titleLayouts = findViewById(R.id.tv_layout);
-        titleWidgets = findViewById(R.id.tv_widget);
-        titleLayouts.setText(Helper.getResString(R.string.view_panel_title_layouts));
-        titleWidgets.setText(Helper.getResString(R.string.view_panel_title_widgets));
         scrollView = findViewById(R.id.scv);
         cardView = findViewById(R.id.cardView);
+        btnEditHead = findViewById(R.id.btn_edit_head);
     }
 
     public void removeWidgets() {
@@ -242,7 +238,6 @@ public class PaletteWidget extends LinearLayout {
 
     public void setLayoutVisible(int visibility) {
         layoutContainer.setVisibility(visibility);
-        titleLayouts.setVisibility(visibility);
     }
 
     public void setScrollEnabled(boolean scrollEnabled) {
@@ -255,7 +250,6 @@ public class PaletteWidget extends LinearLayout {
 
     public void setWidgetVisible(int visibility) {
         widgetsContainer.setVisibility(visibility);
-        titleWidgets.setVisibility(visibility);
     }
 
     public enum a {

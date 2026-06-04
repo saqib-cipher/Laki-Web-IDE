@@ -110,27 +110,27 @@ public class MoreblockImporter {
             ArrayList<Gx> paramClassInfo = next.getParamClassInfo();
             if (!paramClassInfo.isEmpty()) {
                 for (int i = 0; i < paramClassInfo.size(); i++) {
-                    Gx gx = paramClassInfo.get(i);
+                    Gx classInfo = paramClassInfo.get(i);
                     String str = next.parameters.get(i);
                     if (!str.isEmpty() && str.charAt(0) != '@') {
-                        if (gx.b("boolean.SelectBoolean")) {
+                        if (classInfo.b("boolean.SelectBoolean")) {
                             maybeAddVariable(0, str);
-                        } else if (gx.b("double.SelectDouble")) {
+                        } else if (classInfo.b("double.SelectDouble")) {
                             maybeAddVariable(1, str);
-                        } else if (gx.b("String.SelectString")) {
+                        } else if (classInfo.b("String.SelectString")) {
                             maybeAddVariable(2, str);
-                        } else if (gx.b("Map")) {
+                        } else if (classInfo.b("Map")) {
                             maybeAddVariable(3, str);
-                        } else if (gx.b("ListInt")) {
+                        } else if (classInfo.b("ListInt")) {
                             maybeAddList(1, str);
-                        } else if (gx.b("ListString")) {
+                        } else if (classInfo.b("ListString")) {
                             maybeAddList(2, str);
-                        } else if (gx.b("ListMap")) {
+                        } else if (classInfo.b("ListMap")) {
                             maybeAddList(3, str);
-                        } else if (!gx.b("resource_bg") && !gx.b("resource")) {
-                            if (gx.b("sound")) {
+                        } else if (!classInfo.b("resource_bg") && !classInfo.b("resource")) {
+                            if (classInfo.b("sound")) {
                                 maybeAddSound(str);
-                            } else if (gx.b("font")) {
+                            } else if (classInfo.b("font")) {
                                 maybeAddFont(str);
                             }
                         } else {

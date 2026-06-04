@@ -17,6 +17,7 @@ import com.besome.sketch.beans.AdTestDeviceBean;
 import com.besome.sketch.beans.AdUnitBean;
 import com.besome.sketch.beans.ComponentBean;
 import com.besome.sketch.beans.ProjectFileBean;
+import com.besome.sketch.beans.ViewBean;
 import com.besome.sketch.editor.LogicEditorActivity;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
@@ -25,6 +26,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -499,6 +502,28 @@ public class ExtraMenuBean {
                 menus = getComponentMenus(ComponentBean.COMPONENT_TYPE_FIREBASE_AUTH_GOOGLE_LOGIN);
                 break;
 
+            case "htmlId":
+                title = "Select HTML ID";
+                for (ViewBean bean : projectDataManager.d(logicEditor.M.getXmlName())) {
+                    if (bean.id != null && !bean.id.isEmpty()) {
+                        menus.add(bean.id);
+                    }
+                }
+                break;
+
+            case "htmlClass":
+                title = "Select HTML Class";
+                HashSet<String> classSet = new HashSet<>();
+                for (ViewBean bean : projectDataManager.d(logicEditor.M.getXmlName())) {
+                    if (bean.classNames != null && !bean.classNames.isEmpty()) {
+                        for (String className : bean.classNames.split("\\s+")) {
+                            if (!className.isEmpty()) classSet.add(className);
+                        }
+                    }
+                }
+                menus.addAll(classSet);
+                break;
+
             case "providerType":
                 title = logicEditor.getString(R.string.logic_editor_title_location_manager_provider_type);
                 menus = new ArrayList<>(Arrays.asList(uq.p));
@@ -514,18 +539,20 @@ public class ExtraMenuBean {
                 menus = new ArrayList<>(Arrays.asList(uq.r));
                 break;
 
-            case "service":
-                title = "Select a Background Service";
-                if (FileUtil.isExistFile(fpu.getManifestService(sc_id))) {
-                    menus = frc.getServiceManifestList();
+            case "cssVar":
+                title = "Select CSS Variable";
+                for (String var : projectDataManager.e(javaName, 2)) {
+                    if (var.startsWith("--")) {
+                        menus.add(var.substring(2)); // Show without -- for cleaner list
+                    } else {
+                        menus.add(var);
+                    }
                 }
                 break;
 
-            case "broadcast":
-                title = "Select a Broadcast Receiver";
-                if (FileUtil.isExistFile(fpu.getManifestBroadcast(sc_id))) {
-                    menus = frc.getBroadcastManifestList();
-                }
+            case "cssProperty":
+                title = "Select CSS Property";
+                menus = new ArrayList<>(Arrays.asList("margin", "padding", "gap", "margin-top", "margin-bottom", "margin-left", "margin-right", "padding-top", "padding-bottom", "padding-left", "padding-right"));
                 break;
 
             case "activity":
@@ -563,20 +590,6 @@ public class ExtraMenuBean {
                 for (ProjectFileBean projectFileBean : jC.b(sc_id).c()) {
                     menus.add(projectFileBean.fileName);
                 }
-                break;
-
-            case "SignButtonColor":
-                title = "Select a SignInButton Color";
-                menus.add("COLOR_AUTO");
-                menus.add("COLOR_DARK");
-                menus.add("COLOR_LIGHT");
-                break;
-
-            case "SignButtonSize":
-                title = "Select SignInButton Size";
-                menus.add("SIZE_ICON_ONLY");
-                menus.add("SIZE_STANDARD");
-                menus.add("SIZE_WIDE");
                 break;
 
             case "ResString":
@@ -621,26 +634,6 @@ public class ExtraMenuBean {
                 for (AdTestDeviceBean testDevice : jC.c(sc_id).e.testDevices) {
                     menus.add(testDevice.deviceId);
                 }
-                break;
-
-            case "IntentKey":
-                title = "Select an Intent key";
-                menus.addAll(new ArrayList<>(Arrays.asList(intentKey)));
-                break;
-
-            case "PatternFlag":
-                title = "Select a Pattern Flags";
-                menus.addAll(new ArrayList<>(Arrays.asList(patternFlags)));
-                break;
-
-            case "Permission":
-                title = "Select a Permission";
-                menus.addAll(new ArrayList<>(Arrays.asList(permission)));
-                break;
-
-            case "AdSize":
-                title = "Select an Ad size";
-                menus.addAll(new ArrayList<>(Arrays.asList(adSize)));
                 break;
 
             case "PixelFormat":

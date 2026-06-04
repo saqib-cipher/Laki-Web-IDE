@@ -161,7 +161,11 @@ public class lC {
                     if (hashMap.containsKey("custom_icon")) {
                         a.put("custom_icon", hashMap.get("custom_icon"));
                     }
-                    a.put("my_sc_pkg_name", hashMap.get("my_sc_pkg_name"));
+                    if (yB.a(a, "is_simple_project", false)) {
+                        a.put("my_sc_pkg_name", "web.ide.project");
+                    } else {
+                        a.put("my_sc_pkg_name", hashMap.get("my_sc_pkg_name"));
+                    }
                     a.put("my_ws_name", hashMap.get("my_ws_name"));
                     a.put("my_app_name", hashMap.get("my_app_name"));
                     a.put("sc_ver_code", hashMap.get("sc_ver_code"));

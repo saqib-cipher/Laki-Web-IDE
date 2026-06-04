@@ -14,11 +14,11 @@ android {
     defaultConfig {
         applicationId = "laki.webide"
         namespace = "laki.webide"
-        //noinspection ExpiredTargetSdkVersion since we don't target getting Sketchware Pro on Google Play.
+
         targetSdk = 34
         minSdk = 26
         versionCode = 1
-        versionName = "v7.0.0"
+        versionName = "LatikeshMarathe"
 
         buildConfigField("String", "GIT_HASH", "\"${gitCommitHash}\"")
 
@@ -68,7 +68,6 @@ android {
     }
 
     configurations.implementation {
-        exclude group: 'javax.inject', module: 'javax.inject'
         exclude group: "org.jetbrains.kotlin", module: "kotlin-scripting-compiler-embeddable"
         exclude group: "org.jetbrains.kotlin", module: "kotlin-scripting-common"
         exclude group: "org.jetbrains.kotlin", module: "kotlin-scripting-jvm"
@@ -105,9 +104,6 @@ dependencies {
 
     implementation libs.ecj
     implementation libs.stax.api
-
-    implementation libs.bundles.kotlin.compiler
-    compileOnly libs.kotlin.compiler
 
     implementation libs.dependencyresolver
     implementation libs.filepicker

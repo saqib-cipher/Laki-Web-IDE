@@ -87,14 +87,14 @@ public class EventsHandler {
      * Used in {@link mod.agus.jcoderz.editor.event.ManageEvent#addExtraEvents(Gx, ArrayList)} to retrieve extra
      * Events for Components, such as custom ones.
      */
-    public static void addEvents(Gx gx, ArrayList<String> list) {
-        if (gx.a("Clickable")) {
+    public static void addEvents(Gx classInfo, ArrayList<String> list) {
+        if (classInfo.a("Clickable")) {
             list.add(" onLongClick");
         }
-        if (gx.a("SwipeRefreshLayout")) {
+        if (classInfo.a("SwipeRefreshLayout")) {
             list.add("onSwipeRefreshLayout");
         }
-        if (gx.a("AsyncTask")) {
+        if (classInfo.a("AsyncTask")) {
             list.add("onPreExecute");
             list.add("doInBackground");
             list.add("onProgressUpdate");
@@ -107,7 +107,7 @@ public class EventsHandler {
                 Object var = customEvent.get("var");
 
                 if (var instanceof String) {
-                    if (gx.a((String) var)) {
+                    if (classInfo.a((String) var)) {
                         Object name = customEvent.get("name");
 
                         if (name instanceof String) {
@@ -129,14 +129,14 @@ public class EventsHandler {
      * Used in {@link mod.agus.jcoderz.editor.event.ManageEvent#addExtraListeners(Gx, ArrayList)} to get extra
      * listeners for Components and Widgets, such as custom ones.
      */
-    public static void addListeners(Gx gx, ArrayList<String> list) {
-        if (gx.a("Clickable")) {
+    public static void addListeners(Gx classInfo, ArrayList<String> list) {
+        if (classInfo.a("Clickable")) {
             list.add(" onLongClickListener");
         }
-        if (gx.a("SwipeRefreshLayout")) {
+        if (classInfo.a("SwipeRefreshLayout")) {
             list.add("onSwipeRefreshLayoutListener");
         }
-        if (gx.a("AsyncTask")) {
+        if (classInfo.a("AsyncTask")) {
             list.add("AsyncTaskClass");
         }
 
@@ -146,7 +146,7 @@ public class EventsHandler {
                 Object var = customEvent.get("var");
 
                 if (var instanceof String) {
-                    if (gx.a((String) var)) {
+                    if (classInfo.a((String) var)) {
                         Object listener = customEvent.get("listener");
 
                         if (listener instanceof String) {

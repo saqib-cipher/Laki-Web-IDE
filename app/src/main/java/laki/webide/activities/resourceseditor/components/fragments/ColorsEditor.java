@@ -77,7 +77,7 @@ public class ColorsEditor extends Fragment {
         ArrayList<ColorModel> defaultColors = new ArrayList<>();
 
         if ((activity.variant.isEmpty() || hasUnsavedChanges) && !FileUtil.isExistFile(contentPath)) {
-            String generatedContent = activity.yq.getXMLColor();
+            String generatedContent = activity.projectWorkspace.getXMLColor();
             colorsEditorManager.parseColorsXML(defaultColors, generatedContent);
         } else {
             colorsEditorManager.parseColorsXML(defaultColors, FileUtil.readFileIfExist(contentPath));

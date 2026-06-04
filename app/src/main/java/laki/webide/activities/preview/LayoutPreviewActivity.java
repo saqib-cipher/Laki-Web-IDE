@@ -13,6 +13,7 @@ import a.a.a.jC;
 import a.a.a.mB;
 import laki.webide.databinding.ActivityLayoutPreviewBinding;
 import laki.webide.tools.ViewBeanParser;
+import laki.webide.compiler.HtmlParser;
 import laki.webide.utility.SketchwareUtil;
 import laki.webide.utility.UI;
 
@@ -21,6 +22,8 @@ public class LayoutPreviewActivity extends BaseAppCompatActivity {
     private ViewPane pane;
 
     private String content;
+
+    private String sc_id;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,7 +43,7 @@ public class LayoutPreviewActivity extends BaseAppCompatActivity {
             }
         });
         content = getIntent().getStringExtra("xml");
-        var sc_id = getIntent().getStringExtra("sc_id");
+        sc_id = getIntent().getStringExtra("sc_id");
         pane = binding.pane;
         pane.initialize(sc_id, true);
         pane.updateRootLayout(sc_id, getIntent().getStringExtra("title"));
@@ -54,8 +57,15 @@ public class LayoutPreviewActivity extends BaseAppCompatActivity {
         super.onPostCreate(savedInstanceState);
         if (content != null) {
             try {
-                var parser = new ViewBeanParser(content);
-                loadViews(parser.parse());
+                String title = getIntent().getStringExtra("title");
+                ArrayList<ViewBean> views;
+                if (title != null && title.endsWith(".html")) {
+                    views = HtmlParser.parseHtml(content, sc_id, this);
+                } else {
+                    var parser = new ViewBeanParser(content);
+                    views = parser.parse();
+                }
+                loadViews(views);
             } catch (Exception e) {
                 SketchwareUtil.toastError(e.toString());
             }

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import a.a.a.Jp;
 import a.a.a.ProjectBuilder;
 import a.a.a.zy;
+import laki.webide.ProjectWorkspace;
 import mod.agus.jcoderz.editor.manage.library.locallibrary.ManageLocalLibrary;
 import mod.hey.studios.build.BuildSettings;
 import mod.hey.studios.project.ProjectSettings;
@@ -113,7 +114,7 @@ public class ResourceCompiler {
 
         @Override
         public void compile() throws zy, MissingFileException {
-            String outputPath = buildHelper.yq.binDirectoryPath + File.separator + "res";
+            String outputPath = buildHelper.ProjectWorkspace.binDirectoryPath + File.separator + "res";
             emptyOrCreateDirectory(outputPath);
 
             long savedTimeMillis = System.currentTimeMillis();
@@ -143,7 +144,7 @@ public class ResourceCompiler {
          * @throws zy Thrown to be caught by DesignActivity to show an error Snackbar.
          */
         public void link() throws zy, MissingFileException {
-            String resourcesPath = buildHelper.yq.binDirectoryPath + File.separator + "res";
+            String resourcesPath = buildHelper.ProjectWorkspace.binDirectoryPath + File.separator + "res";
             if (progressListener != null)
                 progressListener.onProgressUpdate("Linking resources with AAPT2...", 10);
 
@@ -164,10 +165,10 @@ public class ResourceCompiler {
             args.add(buildHelper.settings.getValue(ProjectSettings.SETTING_TARGET_SDK_VERSION, String.valueOf(VAR_DEFAULT_TARGET_SDK_VERSION)));
 
             args.add("--version-code");
-            String versionCode = buildHelper.yq.versionCode;
+            String versionCode = buildHelper.ProjectWorkspace.versionCode;
             args.add((versionCode == null || versionCode.isEmpty()) ? "1" : versionCode);
             args.add("--version-name");
-            String versionName = buildHelper.yq.versionName;
+            String versionName = buildHelper.ProjectWorkspace.versionName;
             args.add((versionName == null || versionName.isEmpty()) ? "1.0" : versionName);
 
             args.add("-I");
@@ -180,12 +181,12 @@ public class ResourceCompiler {
             }
 
             /* Add assets imported by vanilla method */
-            linkingAssertDirectoryExists(buildHelper.yq.assetsPath);
+            linkingAssertDirectoryExists(buildHelper.ProjectWorkspace.assetsPath);
             args.add("-A");
-            args.add(buildHelper.yq.assetsPath);
+            args.add(buildHelper.ProjectWorkspace.assetsPath);
 
             /* Add imported assets */
-            String importedAssetsPath = buildHelper.fpu.getPathAssets(buildHelper.yq.sc_id);
+            String importedAssetsPath = buildHelper.fpu.getPathAssets(buildHelper.ProjectWorkspace.sc_id);
             if (FileUtil.isExistFile(importedAssetsPath)) {
                 args.add("-A");
                 args.add(importedAssetsPath);
@@ -203,7 +204,7 @@ public class ResourceCompiler {
             }
 
             /* Add local libraries' assets */
-            for (String localLibraryAssetsDirectory : new ManageLocalLibrary(buildHelper.yq.sc_id).getAssets()) {
+            for (String localLibraryAssetsDirectory : new ManageLocalLibrary(buildHelper.ProjectWorkspace.sc_id).getAssets()) {
                 linkingAssertDirectoryExists(localLibraryAssetsDirectory);
                 args.add("-A");
                 args.add(localLibraryAssetsDirectory);
@@ -245,18 +246,18 @@ public class ResourceCompiler {
             }
 
             /* Add R.java */
-            linkingAssertDirectoryExists(buildHelper.yq.rJavaDirectoryPath);
+            linkingAssertDirectoryExists(buildHelper.ProjectWorkspace.rJavaDirectoryPath);
             args.add("--java");
-            args.add(buildHelper.yq.rJavaDirectoryPath);
+            args.add(buildHelper.ProjectWorkspace.rJavaDirectoryPath);
 
             /* Output AAPT2's generated ProGuard rules to a.a.a.yq.aapt_rules */
             args.add("--proguard");
-            args.add(buildHelper.yq.proguardAaptRules);
+            args.add(buildHelper.ProjectWorkspace.proguardAaptRules);
 
             /* Add AndroidManifest.xml */
-            linkingAssertFileExists(buildHelper.yq.androidManifestPath);
+            linkingAssertFileExists(buildHelper.ProjectWorkspace.androidManifestPath);
             args.add("--manifest");
-            args.add(buildHelper.yq.androidManifestPath);
+            args.add(buildHelper.ProjectWorkspace.androidManifestPath);
 
             /* Use the generated R.java for used libraries */
             String extraPackages = buildHelper.getLibraryPackageNames();
@@ -267,7 +268,7 @@ public class ResourceCompiler {
 
             /* Output the APK only with resources to a.a.a.yq.C */
             args.add("-o");
-            args.add(buildHelper.yq.resourcesApkPath);
+            args.add(buildHelper.ProjectWorkspace.resourcesApkPath);
 
             LogUtil.d(TAG + ":l", args.toString());
             BinaryExecutor executor = new BinaryExecutor();
@@ -279,13 +280,13 @@ public class ResourceCompiler {
         }
 
         private void compileProjectResources(String outputPath) throws zy, MissingFileException {
-            compilingAssertDirectoryExists(buildHelper.yq.resDirectoryPath);
+            compilingAssertDirectoryExists(buildHelper.ProjectWorkspace.resDirectoryPath);
 
             ArrayList<String> commands = new ArrayList<>();
             commands.add(aapt2.getAbsolutePath());
             commands.add("compile");
             commands.add("--dir");
-            commands.add(buildHelper.yq.resDirectoryPath);
+            commands.add(buildHelper.ProjectWorkspace.resDirectoryPath);
             commands.add("-o");
             commands.add(outputPath + File.separator + "project.zip");
             LogUtil.d(TAG + ":cPR", "Now executing: " + commands);
@@ -381,13 +382,13 @@ public class ResourceCompiler {
         }
 
         private void compileImportedResources(String outputPath) throws zy {
-            if (FileUtil.isExistFile(buildHelper.fpu.getPathResource(buildHelper.yq.sc_id))
-                    && new File(buildHelper.fpu.getPathResource(buildHelper.yq.sc_id)).length() != 0) {
+            if (FileUtil.isExistFile(buildHelper.fpu.getPathResource(buildHelper.ProjectWorkspace.sc_id))
+                    && new File(buildHelper.fpu.getPathResource(buildHelper.ProjectWorkspace.sc_id)).length() != 0) {
                 ArrayList<String> commands = new ArrayList<>();
                 commands.add(aapt2.getAbsolutePath());
                 commands.add("compile");
                 commands.add("--dir");
-                commands.add(buildHelper.fpu.getPathResource(buildHelper.yq.sc_id));
+                commands.add(buildHelper.fpu.getPathResource(buildHelper.ProjectWorkspace.sc_id));
                 commands.add("-o");
                 commands.add(outputPath + File.separator + "project-imported.zip");
                 LogUtil.d(TAG + ":cIR", "Now executing: " + commands);

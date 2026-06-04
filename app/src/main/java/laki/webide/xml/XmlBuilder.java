@@ -1,10 +1,17 @@
 package laki.webide.xml;
 
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import a.a.a.Jx;
 
 public class XmlBuilder {
+
+    private static final Set<String> VOID_ELEMENTS = Stream.of(
+            "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"
+    ).collect(Collectors.toSet());
 
     private final ArrayList<XmlBuilder> childNodes;
     private final boolean d;
@@ -13,6 +20,7 @@ public class XmlBuilder {
     private String g;
     private int indentationLevel;
     private String nodeValue;
+    private String rawChildValue;
 
     public XmlBuilder(String rootElementName) {
         this(rootElementName, false);
@@ -51,6 +59,10 @@ public class XmlBuilder {
         nodeValue = value;
     }
 
+    public void setRawChildValue(String value) {
+        rawChildValue = value;
+    }
+
     public void addAttribute(String namespace, String attr, String value) {
         attributes.add(new AttributeBuilder(namespace, attr, value));
     }
@@ -74,23 +86,37 @@ public class XmlBuilder {
             }
             resultCode.append(attr.toCode());
         }
-        if (childNodes.size() <= 0) {
-            if (nodeValue == null || nodeValue.length() <= 0) {
+
+        boolean isVoid = VOID_ELEMENTS.contains(rootElementName.toLowerCase());
+        boolean hasChildren = childNodes.size() > 0;
+        boolean hasRawContent = rawChildValue != null && !rawChildValue.isEmpty();
+        boolean hasNodeValue = nodeValue != null && !nodeValue.isEmpty();
+
+        if (!hasChildren && !hasRawContent && !hasNodeValue) {
+            if (isVoid) {
                 resultCode.append(" />");
             } else {
-                resultCode.append(">");
-                resultCode.append(nodeValue);
-                resultCode.append("</");
+                resultCode.append("></");
                 resultCode.append(rootElementName);
                 resultCode.append(">");
             }
         } else {
             resultCode.append(">");
-            resultCode.append("\r\n");
-            for (XmlBuilder xmlBuilder : childNodes) {
-                resultCode.append(xmlBuilder.toCode());
+            if (hasChildren || hasRawContent) {
+                resultCode.append("\r\n");
+                for (XmlBuilder xmlBuilder : childNodes) {
+                    resultCode.append(xmlBuilder.toCode());
+                }
+                if (hasRawContent) {
+                    resultCode.append(rawChildValue);
+                    if (!rawChildValue.endsWith("\n") && !rawChildValue.endsWith("\r")) {
+                        resultCode.append("\r\n");
+                    }
+                }
+                resultCode.append(addZeroIndent());
+            } else {
+                resultCode.append(nodeValue);
             }
-            resultCode.append(addZeroIndent());
             resultCode.append("</");
             resultCode.append(rootElementName);
             resultCode.append(">");

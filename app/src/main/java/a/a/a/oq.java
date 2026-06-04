@@ -8,6 +8,8 @@ import mod.agus.jcoderz.editor.event.ManageEvent;
 import mod.hey.studios.util.Helper;
 import mod.hilal.saif.events.EventsHandler;
 import laki.webide.R;
+import laki.webide.events.HTMLHead;
+import laki.webide.events.ExtCSS;
 
 public class oq {
 
@@ -21,6 +23,8 @@ public class oq {
      */
     @DrawableRes
     public static int getEventIconResource(String eventName) {
+        if (HTMLHead.isMatch(eventName)) return HTMLHead.getIconResource();
+        if (ExtCSS.isMatch(eventName)) return ExtCSS.getIconResource();
         return switch (eventName) {
             case "initializeLogic", "onBackPressed", "onPostCreate", "onStart", "onStop",
                  "onDestroy", "onResume", "onPause", "moreBlock" ->
@@ -84,6 +88,8 @@ public class oq {
     }
 
     public static String getEventName(String eventName) {
+        if (HTMLHead.isMatch(eventName)) return HTMLHead.getDisplayName();
+        if (ExtCSS.isMatch(eventName)) return ExtCSS.getDisplayName();
         return switch (eventName) {
             case "initializeLogic" -> Helper.getResString(R.string.event_initialize);
             case "onBackPressed" -> Helper.getResString(R.string.event_onbackpressed);

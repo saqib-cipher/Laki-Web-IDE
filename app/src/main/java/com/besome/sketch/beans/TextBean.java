@@ -33,6 +33,16 @@ public class TextBean extends nA implements Parcelable {
     public static int INPUT_TYPE_PASSWORD = 129;
     public static int INPUT_TYPE_PHONE = 3;
     public static int INPUT_TYPE_TEXT = 1;
+    
+    // HTML Input Types
+    public static final int INPUT_TYPE_EMAIL = 1001;
+    public static final int INPUT_TYPE_URL = 1002;
+    public static final int INPUT_TYPE_DATE = 1003;
+    public static final int INPUT_TYPE_COLOR = 1004;
+    public static final int INPUT_TYPE_RANGE = 1005;
+    public static final int INPUT_TYPE_HIDDEN = 1006;
+    public static final int INPUT_TYPE_FILE = 1007;
+
     public static String TEXT_FONT = "default_font";
     public static int TEXT_TYPE_BOLD = 1;
     public static int TEXT_TYPE_BOLDITALIC = 3;

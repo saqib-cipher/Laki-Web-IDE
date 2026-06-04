@@ -88,6 +88,8 @@ public class ViewBean extends nA implements Parcelable {
     @Expose
     public String id;
     @Expose
+    public String classNames = "";
+    @Expose
     public ImageBean image;
     @Expose
     public String indeterminate;
@@ -208,6 +210,7 @@ public class ViewBean extends nA implements Parcelable {
             String value = parcel.readString();
             parentAttributes.put(key, value);
         }
+        classNames = parcel.readString();
         isCustomWidget = parcel.readInt() != 0;
     }
 
@@ -369,6 +372,7 @@ public class ViewBean extends nA implements Parcelable {
         indeterminate = other.indeterminate;
         inject = other.inject;
         convert = other.convert;
+        classNames = other.classNames;
         progressStyle = other.progressStyle;
         parentAttributes = other.parentAttributes;
         isCustomWidget = other.isCustomWidget;
@@ -482,6 +486,7 @@ public class ViewBean extends nA implements Parcelable {
             dest.writeString(entry.getKey());
             dest.writeString(entry.getValue());
         }
+        dest.writeString(classNames);
         dest.writeInt(isCustomWidget ? 1 : 0);
     }
 }

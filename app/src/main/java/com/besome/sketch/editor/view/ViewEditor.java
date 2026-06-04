@@ -98,6 +98,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
     private int[] countItems = new int[20];
     private float dip = 0;
     private int displayWidth;
+    private final HashMap<String, Integer> webTagCounts = new HashMap<>();
     private int displayHeight;
     private PaletteFavorite paletteFavorite;
     private LinearLayout bgStatus;
@@ -420,6 +421,10 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
                 } else if (currentTouchedView instanceof IconBase icon) {
                     ViewBean bean = icon.getBean();
                     bean.id = generateWidgetId(bean);
+                    if (b.endsWith(".html")) {
+                        String baseFileName = b.replace(".html", "").replace(".xml", "").toLowerCase();
+                        bean.classNames = baseFileName + "_" + bean.id;
+                    }
                     viewPane.updateViewBeanProperties(bean, (int) motionEvent.getRawX(), (int) motionEvent.getRawY());
                     jC.a(a).a(b, bean);
                     if (bean.type == 3 && projectFileBean.fileType == ProjectFileBean.PROJECT_FILE_TYPE_ACTIVITY) {
@@ -474,8 +479,8 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
         draggingListener = dragListener;
     }
 
-    public void setOnHistoryChangeListener(ay ayVar) {
-        historyChangeListener = ayVar;
+    public void setOnHistoryChangeListener(ay actionCallbackVar) {
+        historyChangeListener = actionCallbackVar;
     }
 
     public void setOnPropertyClickListener(Iw iw) {
@@ -577,6 +582,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
         minDist = ViewConfiguration.get(context).getScaledTouchSlop();
 
         paletteWidget.cardView.setOnClickListener(view -> widgetsCreatorManager.showWidgetsCreatorDialog(-1));
+        paletteWidget.btnEditHead.setOnClickListener(v -> laki.webide.managers.HeadEditorManager.show(getContext(), a, projectFileBean));
 
         colorSurfaceContainerHighest = ThemeUtils.getColor(deleteView, R.attr.colorSurfaceContainerHighest);
         colorCoolGreenContainer = ThemeUtils.getColor(deleteView, R.attr.colorCoolGreenContainer);
@@ -588,6 +594,22 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
     }
 
     public void b(ArrayList<ViewBean> arrayList, boolean z) {
+        if (b.endsWith(".html")) {
+            webTagCounts.clear();
+            for (ViewBean bean : arrayList) {
+                if (bean.id.contains("_")) {
+                    String prefix = bean.id.substring(0, bean.id.lastIndexOf("_"));
+                    try {
+                        int count = Integer.parseInt(bean.id.substring(bean.id.lastIndexOf("_") + 1));
+                        int currentMax = webTagCounts.getOrDefault(prefix, 0);
+                        if (count > currentMax) {
+                            webTagCounts.put(prefix, count);
+                        }
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+        }
+
         if (z) {
             cC.c(a).b(projectFileBean.getXmlName(), arrayList);
             if (historyChangeListener != null) {
@@ -966,12 +988,29 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
 
     private String generateWidgetId(ViewBean bean) {
         int type = bean.type;
-        String b2 = !bean.isCustomWidget ? wq.b(type) : widgetsCreatorManager.generateCustomWidgetId(bean.convert);
+        String b2;
+        boolean isWeb = b.endsWith(".html");
+        
+        if (isWeb && bean.convert != null && !bean.convert.isEmpty()) {
+            b2 = bean.convert.toLowerCase();
+        } else {
+            b2 = !bean.isCustomWidget ? wq.b(type) : widgetsCreatorManager.generateCustomWidgetId(bean.convert);
+        }
+        
         StringBuilder sb = new StringBuilder();
         sb.append(b2);
-        int i2 = countItems[type] + 1;
-        countItems[type] = i2;
-        sb.append(i2);
+        if (isWeb) sb.append("_");
+        
+        int count;
+        if (isWeb) {
+            count = webTagCounts.getOrDefault(b2, 0) + 1;
+            webTagCounts.put(b2, count);
+        } else {
+            count = countItems[type] + 1;
+            countItems[type] = count;
+        }
+        
+        sb.append(count);
         String sb2 = sb.toString();
         ArrayList<ViewBean> d = jC.a(a).d(b);
         while (true) {
@@ -985,11 +1024,19 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
             if (!isIdUsed) {
                 return sb2;
             }
+            
+            if (isWeb) {
+                count = webTagCounts.getOrDefault(b2, 0) + 1;
+                webTagCounts.put(b2, count);
+            } else {
+                count = countItems[type] + 1;
+                countItems[type] = count;
+            }
+            
             StringBuilder sb3 = new StringBuilder();
             sb3.append(b2);
-            int i3 = countItems[type] + 1;
-            countItems[type] = i3;
-            sb3.append(i3);
+            if (isWeb) sb3.append("_");
+            sb3.append(count);
             sb2 = sb3.toString();
         }
     }

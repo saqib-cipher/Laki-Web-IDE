@@ -180,8 +180,12 @@ public class FileUtil {
     }
 
     public static String readFileIfExist(String path) {
+        File file = new File(path);
+        if (!file.exists()) {
+            return "";
+        }
         StringBuilder sb = new StringBuilder();
-        try (FileReader fr = new FileReader(path)) {
+        try (FileReader fr = new FileReader(file)) {
             char[] buff = new char[1024];
             int length;
 

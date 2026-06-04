@@ -106,30 +106,7 @@ public class DefaultExtraMenuBean {
             }
             // This is meant to be a built-in menu including the cases below, but Aldi implemented it as a file, which is why, in some cases, certain menus appear empty.
             //start
-            case "menu", "layout", "anim", "drawable" -> {
-                String path = getPath(sc_id, menuName);
-                title = "Select a " + menuName;
-                if (menuName.equals("layout")) {
-                    for (String name : jC.b(sc_id).e()) {
-                        menus.add(name.substring(0, name.indexOf(".xml")));
-                    }
-                }
-                for (String file : FileUtil.listFiles(path, ".xml")) {
-                    menus.add(getFilename(file, ".xml"));
-                }
-            }
-            case "image" -> {
-                String path = getPath(sc_id, "drawable-xhdpi");
-                title = "Select a image";
-                for (String drawable_xhdpi : FileUtil.listFiles(path, "")) {
-                    if (drawable_xhdpi.contains(".png") || drawable_xhdpi.contains(".jpg")) {
-                        menus.add(
-                                getFilename(
-                                        drawable_xhdpi,
-                                        drawable_xhdpi.contains(".png") ? ".png" : ".jpg"));
-                    }
-                }
-            }
+
             case "til_box_mode" -> {
                 title = "Select box mode";
                 menus.addAll(Arrays.asList(uq.TIL_BOX_MODE));
@@ -199,6 +176,155 @@ public class DefaultExtraMenuBean {
             case "import" -> {
                 title = "Select language";
                 menus.addAll(Arrays.asList(uq.IMPORT_CLASS_PATH));
+            }
+            case "display" -> {
+                title = "Select display mode";
+                menus.addAll(Arrays.asList("block", "inline", "inline-block", "flex", "grid", "none"));
+            }
+            case "position" -> {
+                title = "Select position mode";
+                menus.addAll(Arrays.asList("static", "relative", "absolute", "fixed", "sticky"));
+            }
+            case "overflow" -> {
+                title = "Select overflow mode";
+                menus.addAll(Arrays.asList("visible", "hidden", "scroll", "auto"));
+            }
+            case "visibility" -> {
+                title = "Select visibility mode";
+                menus.addAll(Arrays.asList("visible", "hidden", "collapse"));
+            }
+            case "flex-direction" -> {
+                title = "Select flex direction";
+                menus.addAll(Arrays.asList("row", "row-reverse", "column", "column-reverse"));
+            }
+            case "flexbox" -> {
+                title = "Select flex mode";
+                menus.addAll(Arrays.asList("flex", "inline-flex"));
+            }
+            case "grid" -> {
+                title = "Select grid mode";
+                menus.addAll(Arrays.asList("grid", "inline-grid"));
+            }
+            case "cssVar" -> {
+                title = "Select CSS Variable";
+                try {
+                    // Force Plural 'settings' and ensure projectName is correct
+                    java.util.HashMap<String, Object> projectDetails = a.a.a.lC.b(sc_id);
+                    String projectName = a.a.a.yB.c(projectDetails, "my_ws_name");
+                    String path = android.os.Environment.getExternalStorageDirectory().getAbsolutePath() 
+                        + "/.lakiwebsites/simple/" + projectName + "/settings/variable.json";
+                    
+                    if (FileUtil.isExistFile(path)) {
+                        String content = FileUtil.readFile(path);
+                        ArrayList<String> varList = new com.google.gson.Gson().fromJson(content, 
+                            new com.google.gson.reflect.TypeToken<ArrayList<String>>(){}.getType());
+                        if (varList != null) {
+                            for (String v : varList) {
+                                if (!menus.contains(v)) menus.add(v);
+                            }
+                        }
+                    }
+                    
+                    // Always include memory-based variables to ensure display
+                    for (String v : projectDataManager.e(javaName, 2)) {
+                        if (!menus.contains(v)) menus.add(v);
+                    }
+                } catch (Exception e) {
+                    menus.addAll(projectDataManager.e(javaName, 2));
+                }
+            }
+            case "textAlign" -> {
+                title = "Select text-align";
+                menus.addAll(Arrays.asList("left", "center", "right", "justify"));
+            }
+            case "fontWeight" -> {
+                title = "Select font-weight";
+                menus.addAll(Arrays.asList("normal", "bold", "lighter", "bolder", "100", "200", "300", "400","500", "600", "700", "800","900"));
+            }
+            case "borderStyle" -> {
+                title = "Select border style";
+                menus.addAll(Arrays.asList("none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset"));
+            }
+            case "borderSide" -> {
+                title = "Select border side";
+                menus.addAll(Arrays.asList("top", "bottom", "left", "right"));
+            }
+            case "corner" -> {
+                title = "Select corner";
+                menus.addAll(Arrays.asList("top-left", "top-right", "bottom-left", "bottom-right"));
+            }
+            case "bgSize" -> {
+                title = "Select background size";
+                menus.addAll(Arrays.asList("auto", "cover", "contain", "initial", "inherit"));
+            }
+            case "bgPos" -> {
+                title = "Select background position";
+                menus.addAll(Arrays.asList("center", "top", "bottom", "left", "right", "left top", "left bottom", "right top", "right bottom"));
+            }
+            case "bgRepeat" -> {
+                title = "Select background repeat";
+                menus.addAll(Arrays.asList("repeat", "no-repeat", "repeat-x", "repeat-y", "round", "space"));
+            }
+            case "bgClip" -> {
+                title = "Select background clip";
+                menus.addAll(Arrays.asList("border-box", "padding-box", "content-box", "text"));
+            }
+            case "bgBlend" -> {
+                title = "Select background blend mode";
+                menus.addAll(Arrays.asList("normal", "multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"));
+            }
+            case "cursor" -> {
+                title = "Select cursor type";
+                menus.addAll(Arrays.asList("default", "pointer", "move", "text", "wait", "help", "progress", "not-allowed", "grab", "grabbing", "zoom-in", "zoom-out", "none"));
+            }
+            case "filterType" -> {
+                title = "Select filter function";
+                menus.addAll(Arrays.asList("blur", "brightness", "contrast", "grayscale", "hue-rotate", "invert", "opacity", "saturate", "sepia"));
+            }
+            case "timing" -> {
+                title = "Select timing function";
+                menus.addAll(Arrays.asList("linear", "ease", "ease-in", "ease-out", "ease-in-out", "step-start", "step-end"));
+            }
+            case "animDirection" -> {
+                title = "Select animation direction";
+                menus.addAll(Arrays.asList("normal", "reverse", "alternate", "alternate-reverse"));
+            }
+            case "animFill" -> {
+                title = "Select fill mode";
+                menus.addAll(Arrays.asList("none", "forwards", "backwards", "both"));
+            }
+            case "mediaCondition" -> {
+                title = "Select media condition";
+                menus.addAll(Arrays.asList("max-width", "min-width", "max-height", "min-height", "aspect-ratio"));
+            }
+            case "mediaOrientation" -> {
+                title = "Select orientation";
+                menus.addAll(Arrays.asList("portrait", "landscape"));
+            }
+            case "webImage" -> {
+                title = "Select project image";
+                try {
+                    java.util.HashMap<String, Object> projectDetails = a.a.a.lC.b(sc_id);
+                    String projectName = a.a.a.yB.c(projectDetails, "my_ws_name");
+                    String imgPath = android.os.Environment.getExternalStorageDirectory().getAbsolutePath() 
+                        + "/.lakiwebsites/simple/" + projectName + "/assets/images";
+                    
+                    java.io.File folder = new java.io.File(imgPath);
+                    if (folder.exists() && folder.isDirectory()) {
+                        java.io.File[] files = folder.listFiles();
+                        if (files != null) {
+                            for (java.io.File f : files) {
+                                String name = f.getName();
+                                // Add common image formats
+                                if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".svg") || name.endsWith(".webp")) {
+                                    menus.add(name);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    menus.add("--error-scanning-assets");
+                }
             }
             //end
         }

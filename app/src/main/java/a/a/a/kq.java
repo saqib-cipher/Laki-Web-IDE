@@ -7,6 +7,8 @@ import android.view.ContextThemeWrapper;
 
 import laki.webide.R;
 import laki.webide.SketchApplication;
+import laki.webide.blockSystem.core.BlockPaletteManager;
+import laki.webide.blockSystem.core.ModularBlockDefinition;
 import laki.webide.menu.DefaultExtraMenuBean;
 
 public class kq {
@@ -16,6 +18,15 @@ public class kq {
     }
 
     public static int a(Context context, String opcode, String blockType) {
+        // --- MODULAR BLOCK IDENTITY SHIELD ---
+        // We return Purple (0xff8a55d7) here to tell the engine this is a "Custom Block".
+        // This stops the engine from wiping our labels and parameter holes.
+        // The actual custom color is applied later in the creation pipeline.
+        if (laki.webide.blockSystem.core.BlockPaletteManager.getBlockByOpCode(opcode) != null) {
+            return 0xff8a55d7;
+        }
+        // -------------------------------------
+
         int viewType = harmonizeWithPrimary(context, 0xff4a6cd4);
 
         if (blockType.equals("h")) {

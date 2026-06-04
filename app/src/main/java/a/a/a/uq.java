@@ -336,6 +336,9 @@ public class uq {
             "java.sql.*"
     };
 
+    public static final String[] CSS_DISPLAY = {"block", "inline", "inline-block", "flex", "grid", "none"};
+    public static final String[] CSS_POSITION = {"static", "relative", "absolute", "fixed", "sticky"};
+
     public static String[] a() {
         return m;
     }

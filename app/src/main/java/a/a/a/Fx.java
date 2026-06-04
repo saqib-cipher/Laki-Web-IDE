@@ -18,6 +18,8 @@ import mod.hey.studios.editor.manage.block.ExtraBlockInfo;
 import mod.hey.studios.editor.manage.block.v2.BlockLoader;
 import mod.hey.studios.moreblock.ReturnMoreblockManager;
 import mod.pranav.viewbinding.ViewBindingBuilder;
+import laki.webide.blockSystem.core.BlockPaletteManager;
+import laki.webide.blockSystem.core.ModularBlockDefinition;
 
 public class Fx {
 
@@ -238,6 +240,15 @@ public class Fx {
     }
 
     private String getBlockCode(BlockBean bean, ArrayList<String> params) {
+        // --- MODULAR BLOCK INTEGRATION ---
+        ModularBlockDefinition def = BlockPaletteManager.getBlockByOpCode(bean.opCode);
+        if (def != null) {
+            String subStack1 = bean.subStack1 >= 0 ? a(String.valueOf(bean.subStack1), "") : "";
+            String subStack2 = bean.subStack2 >= 0 ? a(String.valueOf(bean.subStack2), "") : "";
+            return def.generateCode(params, subStack1, subStack2);
+        }
+        // ---------------------------------
+
         String opcode = "";
         switch (bean.opCode) {
             case "definedFunc":
@@ -392,6 +403,14 @@ public class Fx {
                 stack = bean.subStack2;
                 String elseBlock = stack >= 0 ? a(String.valueOf(stack), "") : "";
                 opcode = String.format("if (%s) {\r\n%s\r\n} else {\r\n%s\r\n}", params.get(0), ifBlock, elseBlock);
+                break;
+            case "cssClassSelector":
+                stack = bean.subStack1;
+                opcode = String.format(".%s {\r\n%s\r\n}", params.get(0), stack >= 0 ? a(String.valueOf(stack), "") : "");
+                break;
+            case "cssIdSelector":
+                stack = bean.subStack1;
+                opcode = String.format("#%s {\r\n%s\r\n}", params.get(0), stack >= 0 ? a(String.valueOf(stack), "") : "");
                 break;
             case "break":
                 opcode = "break;";
@@ -1468,6 +1487,23 @@ public class Fx {
             parameters.add(a(String.valueOf(blockBean.subStack2), var2));
         } else {
             parameters.add(" ");
+        }
+
+        // --- MODULAR BLOCK SYSTEM INTEGRATION ---
+        laki.webide.blockSystem.core.ModularBlockDefinition modularDef = laki.webide.blockSystem.core.BlockPaletteManager.getBlockByOpCode(blockBean.opCode);
+        if (modularDef != null) {
+            String sub1 = (blockBean.subStack1 >= 0) ? a(String.valueOf(blockBean.subStack1), var2) : "";
+            String sub2 = (blockBean.subStack2 >= 0) ? a(String.valueOf(blockBean.subStack2), var2) : "";
+            
+            ArrayList<String> cleanParams = new ArrayList<>();
+            for (String p : parameters) {
+                if (p.startsWith("\"") && p.endsWith("\"")) {
+                    cleanParams.add(p.substring(1, p.length() - 1));
+                } else {
+                    cleanParams.add(p);
+                }
+            }
+            return modularDef.generateCode(cleanParams, sub1, sub2);
         }
 
         ExtraBlockInfo blockInfo = BlockLoader.getBlockInfo(blockBean.opCode);

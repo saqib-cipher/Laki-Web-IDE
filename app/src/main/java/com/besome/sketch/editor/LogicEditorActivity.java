@@ -84,33 +84,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
-import a.a.a.DB;
-import a.a.a.FB;
-import a.a.a.Fx;
-import a.a.a.GB;
-import a.a.a.MA;
-import a.a.a.Mp;
-import a.a.a.NB;
-import a.a.a.Ox;
-import a.a.a.Pp;
-import a.a.a.Rs;
-import a.a.a.Ss;
-import a.a.a.Ts;
-import a.a.a.Us;
-import a.a.a.Vs;
-import a.a.a.ZB;
-import a.a.a.bC;
-import a.a.a.eC;
-import a.a.a.jC;
-import a.a.a.jq;
-import a.a.a.kC;
-import a.a.a.mB;
-import a.a.a.sq;
-import a.a.a.uq;
-import a.a.a.wB;
-import a.a.a.xB;
-import a.a.a.yq;
+import a.a.a.*;
+import laki.webide.ProjectWorkspace;
+import laki.webide.managers.WebProjectSyncManager;
 import dev.aldi.sayuti.block.ExtraPaletteBlock;
+import laki.webide.compiler.CssCodeGenerator;
+import laki.webide.validator.CssVariableValidator;
+import laki.webide.beans.CssLogicData;
+import laki.webide.managers.CssLogicPersistenceManager;
+import laki.webide.blockSystem.core.BlockSystemInitializer;
 import mod.bobur.VectorDrawableLoader;
 import mod.hey.studios.editor.view.IdGenerator;
 import mod.hey.studios.moreblock.ReturnMoreblockManager;
@@ -128,6 +110,9 @@ import laki.webide.activities.resourceseditor.ResourcesEditorActivity;
 import laki.webide.databinding.ImagePickerItemBinding;
 import laki.webide.databinding.SearchWithRecyclerViewBinding;
 import laki.webide.menu.ExtraMenuBean;
+import laki.webide.blockSystem.core.BlockPaletteManager;
+import laki.webide.blockSystem.core.ModularBlockDefinition;
+import laki.webide.blockSystem.MakeBlock;
 import laki.webide.utility.FilePathUtil;
 import laki.webide.utility.SvgUtils;
 
@@ -192,7 +177,19 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 
     private void loadEventBlocks() {
         crashlytics.log("Loading event blocks");
-        ArrayList<BlockBean> eventBlocks = jC.a(scId).a(M.getJavaName(), id + "_" + eventName);
+        
+        ArrayList<BlockBean> eventBlocks;
+        if (laki.webide.events.ExtCSS.isMatch(id)) {
+            CssLogicData customData = CssLogicPersistenceManager.load(scId, M.getJavaName());
+            eventBlocks = customData.blocks;
+            // Ensure variables are restored to memory for the sidebar
+            for (String var : customData.variables) {
+                jC.a(scId).c(M.getJavaName(), 2, var);
+            }
+        } else {
+            eventBlocks = jC.a(scId).a(M.getJavaName(), id + "_" + eventName);
+        }
+
         if (eventBlocks != null) {
             if (eventBlocks.isEmpty()) {
                 runOnUiThread(() -> e(X));
@@ -238,13 +235,19 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
                                 Rs parameterBlock = blockIdsAndBlocks.get(Integer.valueOf(parameter.substring(1)));
                                 if (parameterBlock != null) {
                                     int finalI = i;
-                                    runOnUiThread(() -> block.a((Ts) block.V.get(finalI), parameterBlock));
+                                    runOnUiThread(() -> {
+                                        if (finalI < block.V.size()) {
+                                            block.a((Ts) block.V.get(finalI), parameterBlock);
+                                        }
+                                    });
                                 }
                             } else {
                                 int finalI = i;
                                 runOnUiThread(() -> {
-                                    ((Ss) block.V.get(finalI)).setArgValue(parameter);
-                                    block.m();
+                                    if (finalI < block.V.size()) {
+                                        ((Ss) block.V.get(finalI)).setArgValue(parameter);
+                                        block.m();
+                                    }
                                 });
                             }
                         }
@@ -298,9 +301,13 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
                     }
                 }
             }
+            if (laki.webide.events.HTMLHead.EVENT_ID.equals(id) || laki.webide.events.ExtCSS.EVENT_ID.equals(id)) {
+                E();
+            }
             invalidateOptionsMenu();
         }
     }
+
 
     public void C() {
         invalidateOptionsMenu();
@@ -309,7 +316,20 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
     public void E() {
         eC a2 = jC.a(scId);
         String javaName = M.getJavaName();
-        a2.a(javaName, id + "_" + eventName, o.getBlocks());
+        ArrayList<BlockBean> blocks = o.getBlocks();
+        a2.a(javaName, id + "_" + eventName, blocks);
+
+        if (laki.webide.events.HTMLHead.EVENT_ID.equals(id) || laki.webide.events.ExtCSS.EVENT_ID.equals(id)) {
+            if (laki.webide.events.ExtCSS.isMatch(id)) {
+                // Independent persistence for CSS
+                ArrayList<String> cssVars = a2.e(javaName, 2);
+                CssLogicPersistenceManager.save(scId, javaName, blocks, cssVars);
+            }
+            // FORCE COMMIT: Write the blocks to project.json immediately
+            a2.j();
+            a2.k(); // Ensure variables and event registration are also saved
+            WebProjectSyncManager.syncCurrentFile(getApplicationContext(), scId, M);
+        }
     }
 
     public void G() {
@@ -347,18 +367,35 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
         View customView = wB.a(this, R.layout.logic_popup_add_variable);
         RadioGroup radioGroup = customView.findViewById(R.id.rg_type);
         TextInputEditText editText = customView.findViewById(R.id.ed_input);
-        ZB nameValidator = new ZB(getContext(), customView.findViewById(R.id.ti_input), uq.b, uq.a(), jC.a(scId).a(M));
+        
+        boolean isCss = laki.webide.events.ExtCSS.isMatch(id);
+        if (isCss) {
+            radioGroup.setVisibility(View.GONE);
+            // In CSS context, we use index 2 (String type) for simplicity as it's just a variable
+        }
+
+        a.a.a.MB nameValidator;
+        if (isCss) {
+            nameValidator = new CssVariableValidator(getContext(), customView.findViewById(R.id.ti_input), jC.a(scId).a(M));
+        } else {
+            nameValidator = new ZB(getContext(), customView.findViewById(R.id.ti_input), uq.b, uq.a(), jC.a(scId).a(M));
+        }
+        
         dialog.setView(customView);
         dialog.setPositiveButton(R.string.common_word_add, (v, which) -> {
             int variableType = 1;
-            if (radioGroup.getCheckedRadioButtonId() == R.id.rb_boolean) {
-                variableType = 0;
-            } else if (radioGroup.getCheckedRadioButtonId() != R.id.rb_int) {
-                if (radioGroup.getCheckedRadioButtonId() == R.id.rb_string) {
-                    variableType = 2;
-                } else if (radioGroup.getCheckedRadioButtonId() == R.id.rb_map) {
-                    variableType = 3;
+            if (!isCss) {
+                if (radioGroup.getCheckedRadioButtonId() == R.id.rb_boolean) {
+                    variableType = 0;
+                } else if (radioGroup.getCheckedRadioButtonId() != R.id.rb_int) {
+                    if (radioGroup.getCheckedRadioButtonId() == R.id.rb_string) {
+                        variableType = 2;
+                    } else if (radioGroup.getCheckedRadioButtonId() == R.id.rb_map) {
+                        variableType = 3;
+                    }
                 }
+            } else {
+                variableType = 2; // Default to String type for CSS variables
             }
 
             if (nameValidator.b()) {
@@ -496,7 +533,9 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
                     }
                 }
             }
-
+            if (laki.webide.events.HTMLHead.EVENT_ID.equals(id) || laki.webide.events.ExtCSS.EVENT_ID.equals(id)) {
+                E();
+            }
             invalidateOptionsMenu();
         }
     }
@@ -514,7 +553,19 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
     }
 
     public View a(String str, String str2) {
-        Ts a2 = m.a("", str, str2);
+        String spec = MakeBlock.getWebSpec(str2);
+        if (spec == null || spec.isEmpty()) {
+            spec = xB.b().a(getContext(), str2);
+        }
+        Ts a2 = m.a(spec, str, str2);
+        // --- MODULAR COLOR APPLY ---
+        if (a2 instanceof Rs block) {
+            ModularBlockDefinition def = BlockPaletteManager.getBlockByOpCode(str2);
+            if (def != null) {
+                block.e = def.getColor();
+                block.k();
+            }
+        }
         a2.setTag(str2);
         a2.setClickable(true);
         a2.setOnTouchListener(this);
@@ -667,6 +718,9 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 
     public void a(int i, String str) {
         jC.a(scId).b(M.getJavaName(), i, str);
+        if (laki.webide.events.ExtCSS.isMatch(id)) {
+            E(); // Force save metadata for CSS lists
+        }
         a(1, 0xffcc5b22);
     }
 
@@ -929,29 +983,6 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
                                             eC.g(xmlName, ViewBean.VIEW_TYPE_WIDGET_SPINNER, parameter);
                                             break;
 
-                                        case "webview":
-                                            eC.g(xmlName, ViewBean.VIEW_TYPE_WIDGET_WEBVIEW, parameter);
-                                            break;
-
-                                        case "switch":
-                                            eC.g(xmlName, ViewBean.VIEW_TYPE_WIDGET_SWITCH, parameter);
-                                            break;
-
-                                        case "progressbar":
-                                            eC.g(xmlName, ViewBean.VIEW_TYPE_WIDGET_PROGRESSBAR, parameter);
-                                            break;
-
-                                        case "mapview":
-                                            eC.g(xmlName, ViewBean.VIEW_TYPE_WIDGET_MAPVIEW, parameter);
-                                            break;
-
-                                        case "intent":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_INTENT, parameter);
-                                            break;
-
-                                        case "file":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_SHAREDPREF, parameter);
-                                            break;
 
                                         case "calendar":
                                             eC.d(javaName, ComponentBean.COMPONENT_TYPE_CALENDAR, parameter);
@@ -959,62 +990,6 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 
                                         case "timer":
                                             eC.d(javaName, ComponentBean.COMPONENT_TYPE_TIMERTASK, parameter);
-                                            break;
-
-                                        case "vibrator":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_VIBRATOR, parameter);
-                                            break;
-
-                                        case "dialog":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_DIALOG, parameter);
-                                            break;
-
-                                        case "mediaplayer":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_MEDIAPLAYER, parameter);
-                                            break;
-
-                                        case "soundpool":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_SOUNDPOOL, parameter);
-                                            break;
-
-                                        case "objectanimator":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_OBJECTANIMATOR, parameter);
-                                            break;
-
-                                        case "firebase":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_FIREBASE, parameter);
-                                            break;
-
-                                        case "firebaseauth":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_FIREBASE_AUTH, parameter);
-                                            break;
-
-                                        case "firebasestorage":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_FIREBASE_STORAGE, parameter);
-                                            break;
-
-                                        case "gyroscope":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_GYROSCOPE, parameter);
-                                            break;
-
-                                        case "interstitialad":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_INTERSTITIAL_AD, parameter);
-                                            break;
-
-                                        case "requestnetwork":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_REQUEST_NETWORK, parameter);
-                                            break;
-
-                                        case "texttospeech":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_TEXT_TO_SPEECH, parameter);
-                                            break;
-
-                                        case "speechtotext":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_SPEECH_TO_TEXT, parameter);
-                                            break;
-
-                                        case "bluetoothconnect":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_BLUETOOTH_CONNECT, parameter);
                                             break;
 
                                         case "locationmanager":
@@ -1047,66 +1022,6 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
                                                 if (parameter.equals(str)) {
                                                 }
                                             }
-                                            break;
-
-                                        case "videoad":
-                                            eC.d(xmlName, ComponentBean.COMPONENT_TYPE_REWARDED_VIDEO_AD, parameter);
-                                            break;
-
-                                        case "progressdialog":
-                                            eC.d(xmlName, ComponentBean.COMPONENT_TYPE_PROGRESS_DIALOG, parameter);
-                                            break;
-
-                                        case "datepickerdialog":
-                                            eC.d(xmlName, ComponentBean.COMPONENT_TYPE_DATE_PICKER_DIALOG, parameter);
-                                            break;
-
-                                        case "timepickerdialog":
-                                            eC.d(xmlName, ComponentBean.COMPONENT_TYPE_TIME_PICKER_DIALOG, parameter);
-                                            break;
-
-                                        case "notification":
-                                            eC.d(xmlName, ComponentBean.COMPONENT_TYPE_NOTIFICATION, parameter);
-                                            break;
-
-                                        case "radiobutton":
-                                            eC.g(xmlName, 19, parameter);
-                                            break;
-
-                                        case "ratingbar":
-                                            eC.g(xmlName, 20, parameter);
-                                            break;
-
-                                        case "videoview":
-                                            eC.g(xmlName, 21, parameter);
-                                            break;
-
-                                        case "searchview":
-                                            eC.g(xmlName, 22, parameter);
-                                            break;
-
-                                        case "actv":
-                                            eC.g(xmlName, 23, parameter);
-                                            break;
-
-                                        case "mactv":
-                                            eC.g(xmlName, 24, parameter);
-                                            break;
-
-                                        case "gridview":
-                                            eC.g(xmlName, 25, parameter);
-                                            break;
-
-                                        case "tablayout":
-                                            eC.g(xmlName, 30, parameter);
-                                            break;
-
-                                        case "viewpager":
-                                            eC.g(xmlName, 31, parameter);
-                                            break;
-
-                                        case "bottomnavigation":
-                                            eC.g(xmlName, 32, parameter);
                                             break;
 
                                         case "badgeview":
@@ -1252,7 +1167,40 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
     }
 
     public void b(int i, String str) {
-        jC.a(scId).c(M.getJavaName(), i, str);
+        String varName = str;
+        if (laki.webide.events.ExtCSS.isMatch(id) && !varName.startsWith("--")) {
+            varName = "--" + varName;
+        }
+        
+        // --- WEB IDE: PERSISTENT JSON STORAGE ---
+        if (laki.webide.events.ExtCSS.isMatch(id)) {
+            try {
+                java.util.HashMap<String, Object> projectDetails = a.a.a.lC.b(scId);
+                String projectName = a.a.a.yB.c(projectDetails, "my_ws_name");
+                String path = android.os.Environment.getExternalStorageDirectory().getAbsolutePath() 
+                    + "/.lakiwebsites/simple/" + projectName + "/settings/variable.json";
+                
+                java.util.ArrayList<String> varList = new java.util.ArrayList<>();
+                if (laki.webide.utility.FileUtil.isExistFile(path)) {
+                    String content = laki.webide.utility.FileUtil.readFile(path);
+                    varList = new com.google.gson.Gson().fromJson(content, 
+                        new com.google.gson.reflect.TypeToken<java.util.ArrayList<String>>(){}.getType());
+                }
+                
+                if (!varList.contains(varName)) {
+                    varList.add(varName);
+                    laki.webide.utility.FileUtil.writeFile(path, new com.google.gson.Gson().toJson(varList));
+                }
+            } catch (Exception e) {
+                LogUtil.e("WebVarSave", "Failed to save to variable.json", e);
+            }
+        }
+        // ----------------------------------------
+
+        jC.a(scId).c(M.getJavaName(), i, varName);
+        if (laki.webide.events.ExtCSS.isMatch(id)) {
+            E(); // Force save metadata for CSS variables
+        }
         a(0, 0xffee7d16);
     }
 
@@ -1603,6 +1551,9 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 
     @Override
     public void finish() {
+        if (laki.webide.events.ExtCSS.isMatch(id)) {
+            E(); // Final force save for Web IDE events
+        }
         bC.d(scId).b(s());
         super.finish();
     }
@@ -1796,6 +1747,9 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 
     public void m(String str) {
         jC.a(scId).p(M.getJavaName(), str);
+        if (laki.webide.events.ExtCSS.isMatch(id)) {
+            E(); // Force save metadata for CSS variables after removal
+        }
         a(0, 0xffee7d16);
     }
 
@@ -1853,6 +1807,9 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
         if (X) {
             e(false);
             return;
+        }
+        if (laki.webide.events.HTMLHead.isMatch(id) || laki.webide.events.ExtCSS.isMatch(id)) {
+            E(); // Force synchronous save for Web IDE events
         }
         k();
         if (!p()) {
@@ -1951,10 +1908,34 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
         K = findViewById(R.id.area_palette);
         openBlocksMenuButton = findViewById(R.id.fab_toggle_palette);
         openBlocksMenuButton.setOnClickListener(v -> e(!X));
-        logicTopMenu = findViewById(R.id.top_menu);
-        O = findViewById(R.id.right_drawer);
-        findViewById(R.id.search_header).setOnClickListener(v -> paletteSelector.showSearchDialog());
+//        logicTopMenu = findViewById(R.id.top_menu);
+//        O = findViewById(R.id.right_drawer);
+//        findViewById(R.id.search_header).setOnClickListener(v -> paletteSelector.showSearchDialog());
         extraPaletteBlock = new ExtraPaletteBlock(this, isViewBindingEnabled);
+
+        // Initialize the Modular Block System
+        BlockSystemInitializer.initialize();
+
+        // --- WEB IDE PERSISTENCE FIX ---
+        if (laki.webide.events.ExtCSS.isMatch(id) || laki.webide.events.HTMLHead.isMatch(id)) {
+            boolean eventExists = false;
+            for (com.besome.sketch.beans.EventBean event : jC.a(scId).g(M.getJavaName())) {
+                if (id.equals(event.eventName)) {
+                    eventExists = true;
+                    break;
+                }
+            }
+            if (!eventExists) {
+                com.besome.sketch.beans.EventBean newEvent = laki.webide.events.ExtCSS.isMatch(id) ? 
+                        laki.webide.events.ExtCSS.getEventBean() : laki.webide.events.HTMLHead.getEventBean();
+                jC.a(scId).a(M.getJavaName(), newEvent);
+                jC.a(scId).k(); // Commit the registration
+            }
+            
+            if (laki.webide.events.ExtCSS.isMatch(id)) {
+                extraPaletteBlock.setBlock(0, 0); 
+            }
+        }
 
         svgUtils = new SvgUtils(this);
     }
@@ -2028,6 +2009,14 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        if (laki.webide.events.HTMLHead.isMatch(id) || laki.webide.events.ExtCSS.isMatch(id)) {
+            E(); // Ensure save when leaving the activity for Web IDE events
+        }
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         if (!super.isStoragePermissionGranted()) {
@@ -2046,7 +2035,8 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
         eC a2 = jC.a(scId);
         String javaName = M.getJavaName();
         a2.a(javaName, id + "_" + eventName, blocks);
-        jC.a(scId).k();
+        a2.j(); // FORCE SAVE LOGIC BLOCKS
+        a2.k(); // FORCE SAVE VARIABLES
     }
 
     @Override
@@ -2453,13 +2443,22 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
     }
 
     public void showSourceCode() {
-        yq yq = new yq(this, scId);
-        yq.a(jC.c(scId), jC.b(scId), jC.a(scId));
-        String code = new Fx(M.getActivityName(), yq.N, o.getBlocks(), isViewBindingEnabled).a();
+        ProjectWorkspace workspace = new ProjectWorkspace(this, scId);
+        // We only need the 'N' (jq) object from workspace for code generation.
+        // workspace.a(...) is not needed for preview and causes crashes in web projects.
+        
+        Fx generator;
+        if (laki.webide.events.ExtCSS.isMatch(id)) {
+            generator = new CssCodeGenerator(M.getActivityName(), workspace.N, o.getBlocks(), isViewBindingEnabled);
+        } else {
+            generator = new Fx(M.getActivityName(), workspace.N, o.getBlocks(), isViewBindingEnabled);
+        }
+        
+        String code = generator.a();
         var intent = new Intent(this, CodeViewerActivity.class);
         intent.putExtra("code", code);
         intent.putExtra("sc_id", scId);
-        intent.putExtra("scheme", CodeViewerActivity.SCHEME_JAVA);
+        intent.putExtra("scheme", laki.webide.events.ExtCSS.isMatch(id) ? CodeViewerActivity.SCHEME_CSS : CodeViewerActivity.SCHEME_JAVA);
         startActivity(intent);
     }
 

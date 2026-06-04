@@ -16,6 +16,8 @@ public class CodeViewerActivity extends BaseAppCompatActivity {
 
     public static final String SCHEME_XML = "xml";
     public static final String SCHEME_JAVA = "java";
+    public static final String SCHEME_HTML = "html";
+    public static final String SCHEME_CSS = "css";
 
     private ActivityCodeViewerBinding binding;
 
@@ -46,7 +48,7 @@ public class CodeViewerActivity extends BaseAppCompatActivity {
     }
 
     private void loadColorScheme(String scheme) {
-        if (scheme.equals(SCHEME_XML)) {
+        if (scheme.equals(SCHEME_XML) || scheme.equals(SCHEME_HTML)) {
             EditorUtils.loadXmlConfig(binding.editor);
         } else {
             EditorUtils.loadJavaConfig(binding.editor);

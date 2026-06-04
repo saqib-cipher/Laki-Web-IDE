@@ -27,7 +27,7 @@ import java.util.Objects;
 
 import a.a.a.jC;
 import a.a.a.wB;
-import a.a.a.yq;
+import laki.webide.ProjectWorkspace;
 import mod.hey.studios.code.SrcCodeEditor;
 import mod.hey.studios.util.Helper;
 import mod.hilal.saif.android_manifest.AndroidManifestInjector;
@@ -339,7 +339,7 @@ public class AndroidManifestInjection extends BaseAppCompatActivity {
     private void showQuickManifestSourceDialog() {
         k();
         new Thread(() -> {
-            String source = new yq(getApplicationContext(), sc_id).getFileSrc("AndroidManifest.xml", jC.b(sc_id), jC.a(sc_id), jC.c(sc_id));
+            String source = new ProjectWorkspace(getApplicationContext(), sc_id).getFileSrc("AndroidManifest.xml", jC.b(sc_id), jC.a(sc_id), jC.c(sc_id));
 
             runOnUiThread(() -> {
                 if (isFinishing()) return;

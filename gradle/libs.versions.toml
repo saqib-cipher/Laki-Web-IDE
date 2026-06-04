@@ -21,8 +21,6 @@ glide = "5.0.4"
 gson = "2.13.1"
 insetter = "0.6.1"
 javaparserSymbolSolver = "3.25.3"
-kotlincForSketchware = "2.1.21_rc3"
-kotlinCompiler = "2.1.21"
 lottie = "6.6.7"
 material = "1.14.0-alpha05"
 nbJavacAndroid = "17.0.0.3"
@@ -86,11 +84,6 @@ markwon = { module = "io.noties.markwon:core", version.ref = "markwon" }
 ecj = { module = "org.eclipse.jdt:ecj", version.ref = "ecj" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 
-kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler", version.ref = "kotlinCompiler" }
-kotlinc-for1-sketchware = { module = "com.github.waelchateur:kotlinc-for-sketchware", version.ref = "kotlincForSketchware" }
-
-nb-javac-android = { module = "io.github.itsaky:nb-javac-android", version.ref = "nbJavacAndroid" }
-
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 
@@ -118,6 +111,5 @@ coil = ["coil", "coil-kt-coil-svg"]
 networking = ["okhttp", "okio"]
 bundletool = ["bundletool", "protobuf-java"]
 shrinker = ["r8", "proguard-core"]
-kotlin_compiler = ["kotlinc-for1-sketchware", "nb-javac-android", "woodstox-core"]
 editor_and_lang = ["editor", "language-java", "language-textmate"]
 firebase = ["firebase-analytics", "firebase-crashlytics", "firebase-messaging"]

@@ -35,9 +35,15 @@ public class PropertyColorItem extends RelativeLayout implements View.OnClickLis
     private View propertyMenuItem;
     private Kw valueChangeListener;
 
+    private boolean isWeb = false;
+
     public PropertyColorItem(Context context, boolean z) {
         super(context);
         initialize(context, z);
+    }
+
+    public void setWeb(boolean web) {
+        isWeb = web;
     }
 
     public PropertyColorItem(Context context, boolean z, String scId) {
@@ -53,15 +59,19 @@ public class PropertyColorItem extends RelativeLayout implements View.OnClickLis
     public void setKey(String key) {
         this.key = key;
         int identifier = getResources().getIdentifier(key, "string", getContext().getPackageName());
-        if (identifier > 0) {
-            tvName.setText(Helper.getResString(identifier));
-            if (propertyMenuItem.getVisibility() == VISIBLE) {
-                ((ImageView) findViewById(R.id.img_icon)).setImageResource(R.drawable.ic_mtrl_palette);
-                ((TextView) findViewById(R.id.tv_title)).setText(Helper.getResString(identifier));
-                return;
-            }
-            imgLeftIcon.setImageResource(R.drawable.ic_mtrl_palette);
+        String name = identifier > 0 ? Helper.getResString(identifier) : key;
+
+        if (isWeb && key.equals("property_hint_color")) {
+            name = "Placeholder Color";
         }
+
+        tvName.setText(name);
+        if (propertyMenuItem.getVisibility() == VISIBLE) {
+            ((ImageView) findViewById(R.id.img_icon)).setImageResource(R.drawable.ic_mtrl_palette);
+            ((TextView) findViewById(R.id.tv_title)).setText(name);
+            return;
+        }
+        imgLeftIcon.setImageResource(R.drawable.ic_mtrl_palette);
     }
 
     public int getValue() {

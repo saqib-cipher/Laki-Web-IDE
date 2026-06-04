@@ -29,8 +29,12 @@ import java.util.ArrayList;
 
 import mod.hey.studios.util.Helper;
 import laki.webide.R;
+import laki.webide.WidgetShowCased;
 import laki.webide.utility.SketchwareUtil;
 import laki.webide.widgets.WidgetsCreatorManager;
+import laki.webide.managers.WebProjectSyncManager;
+import laki.webide.compiler.HtmlParser;
+import laki.webide.ProjectWorkspace;
 
 public class ViewEditorFragment extends qA {
 
@@ -71,11 +75,15 @@ public class ViewEditorFragment extends qA {
             a(viewBean.id);
             viewProperty.e();
             invalidateOptionsMenu();
+            if (requireActivity() instanceof DesignActivity designActivity) {
+                WebProjectSyncManager.syncCurrentFile(designActivity.getProjectWorkspace(), sc_id, projectFileBean);
+            }
         });
         viewProperty.setOnPropertyDeleted(viewBean -> {
             viewEditor.deleteWidget(viewBean);
             if (requireActivity() instanceof DesignActivity designActivity) {
                 designActivity.hideViewPropertyView();
+                WebProjectSyncManager.syncCurrentFile(designActivity.getProjectWorkspace(), sc_id, projectFileBean);
             }
             SketchwareUtil.toast(Helper.getResString(R.string.common_word_deleted));
         });
@@ -128,7 +136,12 @@ public class ViewEditorFragment extends qA {
                 ((DesignActivity) requireActivity()).setTouchEventEnabled(true);
             }
         });
-        viewEditor.setOnHistoryChangeListener(this::invalidateOptionsMenu);
+        viewEditor.setOnHistoryChangeListener(() -> {
+            invalidateOptionsMenu();
+            if (requireActivity() instanceof DesignActivity designActivity) {
+                WebProjectSyncManager.syncCurrentFile(designActivity.getProjectWorkspace(), sc_id, projectFileBean);
+            }
+        });
         viewEditor.setFavoriteData(Rp.h().f());
     }
 
@@ -221,75 +234,7 @@ public class ViewEditorFragment extends qA {
     }
 
     public void e() {
-        viewEditor.removeWidgetsAndLayouts();
-        viewEditor.setPaletteLayoutVisible(View.VISIBLE);
-        viewEditor.addWidgetLayout(PaletteWidget.a.a, "");
-        viewEditor.addWidgetLayout(PaletteWidget.a.b, "");
-        viewEditor.addWidget(PaletteWidget.b.b, "", "TextView", "TextView");
-        viewEditor.addWidgetLayout(PaletteWidget.a.c, "");
-        viewEditor.addWidgetLayout(PaletteWidget.a.d, "");
-        viewEditor.extraWidgetLayout("", "RadioGroup");
-        viewEditor.extraWidgetLayout("", "RelativeLayout");
-        widgetsCreatorManager.addWidgetsByTitle("Layouts");
-
-        viewEditor.paletteWidget.extraTitle("AndroidX", 0);
-        viewEditor.extraWidgetLayout("", "TabLayout");
-        viewEditor.extraWidgetLayout("", "BottomNavigationView");
-        viewEditor.extraWidgetLayout("", "CollapsingToolbarLayout");
-        viewEditor.extraWidgetLayout("", "CardView");
-        viewEditor.extraWidgetLayout("", "TextInputLayout");
-        viewEditor.extraWidgetLayout("", "SwipeRefreshLayout");
-        widgetsCreatorManager.addWidgetsByTitle("AndroidX");
-
-        viewEditor.addWidget(PaletteWidget.b.c, "", "EditText", "Edit Text");
-        viewEditor.extraWidget("", "AutoCompleteTextView", "AutoCompleteTextView");
-        viewEditor.extraWidget("", "MultiAutoCompleteTextView", "MultiAutoCompleteTextView");
-        viewEditor.addWidget(PaletteWidget.b.a, "", "Button", "Button");
-        viewEditor.extraWidget("", "MaterialButton", "MaterialButton");
-        viewEditor.addWidget(PaletteWidget.b.d, "", "ImageView", "default_image");
-        viewEditor.extraWidget("", "CircleImageView", "default_image");
-        viewEditor.addWidget(PaletteWidget.b.g, "", "CheckBox", "CheckBox");
-        viewEditor.extraWidget("", "RadioButton", "RadioButton");
-        viewEditor.addWidget(PaletteWidget.b.i, "", "Switch", "Switch");
-        viewEditor.addWidget(PaletteWidget.b.j, "", "SeekBar", "SeekBar");
-        viewEditor.addWidget(PaletteWidget.b.m, "", "ProgressBar", "ProgressBar");
-        viewEditor.extraWidget("", "RatingBar", "RatingBar");
-        viewEditor.extraWidget("", "SearchView", "SearchView");
-        viewEditor.extraWidget("", "VideoView", "VideoView");
-        viewEditor.addWidget(PaletteWidget.b.h, "", "WebView", "WebView");
-        widgetsCreatorManager.addWidgetsByTitle("Widgets");
-
-        viewEditor.paletteWidget.extraTitle("List", 1);
-        viewEditor.addWidget(PaletteWidget.b.e, "", "ListView", "ListView");
-        viewEditor.extraWidget("", "GridView", "GridView");
-        viewEditor.extraWidget("", "RecyclerView", "RecyclerView");
-        viewEditor.addWidget(PaletteWidget.b.f, "", "Spinner", "Spinner");
-        viewEditor.extraWidget("", "ViewPager", "ViewPager");
-        widgetsCreatorManager.addWidgetsByTitle("List");
-
-        viewEditor.paletteWidget.extraTitle("Library", 1);
-        viewEditor.extraWidget("", "WaveSideBar", "WaveSideBar");
-        viewEditor.extraWidget("", "PatternLockView", "PatternLockView");
-        viewEditor.extraWidget("", "CodeView", "CodeView");
-        viewEditor.extraWidget("", "LottieAnimation", "LottieAnimation");
-        viewEditor.extraWidget("", "OTPView", "OTPView");
-        widgetsCreatorManager.addWidgetsByTitle("Library");
-
-        viewEditor.paletteWidget.extraTitle("Google", 1);
-        viewEditor.addWidget(PaletteWidget.b.l, "", "AdView", "AdView");
-        viewEditor.addWidget(PaletteWidget.b.n, "", "MapView", "MapView");
-        viewEditor.extraWidget("", "SignInButton", "SignInButton");
-        viewEditor.extraWidget("", "YoutubePlayer", "YoutubePlayer");
-        widgetsCreatorManager.addWidgetsByTitle("Google");
-
-        viewEditor.paletteWidget.extraTitle("Date & Time", 1);
-        viewEditor.extraWidget("", "AnalogClock", "AnalogClock");
-        viewEditor.extraWidget("", "DigitalClock", "DigitalClock");
-        viewEditor.extraWidget("", "TimePicker", "TimePicker");
-        viewEditor.extraWidget("", "DatePicker", "DatePicker");
-        viewEditor.addWidget(PaletteWidget.b.k, "", "CalendarView", "CalendarView");
-        widgetsCreatorManager.addWidgetsByTitle("Date & Time");
-        widgetsCreatorManager.addExtraClasses();
+        WidgetShowCased.setup(viewEditor, widgetsCreatorManager);
     }
 
     private void startAnimation() {
@@ -358,6 +303,13 @@ public class ViewEditorFragment extends qA {
     public void i() {
         invalidateOptionsMenu();
         if (projectFileBean != null) {
+            ProjectWorkspace workspace = new ProjectWorkspace(requireContext(), sc_id);
+            if (workspace.isSimpleProject) {
+                ArrayList<ViewBean> viewBeans = HtmlParser.parse(requireContext(), sc_id, projectFileBean.getXmlName());
+                if (!viewBeans.isEmpty()) {
+                    jC.a(sc_id).c.put(projectFileBean.getXmlName(), viewBeans);
+                }
+            }
             b(jC.a(sc_id).d(projectFileBean.getXmlName()));
             a(jC.a(sc_id).h(projectFileBean.getXmlName()));
         }
@@ -507,6 +459,12 @@ public class ViewEditorFragment extends qA {
             onUndo();
         }
         return true;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        i();
     }
 
     @Override

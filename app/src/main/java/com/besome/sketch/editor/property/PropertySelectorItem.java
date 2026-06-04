@@ -34,6 +34,7 @@ public class PropertySelectorItem extends RelativeLayout implements View.OnClick
     private View propertyMenuItem;
     private ViewGroup radioGroupContent;
     private Kw valueChangeListener;
+    private boolean isWeb = false;
 
     public PropertySelectorItem(Context context, boolean z) {
         super(context);
@@ -94,7 +95,7 @@ public class PropertySelectorItem extends RelativeLayout implements View.OnClick
 
     public void setValue(int value) {
         this.value = value;
-        tvValue.setText(sq.a(key, value));
+        tvValue.setText(sq.a(key, value, isWeb));
     }
 
     @Override
@@ -116,6 +117,10 @@ public class PropertySelectorItem extends RelativeLayout implements View.OnClick
 
     public void setOnPropertyValueChangeListener(Kw onPropertyValueChangeListener) {
         valueChangeListener = onPropertyValueChangeListener;
+    }
+
+    public void setWeb(boolean web) {
+        isWeb = web;
     }
 
     public void setOrientationItem(int orientationItem) {
@@ -158,7 +163,7 @@ public class PropertySelectorItem extends RelativeLayout implements View.OnClick
         } else {
             desc.setVisibility(GONE);
         }
-        for (Pair<Integer, String> pair : sq.a(key)) {
+        for (Pair<Integer, String> pair : sq.a(key, isWeb)) {
             radioGroupContent.addView(getOption(pair));
         }
         for (int i = 0; radioGroupContent.getChildCount() > i; i++) {

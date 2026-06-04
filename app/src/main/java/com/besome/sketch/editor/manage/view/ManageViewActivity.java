@@ -41,6 +41,7 @@ import a.a.a.mB;
 import a.a.a.wq;
 import a.a.a.xw;
 import laki.webide.R;
+import laki.webide.managers.WebProjectEditorManager;
 
 public class ManageViewActivity extends BaseAppCompatActivity implements OnClickListener, ViewPager.OnPageChangeListener {
     private static final int TAB_COUNT = 2;
@@ -190,6 +191,7 @@ public class ManageViewActivity extends BaseAppCompatActivity implements OnClick
             if (resultCode == RESULT_OK) {
                 projectFileBean = data.getParcelableExtra("project_file");
                 activitiesFragment.a(projectFileBean);
+                WebProjectEditorManager.onFileAdded(sc_id, projectFileBean);
                 if (projectFileBean.hasActivityOption(ProjectFileBean.OPTION_ACTIVITY_DRAWER)) {
                     b(projectFileBean.getDrawerName());
                 }
@@ -205,6 +207,7 @@ public class ManageViewActivity extends BaseAppCompatActivity implements OnClick
         } else if (requestCode == REQUEST_CODE_ADD_CUSTOM_VIEW && resultCode == RESULT_OK) {
             projectFileBean = data.getParcelableExtra("project_file");
             customViewsFragment.a(projectFileBean);
+            WebProjectEditorManager.onFileAdded(sc_id, projectFileBean);
             customViewsFragment.g();
             if (data.hasExtra("preset_views")) {
                 a(projectFileBean, data.getParcelableArrayListExtra("preset_views"));
@@ -368,7 +371,7 @@ public class ManageViewActivity extends BaseAppCompatActivity implements OnClick
 
         public b(FragmentManager fragmentManager) {
             super(fragmentManager);
-            f = new String[]{getString(R.string.common_word_view), getString(R.string.common_word_custom_view)};
+            f = new String[]{"Pages", "Components"};
         }
 
         @Override

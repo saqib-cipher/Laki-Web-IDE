@@ -23,6 +23,7 @@ public class wq {
     public static final String[] N = {"1486507718310013_1788685811425534", "1486507718310013_1804931006467681", "1486507718310013_1805009746459807", "1486507718310013_1805001526460629", "1486507718310013_1805273579766757", "1486507718310013_1805397669754348", "1486507718310013_1805436593083789", "1486507718310013_1805666736394108", "1486507718310013_1805724186388363", "1486507718310013_1809233042704144"};
     public static final String[] O = {"255022168522663_266931247331755", "255022168522663_268282677196612", "255022168522663_268283823863164", "255022168522663_266575314034015", "255022168522663_279474749410738"};
     public static final String a = ".lakiwebsites" + File.separator + "libs";
+    public static final String simple = ".lakiwebsites" + File.separator + "simple";
     public static final String b = ".lakiwebsites" + File.separator + "mysc";
     public static final String c = ".lakiwebsites" + File.separator + "mysc" + File.separator + "list";
     public static final String d = ".lakiwebsites" + File.separator + "data";
@@ -169,6 +170,14 @@ public class wq {
 
     public static String d(String sc_id) {
         return getAbsolutePathOf(b + File.separator + sc_id);
+    }
+
+    public static String f(String projectName) {
+        return getAbsolutePathOf(simple + File.separator + projectName);
+    }
+
+    public static String simple() {
+        return getAbsolutePathOf(simple);
     }
 
     public static String e() {

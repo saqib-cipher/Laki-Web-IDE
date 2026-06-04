@@ -40,11 +40,10 @@ import a.a.a.oB;
 import a.a.a.wq;
 import a.a.a.xq;
 import a.a.a.yB;
-import a.a.a.yq;
+import laki.webide.ProjectWorkspace;
 import kellinwood.security.zipsigner.ZipSigner;
 import kellinwood.security.zipsigner.optional.CustomKeySigner;
 import kellinwood.security.zipsigner.optional.LoadKeystoreException;
-import mod.hey.studios.compiler.kotlin.KotlinCompilerBridge;
 import mod.hey.studios.project.proguard.ProguardHandler;
 import mod.hey.studios.project.stringfog.StringfogHandler;
 import mod.hey.studios.util.Helper;
@@ -76,7 +75,7 @@ public class ExportProjectActivity extends BaseAppCompatActivity {
     private String export_src_filename;
     private String sc_id;
     private HashMap<String, Object> sc_metadata = null;
-    private yq project_metadata = null;
+    private ProjectWorkspace project_metadata = null;
 
     private Button sign_apk_button;
     private Button export_aab_button;
@@ -126,7 +125,7 @@ public class ExportProjectActivity extends BaseAppCompatActivity {
         }
 
         sc_metadata = lC.b(sc_id);
-        project_metadata = new yq(getApplicationContext(), wq.d(sc_id), sc_metadata);
+        project_metadata = new ProjectWorkspace(getApplicationContext(), wq.d(sc_id), sc_metadata);
 
         initializeOutputDirectories();
         initializeSignApkViews();
@@ -181,7 +180,7 @@ public class ExportProjectActivity extends BaseAppCompatActivity {
 
             /* Start generating project files */
             ProjectBuilder builder = new ProjectBuilder(this, project_metadata);
-            project_metadata.a(iCVar, hCVar, eCVar, yq.ExportType.ANDROID_STUDIO);
+            project_metadata.a(iCVar, hCVar, eCVar, ProjectWorkspace.ExportType.ANDROID_STUDIO);
             builder.buildBuiltInLibraryInformation();
             project_metadata.b(hCVar, eCVar, iCVar, builder.getBuiltInLibraryManager());
             if (yB.a(lC.b(sc_id), "custom_icon")) {
@@ -275,7 +274,7 @@ public class ExportProjectActivity extends BaseAppCompatActivity {
         GetKeyStoreCredentialsDialog credentialsDialog = new GetKeyStoreCredentialsDialog(this,
                 R.drawable.ic_mtrl_key, "Sign outputted AAB", "Fill in the keystore details to sign the AAB.");
         credentialsDialog.setListener(credentials -> {
-            BuildingAsyncTask task = new BuildingAsyncTask(this, yq.ExportType.AAB);
+            BuildingAsyncTask task = new BuildingAsyncTask(this, ProjectWorkspace.ExportType.AAB);
             task.enableAppBundleBuild();
             if (credentials != null) {
                 if (credentials.isForSigningWithTestkey()) {
@@ -355,7 +354,7 @@ public class ExportProjectActivity extends BaseAppCompatActivity {
             sign_apk_loading_anim.setVisibility(View.VISIBLE);
             sign_apk_loading_anim.playAnimation();
 
-            BuildingAsyncTask task = new BuildingAsyncTask(this, yq.ExportType.SIGN_APP);
+            BuildingAsyncTask task = new BuildingAsyncTask(this, ProjectWorkspace.ExportType.SIGN_APP);
             if (credentials != null) {
                 if (credentials.isForSigningWithTestkey()) {
                     task.setSignWithTestkey(true);
@@ -417,9 +416,9 @@ public class ExportProjectActivity extends BaseAppCompatActivity {
 
     private static class BuildingAsyncTask extends MA implements DialogInterface.OnCancelListener, BuildProgressReceiver {
         private final WeakReference<ExportProjectActivity> activity;
-        private final yq project_metadata;
+        private final ProjectWorkspace project_metadata;
         private final WeakReference<LottieAnimationView> loading_sign_apk;
-        private final yq.ExportType exportType;
+        private final ProjectWorkspace.ExportType exportType;
 
         private ProjectBuilder builder;
         private boolean canceled = false;
@@ -431,7 +430,7 @@ public class ExportProjectActivity extends BaseAppCompatActivity {
         private String signingAlgorithm = null;
         private boolean signWithTestkey = false;
 
-        public BuildingAsyncTask(ExportProjectActivity exportProjectActivity, yq.ExportType exportType) {
+        public BuildingAsyncTask(ExportProjectActivity exportProjectActivity, ProjectWorkspace.ExportType exportType) {
             super(exportProjectActivity);
             this.exportType = exportType;
             activity = new WeakReference<>(exportProjectActivity);
@@ -552,12 +551,6 @@ public class ExportProjectActivity extends BaseAppCompatActivity {
                     return;
                 }
 
-                KotlinCompilerBridge.compileKotlinCodeIfPossible(this, builder);
-                if (canceled) {
-                    cancel(true);
-                    return;
-                }
-
                 publishProgress("Java is compiling...");
                 builder.compileJavaCode();
                 if (canceled) {
@@ -643,16 +636,16 @@ public class ExportProjectActivity extends BaseAppCompatActivity {
                     }
 
                     publishProgress("Aligning APK...");
-                    builder.runZipalign(builder.yq.unsignedUnalignedApkPath, builder.yq.unsignedAlignedApkPath);
+                    builder.runZipalign(builder.ProjectWorkspace.unsignedUnalignedApkPath, builder.ProjectWorkspace.unsignedAlignedApkPath);
                     if (canceled) {
                         cancel(true);
                         return;
                     }
 
                     publishProgress("Signing APK...");
-                    String outputLocation = getCorrectResultFilename(builder.yq.releaseApkPath);
+                    String outputLocation = getCorrectResultFilename(builder.ProjectWorkspace.releaseApkPath);
                     if (signWithTestkey) {
-                        TestkeySignBridge.signWithTestkey(builder.yq.unsignedAlignedApkPath, outputLocation);
+                        TestkeySignBridge.signWithTestkey(builder.ProjectWorkspace.unsignedAlignedApkPath, outputLocation);
                     } else if (isResultJarSigningEnabled()) {
                         Security.addProvider(new BouncyCastleProvider());
                         CustomKeySigner.signZip(
@@ -662,11 +655,11 @@ public class ExportProjectActivity extends BaseAppCompatActivity {
                                 signingAliasName,
                                 signingKeystorePassword,
                                 signingAlgorithm,
-                                builder.yq.unsignedAlignedApkPath,
+                                builder.ProjectWorkspace.unsignedAlignedApkPath,
                                 outputLocation
                         );
                     } else {
-                        FileUtil.copyFile(builder.yq.unsignedAlignedApkPath, outputLocation);
+                        FileUtil.copyFile(builder.ProjectWorkspace.unsignedAlignedApkPath, outputLocation);
                     }
                 }
             } catch (Throwable throwable) {

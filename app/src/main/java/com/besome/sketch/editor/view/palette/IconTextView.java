@@ -28,7 +28,7 @@ public class IconTextView extends IconBase {
         layoutBean.paddingRight = 8;
         layoutBean.paddingBottom = 8;
         viewBean.text.text = getName();
-        viewBean.convert = "TextView";
+        viewBean.convert = getName();
         return viewBean;
     }
 }

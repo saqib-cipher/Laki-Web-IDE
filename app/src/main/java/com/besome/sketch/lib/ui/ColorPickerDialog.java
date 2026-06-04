@@ -26,13 +26,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import a.a.a.DB;
-import a.a.a.GB;
-import a.a.a.bB;
-import a.a.a.jC;
-import a.a.a.sq;
-import a.a.a.wq;
-import a.a.a.yq;
+import a.a.a.*;
+import laki.webide.ProjectWorkspace;
 import mod.hey.studios.util.Helper;
 import laki.webide.R;
 import laki.webide.activities.resourceseditor.components.models.ColorModel;
@@ -65,7 +60,7 @@ public class ColorPickerDialog extends PopupWindow {
     private DB colorPref;
     private boolean hasMaterialColors;
     private Material3LibraryManager material3LibraryManager;
-    private yq yq;
+    private ProjectWorkspace projectWorkspace;
     private ColorsEditorManager colorsEditorManager;
 
     public ColorPickerDialog(Activity activity, int var3, boolean isTransparentColor, boolean isNoneColor) {
@@ -78,8 +73,8 @@ public class ColorPickerDialog extends PopupWindow {
         super(activity);
         binding = ColorPickerBinding.inflate(activity.getLayoutInflater());
         sc_id = scId;
-        yq = new yq(activity, sc_id);
-        yq.a(jC.c(sc_id), jC.b(sc_id), jC.a(sc_id), a.a.a.yq.ExportType.SOURCE_CODE_VIEWING);
+        projectWorkspace = new ProjectWorkspace(activity, sc_id);
+        projectWorkspace.a(jC.c(sc_id), jC.b(sc_id), jC.a(sc_id), ProjectWorkspace.ExportType.SOURCE_CODE_VIEWING);
         material3LibraryManager = new Material3LibraryManager(scId);
         colorsEditorManager = new ColorsEditorManager();
         hasMaterialColors = true;
@@ -566,14 +561,14 @@ public class ColorPickerDialog extends PopupWindow {
     }
 
     private void initializeResColors() {
-        if (sc_id == null || yq == null)
+        if (sc_id == null || projectWorkspace == null)
             return;
         String fileNightPath = wq.b(sc_id) + "/files/resource/values-night/colors.xml";
 
         ArrayList<ColorModel> colorList = new ArrayList<>();
         ArrayList<ColorModel> colorNightList = new ArrayList<>();
 
-        colorsEditorManager.parseColorsXML(colorList, yq.getXMLColor());
+        colorsEditorManager.parseColorsXML(colorList, projectWorkspace.getXMLColor());
         colorsEditorManager.parseColorsXML(colorNightList, FileUtil.readFileIfExist(fileNightPath));
 
         HashMap<String, String> nightColorsMap = new HashMap<>();

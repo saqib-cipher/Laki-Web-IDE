@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import a.a.a.ProjectBuilder;
 import a.a.a.bB;
 import a.a.a.jC;
-import a.a.a.yq;
+import laki.webide.ProjectWorkspace;
 import mod.hey.studios.util.Helper;
 import laki.webide.R;
 import laki.webide.databinding.SrcViewerBinding;
@@ -77,14 +77,14 @@ public class SrcViewerActivity extends BaseAppCompatActivity {
         k(); // show loading
 
         new Thread(() -> {
-            var yq = new yq(getBaseContext(), sc_id);
+            var workspace = new ProjectWorkspace(getBaseContext(), sc_id);
             var fileManager = jC.b(sc_id);
             var dataManager = jC.a(sc_id);
             var libraryManager = jC.c(sc_id);
-            yq.a(libraryManager, fileManager, dataManager, a.a.a.yq.ExportType.SOURCE_CODE_VIEWING);
-            ProjectBuilder builder = new ProjectBuilder(this, yq);
+            workspace.a(libraryManager, fileManager, dataManager, ProjectWorkspace.ExportType.SOURCE_CODE_VIEWING);
+            ProjectBuilder builder = new ProjectBuilder(this, workspace);
             builder.buildBuiltInLibraryInformation();
-            sourceCodeBeans = yq.a(fileManager, dataManager, builder.getBuiltInLibraryManager());
+            sourceCodeBeans = workspace.a(fileManager, dataManager, builder.getBuiltInLibraryManager());
 
             try {
                 runOnUiThread(() -> {

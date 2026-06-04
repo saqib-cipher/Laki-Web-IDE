@@ -29,7 +29,7 @@ public class IconLinearHorizontal extends IconBase {
         layoutBean.paddingTop = 8;
         layoutBean.paddingRight = 8;
         layoutBean.paddingBottom = 8;
-        viewBean.convert = "LinearLayout";
+        viewBean.convert = getName();
         return viewBean;
     }
 }

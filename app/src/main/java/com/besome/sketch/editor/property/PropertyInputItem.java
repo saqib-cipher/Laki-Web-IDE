@@ -93,14 +93,20 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
     private List<String> keysList = new ArrayList<>();
     private ViewBean bean;
 
+    private boolean isWeb = false;
+
     public PropertyInputItem(Context context, boolean z) {
         super(context);
         initialize(context, z);
     }
 
+    public void setWeb(boolean web) {
+        isWeb = web;
+    }
+
     private void setIcon(ImageView imageView) {
         switch (key) {
-            case "property_id" -> icon = R.drawable.ic_mtrl_id;
+            case "property_id", "property_class_name" -> icon = R.drawable.ic_mtrl_id;
             case "property_text" -> icon = R.drawable.ic_mtrl_text_select;
             case "property_hint" -> icon = R.drawable.ic_mtrl_bulb;
             case "property_weight", "property_weight_sum" -> icon = R.drawable.ic_mtrl_weight;
@@ -114,8 +120,15 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
             case "property_scale_y" -> icon = R.drawable.ic_mtrl_scale_y;
             case "property_scale_x" -> icon = R.drawable.ic_mtrl_scale_x;
             case "property_inject" -> icon = R.drawable.ic_mtrl_code;
-            case "property_convert" -> icon = R.drawable.ic_mtrl_switch;
+            case "property_convert" -> icon = isWeb ? R.drawable.ic_mtrl_code : R.drawable.ic_mtrl_switch;
             case "property_text_size" -> icon = R.drawable.ic_mtrl_font;
+            default -> {
+                if (key.equals("html_attr_action") || key.equals("html_attr_href") || key.equals("html_attr_src")) icon = R.drawable.ic_mtrl_link;
+                else if (key.equals("html_attr_method") || key.equals("html_attr_target") || key.equals("html_attr_type")) icon = R.drawable.ic_mtrl_list;
+                else if (key.equals("html_attr_name")) icon = R.drawable.ic_mtrl_id;
+                else if (key.equals("html_attr_value")) icon = R.drawable.ic_mtrl_text_select;
+                else if (key.startsWith("html_attr_")) icon = R.drawable.ic_mtrl_code;
+            }
         }
         imageView.setImageResource(icon);
     }
@@ -131,13 +144,23 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
     public void setKey(String key) {
         this.key = key;
         int identifier = getResources().getIdentifier(key, "string", getContext().getPackageName());
-        if (identifier > 0) {
-            tvName.setText(Helper.getResString(identifier));
-            if (propertyMenuItem.getVisibility() == VISIBLE) {
-                setIcon(findViewById(R.id.img_icon));
-                ((TextView) findViewById(R.id.tv_title)).setText(Helper.getResString(identifier));
-                return;
+        String name = identifier > 0 ? Helper.getResString(identifier) : key;
+
+        if (isWeb) {
+            if (key.equals("property_hint")) name = "Placeholder";
+            else if (key.equals("property_convert")) name = "CSS Addon";
+            else if (key.equals("property_inject")) name = "Custom Attrs";
+            else if (key.startsWith("html_attr_")) {
+                name = key.replace("html_attr_", "");
+                name = name.substring(0, 1).toUpperCase() + name.substring(1);
             }
+        }
+
+        tvName.setText(name);
+        if (propertyMenuItem.getVisibility() == VISIBLE) {
+            setIcon(findViewById(R.id.img_icon));
+            ((TextView) findViewById(R.id.tv_title)).setText(name);
+        } else {
             setIcon(imgLeftIcon);
         }
     }
@@ -160,6 +183,7 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
         if (!mB.a()) {
             switch (key) {
                 case "property_id" -> showViewIdDialog();
+                case "property_class_name" -> showClassNameDialog();
                 case "property_text", "property_hint" -> showTextInputDialog(9999, false);
                 case "property_rotate" -> showHybridSliderDialog(
                         Helper.getText(tvName),
@@ -219,8 +243,16 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                         Helper.getText(tvName),
                         Float.parseFloat(value.isEmpty() ? "1" : value),
                         0f, 50f, 1f, true);
-                case "property_convert" -> showAutoCompleteDialog();
-                case "property_inject" -> showInjectDialog();
+                case "property_convert", "property_inject" -> {
+                    if (isWeb) showTextInputDialog(9999, true);
+                    else if (key.equals("property_convert")) showAutoCompleteDialog();
+                    else showInjectDialog();
+                }
+                default -> {
+                    if (key.startsWith("html_attr_")) {
+                        showTextInputDialog(9999, false);
+                    }
+                }
             }
         }
     }
@@ -484,6 +516,32 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
         dialog.setPositiveButton(Helper.getResString(R.string.common_word_save), (v, which) -> {
             if (validator.b()) {
                 setValue(Helper.getText(binding.edInput));
+                if (valueChangeListener != null) valueChangeListener.a(key, value);
+                v.dismiss();
+            }
+        });
+        dialog.setNegativeButton(Helper.getResString(R.string.common_word_cancel), null);
+        dialog.show();
+    }
+
+    private void showClassNameDialog() {
+        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(getContext());
+        dialog.setTitle(Helper.getText(tvName));
+        dialog.setIcon(icon);
+
+        PropertyPopupInputTextBinding binding = PropertyPopupInputTextBinding.inflate(LayoutInflater.from(getContext()));
+
+        binding.tiInput.setHint("Class names (space-separated)");
+        binding.edInput.setSingleLine();
+        binding.edInput.setText(value);
+
+        SB lengthValidator = new SB(context, binding.tiInput, 0, 999);
+        lengthValidator.a(value);
+
+        dialog.setView(binding.getRoot());
+        dialog.setPositiveButton(Helper.getResString(R.string.common_word_save), (v, which) -> {
+            if (lengthValidator.b()) {
+                setValue(Helper.getText(binding.edInput).trim());
                 if (valueChangeListener != null) valueChangeListener.a(key, value);
                 v.dismiss();
             }

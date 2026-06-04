@@ -112,7 +112,7 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.Projec
 
     private boolean matchesQuery(HashMap<String, Object> projectMap, String searchQuery) {
         searchQuery = searchQuery.toLowerCase();
-        for (String key : Arrays.asList("sc_id", "my_ws_name", "my_app_name", "my_sc_pkg_name")) {
+        for (String key : Arrays.asList("sc_id", "my_ws_name", "my_app_name")) {
             if (yB.c(projectMap, key).toLowerCase().contains(searchQuery)) {
                 return true;
             }
@@ -175,7 +175,6 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.Projec
         String version = " - " + yB.c(projectMap, "sc_ver_name") + " (" + yB.c(projectMap, "sc_ver_code") + ")";
         holder.binding.appName.setText(yB.c(projectMap, "my_ws_name") + version);
         holder.binding.projectName.setText(yB.c(projectMap, "my_app_name"));
-        holder.binding.packageName.setText(yB.c(projectMap, "my_sc_pkg_name"));
         holder.binding.tvPublished.setVisibility(View.VISIBLE);
         holder.binding.tvPublished.setText(scId);
         holder.itemView.setTag("custom");

@@ -29,27 +29,28 @@ public class PaletteSelector extends RecyclerView {
     private final Context context;
 
     private final String[] MainCategoriesNames = {
-            Helper.getResString(R.string.block_category_var),
-            Helper.getResString(R.string.block_category_list),
-            Helper.getResString(R.string.block_category_control),
-            Helper.getResString(R.string.block_category_operator),
-            Helper.getResString(R.string.block_category_math),
-            Helper.getResString(R.string.block_category_file),
-            Helper.getResString(R.string.block_category_view_func),
-            Helper.getResString(R.string.block_category_component_func),
-            Helper.getResString(R.string.xml_strings),
-            Helper.getResString(R.string.block_category_moreblock)
+            "Variable",
+            "Selectors",
+            "Layout",
+            "Spacing",
+            "Text Edit",
+            "Background",
+            "Border & shadow",
+            "Effects",
+            "Animation",
+            "Responsive",
+           Helper.getResString(R.string.block_category_moreblock)
     };
 
     private final int[] MainCategoriesColors = {
-            0xffee7d16, 0xffcc5b22, 0xffe1a92a,
-            0xff5cb722, 0xff23b9a9, 0xffa1887f,
-            0xff4a6cd4, 0xff2ca5e2, 0xff7c83db,
-            0xff8a55d7
+            0xffee7d16, 0xffcc5b22, 0xff5cb722,
+            0xff5cb722, 0xff7c83db, 0xffe1a92a,
+            0xff4a6cd4, 0xff2ca5e2, 0xff23b9a9,
+            0xff8a55d7, 0xffa1887f
     };
 
     private final int[] MainCategoriesIds = {
-            0, 1, 2, 3, 4, 5, 6, 7, -1, 8
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
     };
 
     private String searchValue = "";

@@ -36,7 +36,8 @@
                 android:layout_marginTop="32dp"
                 android:layout_marginBottom="12dp"
                 android:gravity="center"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:visibility="gone">
 
                 <FrameLayout
                     android:id="@+id/app_icon_layout"
@@ -77,21 +78,6 @@
                     android:inputType="text" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/til_package_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:placeholderText="com.my.newproject"
-                app:startIconDrawable="@drawable/ic_mtrl_package">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_package_name"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:imeOptions="actionNext"
-                    android:inputType="text" />
-            </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_project_name"
@@ -112,6 +98,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="17dp"
+                android:visibility="gone"
                 app:strokeColor="?attr/colorOutline">
 
                 <LinearLayout
@@ -179,6 +166,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="13dp"
+                android:visibility="gone"
                 app:strokeColor="?attr/colorOutline">
 
                 <LinearLayout
@@ -248,6 +236,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="13dp"
                 android:layout_marginBottom="64dp"
+                android:visibility="gone"
                 app:strokeColor="?attr/colorOutline">
 
                 <LinearLayout

@@ -29,6 +29,7 @@ import laki.webide.utility.FilePathUtil;
 import laki.webide.utility.FileResConfig;
 import laki.webide.utility.FileUtil;
 import laki.webide.xml.XmlBuilder;
+import laki.webide.ProjectWorkspace;
 
 public class Ix {
     private final BuiltInLibraryManager builtInLibraryManager;
@@ -382,7 +383,7 @@ public class Ix {
         application.addChildNode(diagnosticsReceiver);
     }
 
-    public void setYq(yq yqVar) {
+    public void setProjectWorkspace(laki.webide.ProjectWorkspace yqVar) {
         settings = new ProjectSettings(yqVar.sc_id);
         targetsSdkVersion31OrHigher = Integer.parseInt(settings.getValue(ProjectSettings.SETTING_TARGET_SDK_VERSION, String.valueOf(VAR_DEFAULT_TARGET_SDK_VERSION))) >= 31;
         packageName = yqVar.packageName;

@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.TextView;
@@ -30,7 +29,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import a.a.a.GB;
@@ -52,7 +50,7 @@ import laki.webide.activities.iconcreator.IconCreatorActivity;
 import laki.webide.control.VersionDialog;
 import laki.webide.databinding.MyprojectSettingBinding;
 import laki.webide.lib.validator.AppNameValidator;
-import laki.webide.lib.validator.PackageNameValidator;
+import laki.webide.managers.WebProjectManager;
 import laki.webide.utility.FileUtil;
 import laki.webide.utility.SketchwareUtil;
 
@@ -63,7 +61,6 @@ public class MyProjectSettingActivity extends BaseAppCompatActivity implements V
     private final String[] themeColorLabels = {"colorAccent", "colorPrimary", "colorPrimaryDark", "colorControlHighlight", "colorControlNormal"};
     private final int[] projectThemeColors = new int[themeColorKeys.length];
     public MyprojectSettingBinding binding;
-    private PackageNameValidator projectPackageNameValidator;
     private VB projectNameValidator;
     private AppNameValidator projectAppNameValidator;
     private boolean projectHasCustomIcon = false;
@@ -104,28 +101,19 @@ public class MyProjectSettingActivity extends BaseAppCompatActivity implements V
 
 
         binding.appIconLayout.setOnClickListener(this);
-        binding.verCodeHolder.setOnClickListener(this);
-        binding.verNameHolder.setOnClickListener(this);
+        binding.verCodeHolder.setVisibility(View.GONE);
+        binding.verNameHolder.setVisibility(View.GONE);
         binding.imgThemeColorHelp.setOnClickListener(this);
         binding.okButton.setOnClickListener(this);
         binding.cancel.setOnClickListener(this);
 
         initializeThemePresets();
 
-        binding.tilAppName.setHint(Helper.getResString(R.string.myprojects_settings_hint_enter_application_name));
-        binding.tilPackageName.setHint(Helper.getResString(R.string.myprojects_settings_hint_enter_package_name));
-        binding.tilProjectName.setHint(Helper.getResString(R.string.myprojects_settings_hint_enter_project_name));
+        binding.tilAppName.setHint("Enter Website Name");
+        binding.tilProjectName.setHint("Project Name");
 
         projectAppNameValidator = new AppNameValidator(getApplicationContext(), binding.tilAppName);
-        projectPackageNameValidator = new PackageNameValidator(getApplicationContext(), binding.tilPackageName);
         projectNameValidator = new VB(getApplicationContext(), binding.tilProjectName);
-        binding.tilPackageName.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                if (!shownPackageNameChangeWarning && !Helper.getText((EditText) v).trim().contains("com.my.newproject")) {
-                    showPackageNameChangeWarning();
-                }
-            }
-        });
 
         projectThemeColors[0] = getDefaultColor(ProjectFile.COLOR_ACCENT);
         projectThemeColors[1] = getDefaultColor(ProjectFile.COLOR_PRIMARY);
@@ -148,14 +136,12 @@ public class MyProjectSettingActivity extends BaseAppCompatActivity implements V
             /* Set the dialog's title & save button label */
             binding.toolbar.setTitle("Project Settings");
             HashMap<String, Object> metadata = lC.b(sc_id);
-            binding.etPackageName.setText(yB.c(metadata, "my_sc_pkg_name"));
             binding.etProjectName.setText(yB.c(metadata, "my_ws_name"));
             binding.etAppName.setText(yB.c(metadata, "my_app_name"));
             binding.okButton.setText("Save changes");
-            projectVersionCode = parseInt(yB.c(metadata, "sc_ver_code"), 1);
-            parseVersion(yB.c(metadata, "sc_ver_name"));
-            binding.verCode.setText(yB.c(metadata, "sc_ver_code"));
-            binding.verName.setText(yB.c(metadata, "sc_ver_name"));
+            projectVersionCode = 1;
+            binding.verCode.setText("1.0.0");
+            binding.verName.setText("1.0.0");
             projectHasCustomIcon = yB.a(metadata, "custom_icon");
             if (projectHasCustomIcon) {
                 binding.appIcon.setImageURI(FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".provider", getCustomIcon()));
@@ -167,13 +153,10 @@ public class MyProjectSettingActivity extends BaseAppCompatActivity implements V
         } else {
             /* Set the dialog's title & create button label */
             String newProjectName = getIntent().getStringExtra("my_ws_name");
-            String newProjectPackageName = getIntent().getStringExtra("my_sc_pkg_name");
             if (sc_id == null || sc_id.isEmpty()) {
                 sc_id = lC.b();
                 newProjectName = lC.c();
-                newProjectPackageName = "com.my." + newProjectName.toLowerCase();
             }
-            binding.etPackageName.setText(newProjectPackageName);
             binding.etProjectName.setText(newProjectName);
             binding.etAppName.setText(getIntent().getStringExtra("my_app_name"));
 
@@ -183,12 +166,11 @@ public class MyProjectSettingActivity extends BaseAppCompatActivity implements V
                 newProjectVersionCode = "1";
             }
             if (newProjectVersionName == null || newProjectVersionName.isEmpty()) {
-                newProjectVersionName = "1.0";
+                newProjectVersionName = "1.0.0";
             }
-            projectVersionCode = parseInt(newProjectVersionCode, 1);
-            parseVersion(newProjectVersionName);
-            binding.verCode.setText(newProjectVersionCode);
-            binding.verName.setText(newProjectVersionName);
+            projectVersionCode = 1;
+            binding.verCode.setText("1.0.0");
+            binding.verName.setText("1.0.0");
             projectHasCustomIcon = getIntent().getBooleanExtra("custom_icon", false);
             if (projectHasCustomIcon) {
                 binding.appIcon.setImageURI(FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".provider", getCustomIcon()));
@@ -416,7 +398,7 @@ public class MyProjectSettingActivity extends BaseAppCompatActivity implements V
     }
 
     private boolean isInputValid() {
-        return projectPackageNameValidator.b() && projectNameValidator.b() && projectAppNameValidator.b();
+        return projectNameValidator.b() && projectAppNameValidator.b();
     }
 
     private void showPackageNameChangeWarning() {
@@ -521,38 +503,38 @@ public class MyProjectSettingActivity extends BaseAppCompatActivity implements V
         public void b() {
             HashMap<String, Object> data = new HashMap<>();
             data.put("sc_id", sc_id);
-            data.put("my_sc_pkg_name", Helper.getText(binding.etPackageName));
+            data.put("my_sc_pkg_name", "web.ide.project");
             data.put("my_ws_name", Helper.getText(binding.etProjectName));
             data.put("my_app_name", Helper.getText(binding.etAppName));
             if (updatingExistingProject) {
                 data.put("custom_icon", projectHasCustomIcon);
                 data.put("isIconAdaptive", isIconAdaptive);
-                data.put("sc_ver_code", Helper.getText(binding.verCode));
-                data.put("sc_ver_name", Helper.getText(binding.verName));
+                data.put("sc_ver_code", "1.0.0");
+                data.put("sc_ver_name", "1.0.0");
                 data.put("sketchware_ver", GB.d(getApplicationContext()));
                 for (int i = 0; i < themeColorKeys.length; i++) {
                     data.put(themeColorKeys[i], projectThemeColors[i]);
                 }
                 lC.b(sc_id, data);
-                updateProjectResourcesContents(data);
             } else {
                 data.put("my_sc_reg_dt", new nB().a("yyyyMMddHHmmss"));
                 data.put("custom_icon", projectHasCustomIcon);
                 data.put("isIconAdaptive", isIconAdaptive);
-                data.put("sc_ver_code", Helper.getText(binding.verCode));
-                data.put("sc_ver_name", Helper.getText(binding.verName));
+                data.put("sc_ver_code", "1.0.0");
+                data.put("sc_ver_name", "1.0.0");
                 data.put("sketchware_ver", GB.d(getApplicationContext()));
+                data.put("is_simple_project", true);
                 for (int i = 0; i < themeColorKeys.length; i++) {
                     data.put(themeColorKeys[i], projectThemeColors[i]);
                 }
                 lC.a(sc_id, data);
-                updateProjectResourcesContents(data);
                 wq.a(getApplicationContext(), sc_id);
                 new oB().b(wq.b(sc_id));
                 ProjectSettings projectSettings = new ProjectSettings(sc_id);
                 projectSettings.setValue(ProjectSettings.SETTING_NEW_XML_COMMAND, ProjectSettings.SETTING_GENERIC_VALUE_TRUE);
                 projectSettings.setValue(ProjectSettings.SETTING_ENABLE_VIEWBINDING, ProjectSettings.SETTING_GENERIC_VALUE_TRUE);
 
+                WebProjectManager.createWebProject(sc_id, Helper.getText(binding.etProjectName));
             }
             try {
                 FileUtil.deleteFile(getTempIconsFolderPath("mipmaps" + File.separator));
@@ -560,30 +542,6 @@ public class MyProjectSettingActivity extends BaseAppCompatActivity implements V
                 FileUtil.deleteFile(getTempIconsFolderPath("temp_icons" + File.separator));
             } catch (Exception e) {
                 e.printStackTrace();
-            }
-
-        }
-
-        private void updateProjectResourcesContents(HashMap<String, Object> data) {
-            String baseDir = wq.b(sc_id) + "/files/resource/values/";
-            String stringsFilePath = baseDir + "strings.xml";
-            String colorsFilePath = baseDir + "colors.xml";
-            String newAppName = Objects.requireNonNull(data.get("my_app_name")).toString();
-
-            if (FileUtil.isExistFile(stringsFilePath)) {
-                String xmlContent = FileUtil.readFile(stringsFilePath);
-                xmlContent = xmlContent.replaceAll("(<string\\s+name=\"app_name\">)(.*?)(</string>)", "$1" + newAppName + "$3");
-                FileUtil.writeFile(stringsFilePath, xmlContent);
-            }
-
-            if (FileUtil.isExistFile(colorsFilePath)) {
-                String xmlContent = FileUtil.readFile(colorsFilePath);
-                for (int i = 0; i < themeColorKeys.length; i++) {
-                    String colorName = themeColorLabels[i];
-                    String newColor = String.format("#%06X", (0xFFFFFF & projectThemeColors[i]));
-                    xmlContent = xmlContent.replaceAll("(<color\\s+name=\"" + colorName + "\">)(.*?)(</color>)", "$1" + newColor + "$3");
-                }
-                FileUtil.writeFile(colorsFilePath, xmlContent);
             }
 
         }

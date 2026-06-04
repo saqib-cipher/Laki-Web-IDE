@@ -44,7 +44,7 @@ public class PaletteBlock extends LinearLayout {
 
     public Ts a(String var1, String var2, String var3) {
         View view = new View(context);
-        view.setLayoutParams(getLayoutParams(8.0F));
+        view.setLayoutParams(getLayoutParams(12.0F));
         binding.blockBuilder.addView(view);
         Rs blockView = new Rs(context, -1, var1, var2, var3);
         blockView.setContentDescription(generateContentDescription(var3));
@@ -55,7 +55,7 @@ public class PaletteBlock extends LinearLayout {
 
     public Ts a(String var1, String var2, String var3, String var4) {
         View view = new View(context);
-        view.setLayoutParams(getLayoutParams(8.0F));
+        view.setLayoutParams(getLayoutParams(12.0F));
         binding.blockBuilder.addView(view);
         Rs blockView = new Rs(context, -1, var1, var2, var3, var4);
         blockView.setContentDescription(generateContentDescription(var4));
@@ -79,13 +79,13 @@ public class PaletteBlock extends LinearLayout {
         cardView.setCardBackgroundColor(getColor(context, isDarkThemeEnabled(context) ? R.attr.colorSurfaceContainerHigh : R.attr.colorSurfaceContainerHighest));
         cardView.addView(textView);
 
-        binding.actionsContainer.addView(cardView);
+        //binding.actionsContainer.addView(cardView);
         return textView;
     }
 
     public void a() {
         binding.blockBuilder.removeAllViews();
-        binding.actionsContainer.removeAllViews();
+        //binding.actionsContainer.removeAllViews();
     }
 
     public void a(String title, int color) {
@@ -142,23 +142,23 @@ public class PaletteBlock extends LinearLayout {
     }
 
     public void setDragEnabled(boolean dragEnabled) {
-        if (dragEnabled) {
-            binding.scroll.b();
-            binding.scrollHorizontal.b();
-        } else {
-            binding.scroll.a();
-            binding.scrollHorizontal.a();
-        }
+//        if (dragEnabled) {
+//            binding.scroll.b();
+//            binding.scrollHorizontal.b();
+//        } else {
+//            binding.scroll.a();
+//            binding.scrollHorizontal.a();
+//        }
     }
 
     public void setMinWidth(int minWidth) {
-        binding.scroll.setMinimumWidth(minWidth - (int) (f * 5.0F));
-        binding.scrollHorizontal.setMinimumWidth(minWidth - (int) (f * 5.0F));
-        getLayoutParams().width = minWidth;
+//        binding.scroll.setMinimumWidth(minWidth - (int) (f * 5.0F));
+//        binding.scrollHorizontal.setMinimumWidth(minWidth - (int) (f * 5.0F));
+//        getLayoutParams().width = minWidth;
     }
 
-    public void setUseScroll(boolean useScroll) {
-        binding.scroll.setUseScroll(useScroll);
-        binding.scrollHorizontal.setUseScroll(useScroll);
-    }
+//    public void setUseScroll(boolean useScroll) {
+//        binding.scroll.setUseScroll(useScroll);
+//        binding.scrollHorizontal.setUseScroll(useScroll);
+//    }
 }

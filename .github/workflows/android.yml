@@ -28,8 +28,28 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Create Logs Folder
+        run: mkdir -p logs
+
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: |
+          ./gradlew assembleDebug \
+          --stacktrace \
+          --info \
+          > logs/build-log.txt 2>&1 || true
+
+      - name: Upload Build Logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: logs/build-log.txt
+
+      - name: Check Build Result
+        run: |
+          if grep -q "BUILD FAILED" logs/build-log.txt; then
+            echo "Gradle build failed"
+            exit 1
+          fi
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4

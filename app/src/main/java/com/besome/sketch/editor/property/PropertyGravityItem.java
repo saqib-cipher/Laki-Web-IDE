@@ -30,10 +30,15 @@ public class PropertyGravityItem extends RelativeLayout implements View.OnClickL
     private View propertyItem;
     private View propertyMenuItem;
     private Kw valueChangeListener;
+    private boolean isWeb = false;
 
     public PropertyGravityItem(Context context, boolean z) {
         super(context);
         initialize(context, z);
+    }
+
+    public void setWeb(boolean web) {
+        isWeb = web;
     }
 
     public String getKey() {
@@ -61,7 +66,7 @@ public class PropertyGravityItem extends RelativeLayout implements View.OnClickL
 
     public void setValue(int value) {
         gravityValue = value;
-        tvValue.setText(sq.a(value));
+        tvValue.setText(sq.a(key, value, isWeb));
     }
 
     @Override
@@ -120,6 +125,16 @@ public class PropertyGravityItem extends RelativeLayout implements View.OnClickL
         CheckBox chk_bottom = view.findViewById(R.id.chk_bottom);
         CheckBox chk_vcenter = view.findViewById(R.id.chk_vcenter);
         CheckBox chk_center = view.findViewById(R.id.chk_center);
+
+        if (isWeb) {
+            chk_left.setText("flex-start (left)");
+            chk_right.setText("flex-end (right)");
+            chk_hcenter.setText("center (horizontal)");
+            chk_top.setText("flex-start (top)");
+            chk_bottom.setText("flex-end (bottom)");
+            chk_vcenter.setText("center (vertical)");
+            chk_center.setText("center (all)");
+        }
 
         if (gravityValue == Gravity.CENTER) {
             chk_center.setChecked(true);

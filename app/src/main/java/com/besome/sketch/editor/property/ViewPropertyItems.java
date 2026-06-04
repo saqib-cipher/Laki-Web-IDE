@@ -132,6 +132,13 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             case "property_progressbar_style" -> c(property, bean.progressStyle);
             case "property_indeterminate" -> d(property, bean.indeterminate);
             case "property_inject" -> b(property, bean.inject);
+            case "property_class_name" -> b(property, bean.classNames);
+            default -> {
+                if (property.startsWith("html_attr_")) {
+                    String attrName = property.replace("html_attr_", "");
+                    b(property, bean.parentAttributes.getOrDefault(attrName, ""));
+                }
+            }
             case "property_convert" -> b(property, bean.convert, String.valueOf(bean.type));
         }
     }
@@ -156,6 +163,9 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             colorItem.setValue(value);
         }
 
+        if (colorItem.getParent() != null) {
+            ((ViewGroup) colorItem.getParent()).removeView(colorItem);
+        }
         addView(colorItem);
     }
 
@@ -173,6 +183,9 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             indentItem.a(left, top, right, bottom);
         }
 
+        if (indentItem.getParent() != null) {
+            ((ViewGroup) indentItem.getParent()).removeView(indentItem);
+        }
         addView(indentItem);
     }
 
@@ -181,13 +194,16 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
         if (colorItem == null) {
             colorItem = new PropertyColorItem(getContext(), !b, sc_id);
             colorItem.setOrientationItem(getOrientation());
-            colorItem.setKey(name);
-            colorItem.setValue(value2, value);
             colorItem.setTag(name);
             colorItem.setOnPropertyValueChangeListener(this);
             f.put(name, colorItem);
-        } else {
-            colorItem.setValue(value2, value);
+        }
+        
+        colorItem.setWeb(isWeb());
+        colorItem.setKey(name);
+        colorItem.setValue(value2, value);
+        if (colorItem.getParent() != null) {
+            ((ViewGroup) colorItem.getParent()).removeView(colorItem);
         }
         addView(colorItem);
     }
@@ -215,6 +231,9 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             measureItem.setValue(value);
         }
 
+        if (measureItem.getParent() != null) {
+            ((ViewGroup) measureItem.getParent()).removeView(measureItem);
+        }
         addView(measureItem);
     }
 
@@ -273,6 +292,9 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
 
         propertyCustomViewItem.setCustomView(jC.b(sc_id).c());
         propertyCustomViewItem.setValue(value);
+        if (propertyCustomViewItem.getParent() != null) {
+            ((ViewGroup) propertyCustomViewItem.getParent()).removeView(propertyCustomViewItem);
+        }
         addView(propertyCustomViewItem);
     }
 
@@ -283,18 +305,21 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             inputItem.setOrientationItem(getOrientation());
             inputItem.setTypeView(typeView);
             inputItem.a(sc_id, e);
-            inputItem.setKey(key);
-            inputItem.setValue(value);
             inputItem.setTag(key);
             inputItem.setOnPropertyValueChangeListener(this);
             f.put(key, inputItem);
-        } else {
-            inputItem.setTypeView(typeView);
-            inputItem.a(sc_id, e);
-            inputItem.setValue(value);
         }
+        
+        inputItem.setWeb(isWeb());
+        inputItem.setKey(key);
+        inputItem.setTypeView(typeView);
+        inputItem.a(sc_id, e);
+        inputItem.setValue(value);
         inputItem.setBean(c);
 
+        if (inputItem.getParent() != null) {
+            ((ViewGroup) inputItem.getParent()).removeView(inputItem);
+        }
         addView(inputItem);
     }
 
@@ -319,12 +344,14 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
         if (gravityItem == null) {
             gravityItem = new PropertyGravityItem(getContext(), !b);
             gravityItem.setOrientationItem(getOrientation());
+            gravityItem.setWeb(isWeb());
             gravityItem.setKey(key);
             gravityItem.setValue(value);
             gravityItem.setTag(key);
             gravityItem.setOnPropertyValueChangeListener(this);
             f.put(key, gravityItem);
         } else {
+            gravityItem.setWeb(isWeb());
             gravityItem.setValue(value);
         }
 
@@ -352,6 +379,9 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
         } else {
             drawableItem.setValue(value);
         }
+        if (drawableItem.getParent() != null) {
+            ((ViewGroup) drawableItem.getParent()).removeView(drawableItem);
+        }
         addView(drawableItem);
     }
 
@@ -373,6 +403,7 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
         PropertySelectorItem selectorItem = (PropertySelectorItem) f.get(key);
         if (selectorItem == null) {
             selectorItem = new PropertySelectorItem(getContext(), !b);
+            selectorItem.setWeb(isWeb());
             selectorItem.setOrientationItem(getOrientation());
             selectorItem.setKey(key);
             selectorItem.setValue(value);
@@ -380,9 +411,13 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             selectorItem.setOnPropertyValueChangeListener(this);
             f.put(key, selectorItem);
         } else {
+            selectorItem.setWeb(isWeb());
             selectorItem.setValue(value);
         }
 
+        if (selectorItem.getParent() != null) {
+            ((ViewGroup) selectorItem.getParent()).removeView(selectorItem);
+        }
         addView(selectorItem);
     }
 
@@ -400,6 +435,9 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             pairSelectorItem.setValue(value);
         }
 
+        if (pairSelectorItem.getParent() != null) {
+            ((ViewGroup) pairSelectorItem.getParent()).removeView(pairSelectorItem);
+        }
         addView(pairSelectorItem);
     }
 
@@ -410,6 +448,8 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
 
         Gx classInfo = bean.getClassInfo();
         Gx parentClassInfo = bean.getParentClassInfo();
+        boolean isWeb = isWeb();
+        
         a(bean, "property_layout_width");
         a(bean, "property_layout_height");
         if (bean.parentType == ViewBean.VIEW_TYPE_LAYOUT_RELATIVE) {
@@ -417,9 +457,18 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
         }
         a(bean, "property_padding");
         a(bean, "property_margin");
+        
         if (classInfo.a("LinearLayout")) {
             a(bean, "property_orientation");
-            a(bean, "property_weight_sum");
+            if (!isWeb) {
+                a(bean, "property_weight_sum");
+            } else {
+                String tag = bean.convert != null ? bean.convert.toLowerCase() : "";
+                if (tag.equals("form")) {
+                    a(bean, "html_attr_action");
+                    a(bean, "html_attr_method");
+                }
+            }
             a(bean, "property_gravity");
         }
 
@@ -430,7 +479,7 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
         if (parentClassInfo != null) {
             if (parentClassInfo.a("LinearLayout")) {
                 a(bean, "property_layout_gravity");
-                a(bean, "property_weight");
+                if (!isWeb) a(bean, "property_weight");
             }
 
             if (parentClassInfo.a("ScrollView") || parentClassInfo.a("HorizontalScrollView")) {
@@ -453,6 +502,9 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             propertySizeItem.setValue(value);
         }
 
+        if (propertySizeItem.getParent() != null) {
+            ((ViewGroup) propertySizeItem.getParent()).removeView(propertySizeItem);
+        }
         addView(propertySizeItem);
     }
 
@@ -470,6 +522,9 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             stringSelectorItem.setValue(value);
         }
 
+        if (stringSelectorItem.getParent() != null) {
+            ((ViewGroup) stringSelectorItem.getParent()).removeView(stringSelectorItem);
+        }
         addView(stringSelectorItem);
     }
 
@@ -514,6 +569,9 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             switchSingleLineItem.setValue(isEnabled);
         }
 
+        if (switchSingleLineItem.getParent() != null) {
+            ((ViewGroup) switchSingleLineItem.getParent()).removeView(switchSingleLineItem);
+        }
         addView(switchSingleLineItem);
     }
 
@@ -541,37 +599,104 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
         item.setBeans(viewBeans);
         item.setAvailableIds(ids);
 
+        if (item.getParent() != null) {
+            ((ViewGroup) item.getParent()).removeView(item);
+        }
         addView(item);
     }
 
     public void f(ViewBean bean) {
         if (!bean.id.equals("_fab")) {
             Gx classInfo = bean.getClassInfo();
+            boolean isWeb = isWeb();
+            String tag = bean.convert != null ? bean.convert.toLowerCase() : "";
+            
+            a(bean, "property_class_name");
             a(bean, "property_inject");
+            
+            if (isWeb) {
+                switch (tag) {
+                    case "a" -> {
+                        a(bean, "html_attr_href");
+                        a(bean, "html_attr_target");
+                    }
+                    case "img" -> {
+                        a(bean, "html_attr_alt");
+                        a(bean, "html_attr_loading");
+                    }
+                    case "input", "textarea", "select", "button" -> {
+                        a(bean, "html_attr_name");
+                        if (tag.equals("button")) {
+                            a(bean, "html_attr_type");
+                            a(bean, "html_attr_value");
+                        } else if (tag.equals("input") || tag.equals("textarea")) {
+                            a(bean, "html_attr_required");
+                            a(bean, "html_attr_readonly");
+                            if (tag.equals("textarea")) {
+                                a(bean, "html_attr_rows");
+                                a(bean, "html_attr_cols");
+                            } else {
+                                a(bean, "html_attr_pattern");
+                                a(bean, "html_attr_min");
+                                a(bean, "html_attr_max");
+                                a(bean, "html_attr_step");
+                            }
+                        } else if (tag.equals("select")) {
+                            a(bean, "html_attr_multiple");
+                            a(bean, "html_attr_size");
+                        }
+                    }
+                    case "form" -> {
+                        a(bean, "html_attr_action");
+                        a(bean, "html_attr_method");
+                    }
+                    case "option" -> a(bean, "html_attr_value");
+                    case "iframe", "video", "audio" -> {
+                        a(bean, "html_attr_src");
+                        if (tag.equals("iframe")) {
+                            a(bean, "html_attr_title");
+                        } else {
+                            a(bean, "html_attr_controls");
+                            a(bean, "html_attr_autoplay");
+                            a(bean, "html_attr_loop");
+                            a(bean, "html_attr_muted");
+                        }
+                    }
+                }
+            }
+
             a(bean, "property_convert");
-            if (classInfo.b("Spinner")) {
-                a(bean, "property_spinner_mode");
-            }
+            
+            if (!isWeb) {
+                if (classInfo.b("Spinner")) {
+                    a(bean, "property_spinner_mode");
+                }
 
-            if (classInfo.b("ListView")) {
-                a(bean, "property_divider_height");
-                a(bean, "property_custom_view_listview");
-            }
+                if (classInfo.b("ListView")) {
+                    a(bean, "property_divider_height");
+                    a(bean, "property_custom_view_listview");
+                }
 
-            if (classInfo.b("GridView")) {
-                a(bean, "property_custom_view_listview");
-            }
+                if (classInfo.b("GridView")) {
+                    a(bean, "property_custom_view_listview");
+                }
 
-            if (classInfo.b("RecyclerView")) {
-                a(bean, "property_custom_view_listview");
-            }
+                if (classInfo.b("RecyclerView")) {
+                    a(bean, "property_custom_view_listview");
+                }
 
-            if (classInfo.b("ViewPager")) {
-                a(bean, "property_custom_view_listview");
-            }
+                if (classInfo.b("ViewPager")) {
+                    a(bean, "property_custom_view_listview");
+                }
 
-            if (classInfo.b("Spinner")) {
-                a(bean, "property_custom_view_listview");
+                if (classInfo.b("Spinner")) {
+                    a(bean, "property_custom_view_listview");
+                }
+            } else {
+                // Web specific list containers
+                if (classInfo.b("ListView") || classInfo.b("GridView")) {
+                     a(bean, "property_custom_view_listview");
+                }
             }
 
             if (classInfo.b("AutoCompleteTextView")) {
@@ -584,7 +709,7 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
                 a(bean, "property_hint_color");
             }
 
-            if (classInfo.b("WaveSideBar")) {
+            if (!isWeb && classInfo.b("WaveSideBar")) {
                 b("property_text_size", String.valueOf(bean.text.textSize));
                 a(bean, "property_text_color");
             }
@@ -593,74 +718,96 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
                 a(bean, "property_checked");
             }
 
-            if (classInfo.b("SeekBar")) {
-                a(bean, "property_max");
-                a(bean, "property_progress");
-            }
+            if (!isWeb) {
+                if (classInfo.b("SeekBar")) {
+                    a(bean, "property_max");
+                    a(bean, "property_progress");
+                }
 
-            if (classInfo.b("CalendarView")) {
-                a(bean, "property_first_day_of_week");
-            }
+                if (classInfo.b("CalendarView")) {
+                    a(bean, "property_first_day_of_week");
+                }
 
-            if (classInfo.b("AdView")) {
-                a(bean, "property_ad_size");
-            }
+                if (classInfo.b("AdView")) {
+                    a(bean, "property_ad_size");
+                }
 
-            if (classInfo.b("ProgressBar")) {
-                a(bean, "property_max");
-                a(bean, "property_progress");
-                a(bean, "property_progressbar_style");
-                a(bean, "property_indeterminate");
+                if (classInfo.b("ProgressBar")) {
+                    a(bean, "property_max");
+                    a(bean, "property_progress");
+                    a(bean, "property_progressbar_style");
+                    a(bean, "property_indeterminate");
+                }
             }
         }
     }
 
     public void g(ViewBean bean) {
         Gx classInfo = bean.getClassInfo();
+        boolean isWeb = isWeb();
+        
         if (classInfo.a("TextView")) {
             if (getOrientation() == LinearLayout.VERTICAL) {
                 a(getContext().getString(R.string.property_header_text));
             }
 
             a(bean, "property_text");
-            b("property_text_size", String.valueOf(bean.text.textSize));
+            if (isWeb) {
+                String tag = bean.convert != null ? bean.convert.toLowerCase() : "";
+                if (tag.equals("a")) {
+                    a(bean, "html_attr_href");
+                    a(bean, "html_attr_target");
+                }
+            }
+            a(bean, "property_text_size");
             a(bean, "property_text_style");
             a(bean, "property_text_color");
             if (classInfo.b("EditText")) {
                 a(bean, "property_hint");
                 a(bean, "property_hint_color");
                 if (getOrientation() == LinearLayout.VERTICAL) {
-                    a(bean, "property_single_line");
+                    if (!isWeb) a(bean, "property_single_line");
                 }
 
-                a(bean, "property_lines");
+                if (!isWeb) {
+                    a(bean, "property_lines");
+                }
+                
                 a(bean, "property_input_type");
-                a(bean, "property_ime_option");
+                
+                if (!isWeb) {
+                    a(bean, "property_ime_option");
+                }
             }
 
             if (classInfo.b("TextView")) {
                 if (getOrientation() == LinearLayout.VERTICAL) {
-                    a(bean, "property_single_line");
+                    if (!isWeb) a(bean, "property_single_line");
                 }
 
-                a(bean, "property_lines");
+                if (!isWeb) a(bean, "property_lines");
             }
         }
     }
 
     public void h(ViewBean bean) {
         Gx classInfo = bean.getClassInfo();
+        boolean isWeb = isWeb();
+        
         if (getOrientation() == LinearLayout.VERTICAL) {
             if (classInfo.a("ImageView")) {
                 a(getContext().getString(R.string.property_header_image), this);
                 a(bean, "property_image");
-                a(bean, "property_scale_type");
+                if (isWeb) {
+                    a(bean, "html_attr_alt");
+                }
+                if (!isWeb) a(bean, "property_scale_type");
             } else {
                 a(getContext().getString(R.string.property_header_image));
             }
         } else if (classInfo.a("ImageView")) {
             a(bean, "property_image");
-            a(bean, "property_scale_type");
+            if (!isWeb) a(bean, "property_scale_type");
         }
 
         if (bean.type != ViewBean.VIEW_TYPE_WIDGET_MAPVIEW) {
@@ -677,7 +824,7 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             a(bean, "property_enabled");
         }
 
-        a(bean, "property_rotate");
+        if (!isWeb) a(bean, "property_rotate");
         a(bean, "property_alpha");
         a(bean, "property_translation_x");
         a(bean, "property_translation_y");
@@ -700,6 +847,7 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
                         }
                     }
                     case "property_convert" -> bean.convert = inputItem.getValue();
+                    case "property_class_name" -> bean.classNames = inputItem.getValue();
                     case "property_inject" -> bean.inject = inputItem.getValue();
                     case "property_text" -> bean.text.text = inputItem.getValue();
                     case "property_hint" -> bean.text.hint = inputItem.getValue();
@@ -722,6 +870,12 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
                     case "property_max" -> bean.max = Integer.parseInt(inputItem.getValue());
                     case "property_progress" ->
                             bean.progress = Integer.parseInt(inputItem.getValue());
+                    default -> {
+                        if (inputItem.getKey().startsWith("html_attr_")) {
+                            String attrName = inputItem.getKey().replace("html_attr_", "");
+                            bean.parentAttributes.put(attrName, inputItem.getValue());
+                        }
+                    }
                 }
             } else if (view instanceof PropertyMeasureItem measureItem) {
                 if (measureItem.getKey().equals("property_layout_width")) {
@@ -739,6 +893,7 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
                     case "property_spinner_mode" -> bean.spinnerMode = selectorItem.getValue();
                     case "property_first_day_of_week" ->
                             bean.firstDayOfWeek = selectorItem.getValue();
+                    case "property_text_size" -> bean.text.textSize = selectorItem.getValue();
                 }
             } else if (view instanceof PropertyStringSelectorItem stringSelectorItem) {
                 switch (stringSelectorItem.getKey()) {
@@ -976,6 +1131,10 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
         }
     }
 
+
+    private boolean isWeb() {
+        return e != null && e.getXmlName().endsWith(".html");
+    }
 
     public void setProjectSettings(ProjectSettings settings) {
         this.settings = settings;

@@ -25,8 +25,8 @@ public class ProjectFileBean extends SelectableBean implements Parcelable {
         }
     };
 
-    public static final String DEFAULT_XML_NAME = "main.xml";
-    public static final String DEFAULT_JAVA_NAME = "MainActivity.java";
+    public static final String DEFAULT_XML_NAME = "main.html";
+    public static final String DEFAULT_JAVA_NAME = "main.css";
 
     public static final int KEYBOARD_STATE_HIDDEN = 2;
     public static final int KEYBOARD_STATE_UNSPECIFIED = 0;
@@ -189,11 +189,12 @@ public class ProjectFileBean extends SelectableBean implements Parcelable {
     }
 
     public static String getJavaName(String filename) {
-        return getActivityName(filename) + ".java";
+        return filename.endsWith(".css") ? filename : filename + ".css";
     }
 
     public static String getXmlName(String filename) {
-        return filename + ".xml";
+        if (filename.isEmpty()) return "main.html";
+        return filename.endsWith(".html") ? filename : filename + ".html";
     }
 
     public void copy(ProjectFileBean bean) {
@@ -212,6 +213,9 @@ public class ProjectFileBean extends SelectableBean implements Parcelable {
     }
 
     public String getActivityName() {
+        if (fileName != null && fileName.endsWith(".html")) {
+            return getActivityName(fileName.replace(".html", ""));
+        }
         return fileType != PROJECT_FILE_TYPE_ACTIVITY ? "" : getActivityName(fileName);
     }
 
@@ -237,6 +241,9 @@ public class ProjectFileBean extends SelectableBean implements Parcelable {
     }
 
     public String getJavaName() {
+        if (fileName != null && fileName.endsWith(".html")) {
+            return getJavaName(fileName);
+        }
         return fileType != PROJECT_FILE_TYPE_ACTIVITY ? "" : getJavaName(fileName);
     }
 

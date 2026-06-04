@@ -20,8 +20,8 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import a.a.a.ProjectBuilder;
-import a.a.a.yq;
 import a.a.a.zy;
+import laki.webide.ProjectWorkspace;
 import mod.agus.jcoderz.editor.manage.library.locallibrary.ManageLocalLibrary;
 import mod.jbk.build.BuiltInLibraries;
 import mod.jbk.util.LogUtil;
@@ -47,15 +47,15 @@ public class AppBundleCompiler {
 
     public AppBundleCompiler(ProjectBuilder builder) {
         this.builder = builder;
-        mainModuleArchive = new File(builder.yq.binDirectoryPath, MODULE_ARCHIVE_FILE_NAME);
-        appBundle = new File(builder.yq.binDirectoryPath, getBundleFilename(builder.yq.projectName));
+        mainModuleArchive = new File(builder.ProjectWorkspace.binDirectoryPath, MODULE_ARCHIVE_FILE_NAME);
+        appBundle = new File(builder.ProjectWorkspace.binDirectoryPath, getBundleFilename(builder.ProjectWorkspace.projectName));
     }
 
     public static String getBundleFilename(String sc_id) {
         return sc_id + ".aab";
     }
 
-    public static File getDefaultAppBundleOutputFile(yq projectMetadata) {
+    public static File getDefaultAppBundleOutputFile(ProjectWorkspace projectMetadata) {
         return new File(projectMetadata.binDirectoryPath, projectMetadata.projectName + ".aab");
     }
 
@@ -78,7 +78,7 @@ public class AppBundleCompiler {
                         ).build()
                 );
         if (builder.proguard.isShrinkingEnabled() && builder.proguard.isDebugFilesEnabled()) {
-            Path mapping = Paths.get(builder.yq.proguardMappingPath);
+            Path mapping = Paths.get(builder.ProjectWorkspace.proguardMappingPath);
             LogUtil.d(TAG, "Adding metadata file " + mapping + " as com.android.tools.build.obfuscation/proguard.map");
             bundleBuilder.addMetadataFile("com.android.tools.build.obfuscation", "proguard.map", mapping);
         }
@@ -101,9 +101,9 @@ public class AppBundleCompiler {
     public void createModuleMainArchive() throws IOException {
         var moduleMain = new BufferedOutputStream(new FileOutputStream(mainModuleArchive));
         try (var moduleMainZip = new ZipOutputStream(moduleMain)) {
-            try (var apkRes = new ZipInputStream(new FileInputStream(builder.yq.resourcesApkPath))) {
+            try (var apkRes = new ZipInputStream(new FileInputStream(builder.ProjectWorkspace.resourcesApkPath))) {
                 /* First, compress DEX files into module-main.zip */
-                var binDirectoryContent = new File(builder.yq.binDirectoryPath).listFiles();
+                var binDirectoryContent = new File(builder.ProjectWorkspace.binDirectoryPath).listFiles();
                 if (binDirectoryContent != null) {
                     for (var file : binDirectoryContent) {
                         if (file.isFile() && file.getName().endsWith(".dex")) {
@@ -171,7 +171,7 @@ public class AppBundleCompiler {
                 moduleMain.flush();
             }
 
-            var nativeLibrariesDirectory = new File(new FilePathUtil().getPathNativelibs(builder.yq.sc_id));
+            var nativeLibrariesDirectory = new File(new FilePathUtil().getPathNativelibs(builder.ProjectWorkspace.sc_id));
             var architectures = nativeLibrariesDirectory.listFiles();
 
             if (architectures != null) {
@@ -199,7 +199,7 @@ public class AppBundleCompiler {
             }
 
             /* Start with enabled Local libraries' JARs */
-            var jars = new ManageLocalLibrary(builder.yq.sc_id).getLocalLibraryJars();
+            var jars = new ManageLocalLibrary(builder.ProjectWorkspace.sc_id).getLocalLibraryJars();
 
             /* Add built-in libraries' JARs */
             for (var library : builder.builtInLibraryManager.getLibraries()) {

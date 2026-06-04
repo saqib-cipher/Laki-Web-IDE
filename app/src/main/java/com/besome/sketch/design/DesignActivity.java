@@ -1,38 +1,18 @@
 package com.besome.sketch.design;
 
 import android.app.Activity;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.res.ColorStateList;
+import android.content.*;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
+import android.os.*;
 import android.util.Pair;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.PopupMenu;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.*;
+import android.widget.*;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.view.GravityCompat;
@@ -58,9 +38,12 @@ import com.besome.sketch.editor.manage.view.ManageViewActivity;
 import com.besome.sketch.lib.base.BaseAppCompatActivity;
 import com.besome.sketch.lib.ui.CustomViewPager;
 import com.besome.sketch.tools.CompileLogActivity;
+
+import a.a.a.*;
+import laki.webide.compiler.HtmlGenerator;
+import mod.hey.studios.util.Helper;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
@@ -74,47 +57,23 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import a.a.a.DB;
-import a.a.a.GB;
-import a.a.a.Ox;
-import a.a.a.ProjectBuilder;
-import a.a.a.ViewEditorFragment;
-import a.a.a.bB;
-import a.a.a.bC;
-import a.a.a.br;
-import a.a.a.cC;
-import a.a.a.eC;
-import a.a.a.jC;
-import a.a.a.kC;
-import a.a.a.lC;
-import a.a.a.mB;
-import a.a.a.rs;
-import a.a.a.wq;
-import a.a.a.yB;
-import a.a.a.yq;
-import a.a.a.zy;
+import laki.webide.ProjectWorkspace;
 import dev.chrisbanes.insetter.Insetter;
 import mod.agus.jcoderz.editor.manage.permission.ManagePermissionActivity;
 import mod.agus.jcoderz.editor.manage.resource.ManageResourceActivity;
 import mod.hey.studios.activity.managers.assets.ManageAssetsActivity;
 import mod.hey.studios.activity.managers.java.ManageJavaActivity;
-import mod.hey.studios.compiler.kotlin.KotlinCompilerBridge;
 import mod.hey.studios.project.custom_blocks.CustomBlocksDialog;
 import mod.hey.studios.project.proguard.ManageProguardActivity;
-import mod.hey.studios.project.proguard.ProguardHandler;
 import mod.hey.studios.project.stringfog.ManageStringFogFragment;
-import mod.hey.studios.project.stringfog.StringfogHandler;
-import mod.hey.studios.util.Helper;
 import mod.hey.studios.util.SystemLogPrinter;
 import mod.hilal.saif.activities.android_manifest.AndroidManifestInjection;
 import mod.hilal.saif.activities.tools.ConfigActivity;
-import mod.jbk.build.BuildProgressReceiver;
-import mod.jbk.build.BuiltInLibraries;
 import mod.jbk.diagnostic.CompileErrorSaver;
-import mod.jbk.diagnostic.MissingFileException;
 import mod.jbk.util.LogUtil;
 import mod.khaled.logcat.LogReaderActivity;
 import laki.webide.R;
+import laki.webide.managers.WebProjectSyncManager;
 import laki.webide.activities.appcompat.ManageAppCompatActivity;
 import laki.webide.activities.editor.command.ManageXMLCommandActivity;
 import laki.webide.activities.editor.view.CodeViewerActivity;
@@ -123,7 +82,6 @@ import laki.webide.activities.resourceseditor.ResourcesEditorActivity;
 import laki.webide.dialogs.BuildSettingsBottomSheet;
 import laki.webide.utility.FileUtil;
 import laki.webide.utility.SketchwareUtil;
-import laki.webide.utility.ThemeUtils;
 import laki.webide.utility.apk.ApkSignatures;
 
 public class DesignActivity extends BaseAppCompatActivity implements View.OnClickListener {
@@ -136,7 +94,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     private CustomViewPager viewPager;
     private CoordinatorLayout coordinatorLayout;
     private DrawerLayout drawer;
-    private yq q;
+    private ProjectWorkspace q;
     private DB r;
     private DB t;
     private Menu bottomMenu;
@@ -196,21 +154,14 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
             refresh();
         }
     });
-    private BuildTask currentBuildTask;
-    private final BroadcastReceiver buildCancelReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (BuildTask.ACTION_CANCEL_BUILD.equals(intent.getAction())) {
-                if (currentBuildTask != null) {
-                    currentBuildTask.cancelBuild();
-                }
-            }
-        }
-    };
 
     /**
      * Saves the app's version information to the currently opened Sketchware project file.
      */
+    public ProjectWorkspace getProjectWorkspace() {
+        return q;
+    }
+
     private void saveVersionCodeInformationToProject() {
         HashMap<String, Object> projectMetadata = lC.b(sc_id);
         if (projectMetadata != null) {
@@ -235,7 +186,12 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     }
 
     private ProjectFileBean getDefaultProjectFile() {
-        return jC.b(sc_id).b(ProjectFileBean.DEFAULT_XML_NAME);
+        var projectFileManager = jC.b(sc_id);
+        var file = projectFileManager.b("main.html");
+        if (file == null) {
+            file = projectFileManager.b("main.xml");
+        }
+        return file;
     }
 
     private void refreshFileSelector() {
@@ -466,9 +422,19 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
         findViewById(R.id.file_name_container).setOnClickListener(this);
 
         btnRun = findViewById(R.id.btn_run);
-        btnRun.setEnabled(false);
+        btnRun.setText("Preview");
+        btnRun.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_screen_rotation_grey600_24dp));
         btnRun.setOnClickListener(v -> {
-            //Here we will add website running code in future never change anything here
+            if (projectFile != null) {
+                k();
+                saveProject();
+                String htmlPath = q.projectMyscPath + projectFile.getXmlName().replace(".xml", ".html");
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", new File(htmlPath));
+                intent.setDataAndType(uri, "text/html");
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivity(Intent.createChooser(intent, "Preview Website"));
+            }
         });
 
         btnOptions = findViewById(R.id.btn_options);
@@ -508,7 +474,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
             apkSignatures.showSignaturesDialog();
             return true;
         });
-        bottomMenu.add(Menu.NONE, 7, Menu.NONE, "Direct XML editor").setOnMenuItemClickListener(item -> {
+        bottomMenu.add(Menu.NONE, 7, Menu.NONE, "Direct HTML editor").setOnMenuItemClickListener(item -> {
             toViewCodeEditor();
             return true;
         });
@@ -570,29 +536,14 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
         viewPager.getAdapter().notifyDataSetChanged();
         ((TabLayout) findViewById(R.id.tab_layout)).setupWithViewPager(viewPager);
 
-        IntentFilter filter = new IntentFilter(BuildTask.ACTION_CANCEL_BUILD);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(buildCancelReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
-        } else {
-            registerReceiver(buildCancelReceiver, filter);
-        }
-
-    }
-
-    private boolean isDebugApkExists() {
-        if (q != null) {
-            return FileUtil.isExistFile(q.finalToInstallApkPath);
-        }
-        return false;
     }
 
     private void updateBottomMenu() {
         if (bottomMenu != null) {
             handler.post(() -> {
                 bottomMenu.findItem(2).setVisible(q != null && FileUtil.isExistFile(q.projectMyscPath));
-                var isDebugApkExists = isDebugApkExists();
-                bottomMenu.findItem(4).setVisible(isDebugApkExists);
-                bottomMenu.findItem(6).setVisible(isDebugApkExists);
+                bottomMenu.findItem(4).setVisible(false);
+                bottomMenu.findItem(6).setVisible(false);
             });
         }
     }
@@ -600,7 +551,6 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(buildCancelReceiver);
     }
 
     @Override
@@ -639,7 +589,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
 
         HashMap<String, Object> projectInfo = lC.b(sc_id);
         getSupportActionBar().setTitle(yB.c(projectInfo, "my_ws_name"));
-        q = new yq(getApplicationContext(), wq.d(sc_id), projectInfo);
+        q = new ProjectWorkspace(getApplicationContext(), wq.d(sc_id), projectInfo);
 
         try {
             ProjectLoader projectLoader = new ProjectLoader(this, savedInstanceState);
@@ -795,7 +745,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
         k();
         new Thread(() -> {
             var filename = Helper.getText(fileName);
-            var code = new yq(getApplicationContext(), sc_id).getFileSrc(filename, jC.b(sc_id), jC.a(sc_id), jC.c(sc_id));
+            var code = new ProjectWorkspace(getApplicationContext(), sc_id).getFileSrc(filename, jC.b(sc_id), jC.a(sc_id), jC.c(sc_id));
             runOnUiThread(() -> {
                 if (isFinishing()) return;
                 h();
@@ -803,7 +753,9 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
                     SketchwareUtil.toast("Failed to generate source.");
                     return;
                 }
-                var scheme = filename.endsWith(".xml") ? CodeViewerActivity.SCHEME_XML : CodeViewerActivity.SCHEME_JAVA;
+                var scheme = filename.endsWith(".html") ? "html" :
+                             filename.endsWith(".css") ? "css" :
+                             filename.endsWith(".xml") ? CodeViewerActivity.SCHEME_XML : CodeViewerActivity.SCHEME_JAVA;
                 launchActivity(CodeViewerActivity.class, null, new Pair<>("code", code), new Pair<>("sc_id", sc_id), new Pair<>("scheme", scheme));
             });
         }).start();
@@ -811,7 +763,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
 
     private void showAvailableJavaFiles() {
         var dialog = new MaterialAlertDialogBuilder(this).create();
-        dialog.setTitle(R.string.design_file_selector_title_java);
+        dialog.setTitle("Select CSS File");
         dialog.setIcon(R.drawable.ic_mtrl_java);
         View customView = a.a.a.wB.a(this, R.layout.file_selector_popup_select_java);
         RecyclerView recyclerView = customView.findViewById(R.id.file_list);
@@ -845,14 +797,15 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
         k();
         new Thread(() -> {
             String filename = Helper.getText(fileName);
-            // var yq = new yq(getApplicationContext(), sc_id);
-            var xmlGenerator = new Ox(q.N, projectFile);
             var projectDataManager = jC.a(sc_id);
             var viewBeans = projectDataManager.d(filename);
-            var viewFab = projectDataManager.h(filename);
-            xmlGenerator.setExcludeAppCompat(true);
-            xmlGenerator.a(eC.a(viewBeans), viewFab);
-            String content = xmlGenerator.b();
+            
+            // NEW: Fetch head code from the HeadEditorManager (JSON settings) instead of blocks
+            String headCode = laki.webide.managers.HeadEditorManager.getGeneratedHtml(sc_id, projectFile);
+            
+            var htmlGenerator = new HtmlGenerator(filename, a.a.a.eC.a(viewBeans), headCode);
+            String content = htmlGenerator.generate();
+
             runOnUiThread(() -> {
                 if (isFinishing()) return;
                 h();
@@ -1031,320 +984,6 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
         }
     }
 
-    private static class BuildTask extends BaseTask implements BuildProgressReceiver {
-        public static final String ACTION_CANCEL_BUILD = "com.besome.sketch.design.ACTION_CANCEL_BUILD";
-        private static final String CHANNEL_ID = "build_notification_channel";
-        private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        private final NotificationManager notificationManager;
-        private final int notificationId = 1;
-        private final MaterialButton btnRun;
-        private final MaterialButton btnOptions;
-        private final LinearLayout progressContainer;
-        private final TextView progressText;
-        private final LinearProgressIndicator progressBar;
-        public volatile boolean canceled;
-        private volatile boolean isBuildFinished;
-        private boolean isShowingNotification = false;
-
-        public BuildTask(DesignActivity activity) {
-            super(activity);
-            notificationManager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
-            btnRun = activity.btnRun;
-            btnOptions = activity.btnOptions;
-            progressContainer = activity.findViewById(R.id.progress_container);
-            progressText = activity.findViewById(R.id.progress_text);
-            progressBar = activity.findViewById(R.id.progress);
-        }
-
-        public void execute() {
-            onPreExecute();
-            executorService.execute(this::doInBackground);
-        }
-
-        private void onPreExecute() {
-            DesignActivity activity = getActivity();
-            if (activity == null) return;
-
-            activity.runOnUiThread(() -> {
-                updateRunButton(true);
-                activity.r.a("P1I10", true);
-                activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-                maybeShowNotification();
-            });
-        }
-
-        private void doInBackground() {
-            DesignActivity activity = getActivity();
-            if (activity == null) return;
-
-            try {
-                /*
-                var q = activity.q;
-                var sc_id = DesignActivity.sc_id;
-
-                // Step 1: Clean up any leftover files from previous builds to ensure a fresh start
-                onProgress("Deleting temporary files...", 1);
-                FileUtil.deleteFile(q.projectMyscPath);
-
-                // Step 2: Initialize project metadata, package name, and directory structures
-                q.c(activity.getApplicationContext());
-                q.a();
-                q.a(activity.getApplicationContext(), wq.e("600"));
-
-                // Step 3: Handle project icons (Normal or Adaptive)
-                if (yB.a(lC.b(sc_id), "custom_icon")) {
-                    q.aa(wq.e() + File.separator + sc_id + File.separator + "mipmaps");
-                    if (yB.a(lC.b(sc_id), "isIconAdaptive", false)) {
-                        q.createLauncherIconXml("""
-                                <?xml version="1.0" encoding="utf-8"?>
-                                <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android" >
-                                <background android:drawable="@mipmap/ic_launcher_background"/>
-                                <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
-                                <monochrome android:drawable="@mipmap/ic_launcher_monochrome"/>
-                                </adaptive-icon>""");
-                    } else {
-                        q.a(wq.e() + File.separator + sc_id + File.separator + "icon.png");
-                    }
-                }
-
-                // Step 4: Map resource and asset directories (drawables, raw, fonts)
-                onProgress("Generating source code...", 2);
-                kC kC = jC.d(sc_id);
-                kC.b(q.resDirectoryPath + File.separator + "drawable-xhdpi");
-                kC = jC.d(sc_id);
-                kC.c(q.resDirectoryPath + File.separator + "raw");
-                kC = jC.d(sc_id);
-                kC.a(q.assetsPath + File.separator + "fonts");
-
-                // Step 5: Initialize the main ProjectBuilder and gather library dependencies
-                ProjectBuilder builder = new ProjectBuilder(this, activity.getApplicationContext(), q);
-
-                var fileManager = jC.b(sc_id);
-                var dataManager = jC.a(sc_id);
-                var libraryManager = jC.c(sc_id);
-                q.a(libraryManager, fileManager, dataManager);
-                builder.buildBuiltInLibraryInformation();
-                q.b(fileManager, dataManager, libraryManager, builder.getBuiltInLibraryManager());
-                q.f();
-                q.e();
-
-                // Step 6: Extract AAPT2 and built-in library assets required for compilation
-                builder.maybeExtractAapt2();
-                if (canceled) {
-                    return;
-                }
-
-                onProgress("Extracting built-in libraries...", 3);
-                BuiltInLibraries.extractCompileAssets(this);
-                if (canceled) {
-                    return;
-                }
-
-                // Step 7: Run AAPT2 to compile resources (XML, images) and link them into a base APK
-                onProgress("AAPT2 is running...", 8);
-                builder.compileResources();
-                if (canceled) {
-                    return;
-                }
-
-                // Step 8: Generate ViewBinding classes if enabled for the project
-                onProgress("Generating view binding...", 11);
-                builder.generateViewBinding();
-                if (canceled) {
-                    return;
-                }
-
-                // Step 9: Compile any Kotlin code found in the project
-                KotlinCompilerBridge.compileKotlinCodeIfPossible(this, builder);
-                if (canceled) {
-                    return;
-                }
-
-                // Step 10: Compile all Java source code (MainActivity, etc.) using ECJ
-                onProgress("Java is compiling...", 13);
-                builder.compileJavaCode();
-                if (canceled) {
-                    return;
-                }
-
-                // Step 11: Apply StringFog to obfuscate/encrypt string literals for security
-                StringfogHandler stringfogHandler = new StringfogHandler(sc_id);
-                stringfogHandler.start(this, builder);
-                if (canceled) {
-                    return;
-                }
-
-                // Step 12: Run Proguard/R8 to shrink code and obfuscate classes/methods
-                ProguardHandler proguardHandler = new ProguardHandler(sc_id);
-                proguardHandler.start(this, builder);
-                if (canceled) {
-                    return;
-                }
-
-                // Step 13: Convert compiled .class files into Android-executable .dex files
-                onProgress(builder.getDxRunningText(), 17);
-                builder.createDexFilesFromClasses();
-                if (canceled) {
-                    return;
-                }
-
-                // Step 14: Merge all DEX files (from app and libraries) into final DEX files
-                onProgress("Merging DEX files...", 18);
-                builder.getDexFilesReady();
-                if (canceled) {
-                    return;
-                }
-
-                // Step 15: Package the DEX files and compiled resources into the final APK file
-                onProgress("Building APK...", 19);
-                builder.buildApk();
-                if (canceled) {
-                    return;
-                }
-
-                // Step 16: Sign the APK with a debug/test key so it can be installed on a device
-                onProgress("Signing APK...", 20);
-                builder.signDebugApk();
-                if (canceled) {
-                    return;
-                }
-
-                // Step 17: Trigger the installation process for the freshly built APK
-                activity.installBuiltApk();
-                isBuildFinished = true;
-                */
-            } catch (Throwable tr) {
-                isBuildFinished = true;
-                LogUtil.e("DesignActivity$BuildTask", "Failed to build project", tr);
-                activity.indicateCompileErrorOccurred(Log.getStackTraceString(tr));
-            } finally {
-                activity.runOnUiThread(this::onPostExecute);
-            }
-        }
-
-        @Override
-        public void onProgress(String progress, int step) {
-            int totalSteps = 20;
-
-            DesignActivity activity = getActivity();
-            if (activity == null) return;
-
-            activity.runOnUiThread(() -> {
-                progressBar.setIndeterminate(step == -1);
-                if (!canceled) {
-                    updateNotification(progress + " (" + step + " / " + totalSteps + ")");
-                }
-                progressText.setText(progress);
-                var progressInt = (step * 100) / totalSteps;
-                progressBar.setProgress(progressInt, true);
-                Log.d("DesignActivity$BuildTask", step + " / " + totalSteps);
-            });
-        }
-
-        private void onPostExecute() {
-            DesignActivity activity = getActivity();
-            if (activity == null) return;
-
-            activity.runOnUiThread(() -> {
-                if (!activity.isDestroyed()) {
-                    if (isShowingNotification) {
-                        notificationManager.cancel(notificationId);
-                        isShowingNotification = false;
-                    }
-                    updateRunButton(false);
-                    activity.updateBottomMenu();
-                    activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                }
-            });
-        }
-
-        public void cancelBuild() {
-            canceled = true;
-            onProgress("Canceling build...", -1);
-            if (isShowingNotification) {
-                notificationManager.cancel(notificationId);
-                isShowingNotification = false;
-            }
-            DesignActivity activity = getActivity();
-            if (activity != null) {
-                activity.runOnUiThread(() -> {
-                    activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                });
-            }
-        }
-
-        private void maybeShowNotification() {
-            DesignActivity activity = getActivity();
-            if (activity == null) return;
-
-            if (!isShowingNotification) {
-                createNotificationChannelIfNeeded();
-
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(activity, CHANNEL_ID)
-                        .setSmallIcon(R.drawable.ic_mtrl_code)
-                        .setContentTitle("Building project")
-                        .setContentText("Starting build...")
-                        .setOngoing(true)
-                        .setProgress(0, 0, true)
-                        .addAction(R.drawable.ic_cancel_white_96dp, "Cancel build", getCancelPendingIntent());
-
-                notificationManager.notify(notificationId, builder.build());
-                isShowingNotification = true;
-            }
-        }
-
-        private void updateNotification(String progress) {
-            DesignActivity activity = getActivity();
-            if (activity == null) return;
-
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(activity, CHANNEL_ID)
-                    .setSmallIcon(R.drawable.ic_mtrl_code)
-                    .setContentTitle("Building project")
-                    .setContentText(progress)
-                    .setOngoing(true)
-                    .setProgress(0, 0, true)
-                    .addAction(R.drawable.ic_cancel_white_96dp, "Cancel Build", getCancelPendingIntent());
-
-            notificationManager.notify(notificationId, builder.build());
-        }
-
-        private PendingIntent getCancelPendingIntent() {
-            DesignActivity activity = getActivity();
-            if (activity == null) return null;
-
-            Intent cancelIntent = new Intent(BuildTask.ACTION_CANCEL_BUILD);
-            int flags = PendingIntent.FLAG_UPDATE_CURRENT;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                flags |= PendingIntent.FLAG_IMMUTABLE;
-            }
-            return PendingIntent.getBroadcast(activity, 0, cancelIntent, flags);
-        }
-
-        private void createNotificationChannelIfNeeded() {
-            DesignActivity activity = getActivity();
-            if (activity == null) return;
-
-            CharSequence name = "Build Notifications";
-            String description = "Notifications for build progress";
-            int importance = NotificationManager.IMPORTANCE_LOW;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-            channel.setDescription(description);
-            notificationManager.createNotificationChannel(channel);
-        }
-
-        private void updateRunButton(boolean isRunning) {
-            var context = getActivity();
-            btnRun.setBackgroundTintList(ColorStateList.valueOf(ThemeUtils.getColor(context, isRunning ? R.attr.colorErrorContainer : R.attr.colorPrimary)));
-            btnRun.setIcon(ContextCompat.getDrawable(context, isRunning ? R.drawable.ic_mtrl_stop : R.drawable.ic_mtrl_run));
-            btnRun.setIconTint(ColorStateList.valueOf(ThemeUtils.getColor(context, isRunning ? R.attr.colorOnErrorContainer : R.attr.colorSurfaceContainerLowest)));
-            btnRun.setTextColor(ColorStateList.valueOf(ThemeUtils.getColor(context, isRunning ? R.attr.colorOnErrorContainer : R.attr.colorSurfaceContainerLowest)));
-            btnRun.setText(isRunning ? "Stop" : "Run");
-            btnOptions.setEnabled(!isRunning);
-            progressContainer.setVisibility(isRunning ? View.VISIBLE : View.GONE);
-        }
-    }
-
     private static class ProjectLoader extends BaseTask {
         private final Bundle savedInstanceState;
         private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -1423,6 +1062,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
                 jC.a(sc_id).j();
                 jC.d(sc_id).x();
                 jC.c(sc_id).l();
+                WebProjectSyncManager.sync(activity, sc_id);
                 activity.runOnUiThread(() -> {
                     bB.a(activity.getApplicationContext(), Helper.getResString(R.string.common_message_complete_save), bB.TOAST_NORMAL).show();
                     activity.saveVersionCodeInformationToProject();
@@ -1457,6 +1097,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
                 jC.d(sc_id).x();
                 jC.c(sc_id).l();
                 jC.d(sc_id).h();
+                WebProjectSyncManager.sync(activity, sc_id);
                 activity.runOnUiThread(() -> {
                     bB.a(activity.getApplicationContext(), Helper.getResString(R.string.common_message_complete_save), bB.TOAST_NORMAL).show();
                     activity.saveVersionCodeInformationToProject();
@@ -1495,8 +1136,8 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
         public ViewPagerAdapter(FragmentManager fragmentManager) {
             super(fragmentManager);
             labels = new String[]{
-                    Helper.getResString(R.string.design_tab_title_view),
-                    Helper.getResString(R.string.design_tab_title_event),
+                    "HTML",
+                    "CSS",
                     Helper.getResString(R.string.design_tab_title_component)};
         }
 

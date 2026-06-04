@@ -1,0 +1,74 @@
+SKETCHWARE PRO - BLOCK SYSTEM DEEP ARCHITECTURE REPORT
+=====================================================
+
+This report outlines the current centralized block management system and the proposed modular transition for Laki Web IDE.
+
+I. CURRENT COMPONENT RESPONSIBILITIES
+--------------------------------------
+
+1. DATA MODEL (Identity & Properties)
+   - File: com.besome.sketch.beans.BlockBean.java
+   - Role: Defines the DNA of a block (OpCode, Color, Type, Parameters). This is the digital data that gets saved to project files.
+
+2. PALETTE REGISTRATION (Visual Menu)
+   - Files: dev.aldi.sayuti.block.ExtraPaletteBlock.java, laki.webide.blocks.ExtraBlocks.java
+   - Role: Acts as the "Storefront". It determines which sidebar category a block belongs to and provides the static list of available blocks.
+   - Status: Highly centralized switch-statements (Over 1,500 lines).
+
+3. UI & INTERACTION ENGINE (The Visual Pieces)
+   - Source: app/libs/a.a.a-important-classes.jar
+   - Sub-Components:
+     * Rs.class: The "Body". Handles the physical shape (Notches, Mouths, Container logic).
+     * Ss.class: The "Input". Manages the holes where users type or select values (Value Passing).
+     * Ts.class: The "Label". Parses the spec text and places labels between input fields.
+   - Status: Obfuscated and compiled code.
+
+4. CODE GENERATION (Translation to Source)
+   - Files: a.a.a.Fx.java, laki.webide.compiler.CssCodeGenerator.java
+   - Role: The "Translator". Converts the visual puzzle pieces into lines of Java or CSS code.
+   - Status: Large centralized translation logic.
+
+
+II. SYSTEM LIMITATIONS & RISKS
+-------------------------------
+
+- CENTRALIZATION: Adding a single block requires editing three massive files. A mistake in one block's registration can crash the entire logic editor.
+- DEPENDENCY: High reliance on obfuscated .jar files makes debugging UI glitches nearly impossible without reverse-engineering.
+- DATA ORPHANING: Virtual events (like Extend CSS) risk data loss because the standard Sketchware engine doesn't recognize them as "official" activities.
+
+
+III. PROPOSED MODULAR ARCHITECTURE (LAKI WEB IDE)
+-----------------------------------------------
+
+Goal: Create a system where one block equals one independent file.
+
+1. INDIVIDUAL BLOCK FILES (e.g., IfThen.java)
+   - Location: laki.webide.blocks.*
+   - Data included per file:
+     * Visual Shape Config (Container, Regular, or Boolean)
+     * Color Selection
+     * Input Requirements (What data types it asks for)
+     * Menu Mapping (Which dropdown list to show)
+     * Code Template (The actual snippet it generates)
+
+2. DECENTRALIZED MANAGER (Logic Registry)
+   - Location: laki.webide.managers.ModularBlockManager.java
+   - Role: Automatically scans the blocks folder, reads each individual block's "Blueprint", and dynamically injects them into the Logic Editor's categories.
+
+3. INDEPENDENT PERSISTENCE (Clean Storage)
+   - File Extension: .css_blocks
+   - Role: Stores blocks and variables separately from Sketchware's obfuscated jC/eC managers to ensure 100% save reliability.
+
+
+IV. SUMMARY OF INVESTIGATED FILES (LINE COUNTS)
+---------------------------------------------
+
+1. BlockBean.java: ~191 lines
+2. Fx.java: ~1,541 lines
+3. ExtraPaletteBlock.java: ~1,300 lines
+4. ExtraBlocks.java: ~249 lines
+5. LogicEditorActivity.java: ~2,700 lines
+6. a.a.a-important-classes.jar (Total compiled components): ~3,000+ virtual lines
+
+=====================================================
+END OF REPORT

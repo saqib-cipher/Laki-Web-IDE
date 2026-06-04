@@ -52,6 +52,7 @@ import mod.hey.studios.moreblock.importer.MoreblockImporterDialog;
 import mod.hey.studios.util.Helper;
 import mod.jbk.editor.manage.MoreblockImporter;
 import laki.webide.R;
+import laki.webide.events.HTMLHead;
 
 public class rs extends qA implements View.OnClickListener, MoreblockImporterDialog.CallBack {
 
@@ -163,14 +164,22 @@ public class rs extends qA implements View.OnClickListener, MoreblockImporterDia
             componentEvents.clear();
             activityEvents.clear();
             drawerViewEvents.clear();
-            for (Pair<String, String> moreBlock : jC.a(sc_id).i(currentActivity.getJavaName())) {
-                EventBean eventBean = new EventBean(EventBean.EVENT_TYPE_ETC, -1, moreBlock.first, "moreBlock");
-                eventBean.initValue();
-                moreBlocks.add(eventBean);
+            
+            // Determine if this is a web project
+            boolean isWeb = currentActivity.getXmlName().endsWith(".html");
+            
+            if (!isWeb) {
+                for (Pair<String, String> moreBlock : jC.a(sc_id).i(currentActivity.getJavaName())) {
+                    EventBean eventBean = new EventBean(EventBean.EVENT_TYPE_ETC, -1, moreBlock.first, "moreBlock");
+                    eventBean.initValue();
+                    moreBlocks.add(eventBean);
+                }
             }
-            EventBean eventBean2 = new EventBean(EventBean.EVENT_TYPE_ACTIVITY, -1, "onCreate", "initializeLogic");
-            eventBean2.initValue();
-            activityEvents.add(eventBean2);
+            
+            EventBean eventBean3 = laki.webide.events.ExtCSS.getEventBean();
+            eventBean3.initValue();
+            activityEvents.add(eventBean3);
+            
             for (EventBean eventBean : jC.a(sc_id).g(currentActivity.getJavaName())) {
                 eventBean.initValue();
                 int i = eventBean.eventType;
@@ -179,24 +188,45 @@ public class rs extends qA implements View.OnClickListener, MoreblockImporterDia
                 } else if (i == EventBean.EVENT_TYPE_COMPONENT) {
                     componentEvents.add(eventBean);
                 } else if (i == EventBean.EVENT_TYPE_ACTIVITY) {
-                    activityEvents.add(eventBean);
+                    // Check if it's already added (like Extend CSS)
+                    boolean alreadyExists = false;
+                    for (EventBean existing : activityEvents) {
+                        if (existing.eventName.equals(eventBean.eventName)) {
+                            alreadyExists = true;
+                            break;
+                        }
+                    }
+                    if (!alreadyExists) activityEvents.add(eventBean);
                 } else if (i == EventBean.EVENT_TYPE_DRAWER_VIEW) {
                     drawerViewEvents.add(eventBean);
                 }
             }
-            if (getPaletteIndex() == -1) {
-                eventAdapter.a(events.get(0));
-                paletteView.setSelectedItemId(R.id.activity);
-            }
-            if (getPaletteIndex() == 4) {
-                importMoreBlockFromCollection.setVisibility(View.VISIBLE);
+            
+            // Adjust UI for Web/CSS Mode
+            if (isWeb) {
+                if (paletteView != null) paletteView.setVisibility(View.GONE);
+                if (fab != null) fab.setVisibility(View.GONE);
+                if (eventAdapter != null) {
+                    eventAdapter.a(activityEvents);
+                    eventAdapter.notifyDataSetChanged();
+                }
             } else {
-                importMoreBlockFromCollection.setVisibility(View.GONE);
-            }
-            if (eventAdapter != null) {
-                eventAdapter.a(events.get(getPaletteIndex()));
-                eventAdapter.notifyDataSetChanged();
-                restoreSearchState();
+                if (paletteView != null) paletteView.setVisibility(View.VISIBLE);
+                if (fab != null) fab.setVisibility(View.VISIBLE);
+                if (getPaletteIndex() == -1) {
+                    eventAdapter.a(events.get(0));
+                    paletteView.setSelectedItemId(R.id.activity);
+                }
+                if (getPaletteIndex() == 4) {
+                    importMoreBlockFromCollection.setVisibility(View.VISIBLE);
+                } else {
+                    importMoreBlockFromCollection.setVisibility(View.GONE);
+                }
+                if (eventAdapter != null) {
+                    eventAdapter.a(events.get(getPaletteIndex()));
+                    eventAdapter.notifyDataSetChanged();
+                    restoreSearchState();
+                }
             }
         }
     }
@@ -392,13 +422,22 @@ public class rs extends qA implements View.OnClickListener, MoreblockImporterDia
     }
 
     private void openEvent(String targetId, String eventId, String description) {
-        Intent intent = new Intent(requireActivity(), LogicEditorActivity.class);
+        Intent intent;
+        if (laki.webide.events.ExtCSS.isMatch(targetId)) {
+            intent = new Intent(requireActivity(), laki.webide.core.LogicEditorActivity.class);
+            intent.putExtra("id", "Css");
+            intent.putExtra("event", "Css");
+            intent.putExtra("event_text", "External CSS");
+            intent.putExtra("filename", currentActivity != null ? currentActivity.getJavaName() : "idk");
+        } else {
+            intent = new Intent(requireActivity(), laki.webide.core.LogicEditorActivity.class);
+            intent.putExtra("id", targetId);
+            intent.putExtra("event", eventId);
+            intent.putExtra("event_text", description);
+        }
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         intent.putExtra("sc_id", sc_id);
-        intent.putExtra("id", targetId);
-        intent.putExtra("event", eventId);
         intent.putExtra("project_file", currentActivity);
-        intent.putExtra("event_text", description);
         openEvent.launch(intent);
     }
 
@@ -481,7 +520,8 @@ public class rs extends qA implements View.OnClickListener, MoreblockImporterDia
                 holder.optionsLayout.hideAddToCollection();
             }
             if (eventBean.eventType == EventBean.EVENT_TYPE_ACTIVITY) {
-                if (eventBean.eventName.equals("initializeLogic")) {
+                if (eventBean.eventName.equals("initializeLogic") || 
+                    eventBean.eventName.equals(laki.webide.events.ExtCSS.LISTENER_TYPE)) {
                     holder.optionsLayout.hideDelete();
                 }
                 holder.targetId.setText(eventBean.targetId);

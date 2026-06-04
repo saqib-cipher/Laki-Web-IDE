@@ -46,7 +46,7 @@
         </item>
     </style>
 
-    <style name="Theme.SketchwarePro.SmallToolbar">
+    <style name="Theme.SketchwarePro.SmallToolbar" parent="Theme.SketchwarePro">
         <item name="actionBarSize">@dimen/mtrl_toolbar_default_height</item>
         <item name="toolbarStyle">@style/Widget.SketchwarePro.Toolbar.SmallText</item>
     </style>

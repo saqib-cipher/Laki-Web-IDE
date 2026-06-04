@@ -35,7 +35,7 @@ import a.a.a.hC;
 import a.a.a.jC;
 import a.a.a.mB;
 import a.a.a.wq;
-import a.a.a.yq;
+import laki.webide.ProjectWorkspace;
 import io.github.rosemoe.sora.widget.CodeEditor;
 import io.github.rosemoe.sora.widget.component.Magnifier;
 import mod.hey.studios.project.ProjectSettings;
@@ -69,16 +69,16 @@ public class ManageXMLCommandActivity extends BaseAppCompatActivity {
         if (FileUtil.isExistFile(path)) {
             return;
         }
-        var yq = new yq(context, sc_id);
+        var workspace = new ProjectWorkspace(context, sc_id);
         var projectLibraryManager = jC.c(sc_id);
         var projectFileManager = jC.b(sc_id);
         var projectDataManager = jC.a(sc_id);
-        yq.a(projectLibraryManager, projectFileManager, projectDataManager);
+        workspace.a(projectLibraryManager, projectFileManager, projectDataManager);
         CommandBlock.x();
         ArrayList<ProjectFileBean> files = new ArrayList<>(projectFileManager.b());
         files.addAll(new ArrayList<>(projectFileManager.c()));
         for (ProjectFileBean file : files) {
-            CommandBlock.CBForXml(new Jx(yq.N, file, projectDataManager).generateCode(false, sc_id));
+            CommandBlock.CBForXml(new Jx(workspace.N, file, projectDataManager).generateCode(false, sc_id));
         }
         String commandPath = FileUtil.getExternalStorageDir().concat("/.lakiwebsites/temp/commands");
         if (FileUtil.isExistFile(commandPath)) {
@@ -319,7 +319,7 @@ public class ManageXMLCommandActivity extends BaseAppCompatActivity {
                 .execute(
                         () -> {
                             String source =
-                                    new yq(getApplicationContext(), sc_id)
+                                    new ProjectWorkspace(getApplicationContext(), sc_id)
                                             .getFileSrc(
                                                     filename,
                                                     jC.b(sc_id),

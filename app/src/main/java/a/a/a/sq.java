@@ -29,13 +29,16 @@ public class sq {
     public static int[] M;
     public static Pair<Integer, String>[] a;
     public static Pair<Integer, String>[] b;
+    public static Pair<Integer, String>[] b_html;
     public static Pair<Integer, String>[] c;
+    public static Pair<Integer, String>[] c_html;
     public static Pair<Integer, String>[] d;
     public static Pair<Integer, String>[] e;
     public static Pair<Integer, String>[] f;
     public static Pair<Integer, String>[] g;
     public static Pair<Integer, String>[] h;
     public static Pair<Integer, String>[] i;
+    public static Pair<Integer, String>[] i_html;
     public static String[] j;
     public static String[] k;
     public static String[] l;
@@ -57,13 +60,28 @@ public class sq {
     static {
         a = new Pair[]{new Pair<>(LayoutBean.LAYOUT_MATCH_PARENT, "match_parent"), new Pair<>(LayoutBean.LAYOUT_WRAP_CONTENT, "wrap_content")};
         b = new Pair[]{new Pair<>(LayoutBean.ORIENTATION_NONE, "none"), new Pair<>(LayoutBean.ORIENTATION_HORIZONTAL, "horizontal"), new Pair<>(LayoutBean.ORIENTATION_VERTICAL, "vertical")};
+        b_html = new Pair[]{new Pair<>(LayoutBean.ORIENTATION_NONE, "none"), new Pair<>(LayoutBean.ORIENTATION_HORIZONTAL, "row"), new Pair<>(LayoutBean.ORIENTATION_VERTICAL, "column")};
         c = new Pair[]{new Pair<>(LayoutBean.GRAVITY_TOP, "top"), new Pair<>(LayoutBean.GRAVITY_BOTTOM, "bottom"), new Pair<>(LayoutBean.GRAVITY_CENTER_VERTICAL, "center_vertical"), new Pair<>(LayoutBean.GRAVITY_LEFT, "left"), new Pair<>(LayoutBean.GRAVITY_RIGHT, "right"), new Pair<>(LayoutBean.GRAVITY_CENTER_HORIZONTAL, "center_horizontal")};
+        c_html = new Pair[]{new Pair<>(LayoutBean.GRAVITY_TOP, "flex-start"), new Pair<>(LayoutBean.GRAVITY_BOTTOM, "flex-end"), new Pair<>(LayoutBean.GRAVITY_CENTER_VERTICAL, "center"), new Pair<>(LayoutBean.GRAVITY_LEFT, "flex-start"), new Pair<>(LayoutBean.GRAVITY_RIGHT, "flex-end"), new Pair<>(LayoutBean.GRAVITY_CENTER_HORIZONTAL, "center")};
         d = new Pair[]{new Pair<>(TextBean.TEXT_TYPE_NORMAL, "normal"), new Pair<>(TextBean.TEXT_TYPE_BOLD, "bold"), new Pair<>(TextBean.TEXT_TYPE_ITALIC, "italic"), new Pair<>(TextBean.TEXT_TYPE_BOLDITALIC, "bold|italic")};
         e = new Pair[]{new Pair<>(TextBean.IME_OPTION_NORMAL, "normal"), new Pair<>(TextBean.IME_OPTION_NONE, "none"), new Pair<>(TextBean.IME_OPTION_GO, "go"), new Pair<>(TextBean.IME_OPTION_SEARCH, "search"), new Pair<>(TextBean.IME_OPTION_SEND, "send"), new Pair<>(TextBean.IME_OPTION_NEXT, "next"), new Pair<>(TextBean.IME_OPTION_DONE, "done")};
         f = new Pair[]{new Pair<>(ViewBean.SPINNER_MODE_DIALOG, "dialog"), new Pair<>(ViewBean.SPINNER_MODE_DROPDOWN, "dropdown")};
         g = new Pair[]{new Pair<>(ViewBean.CHOICE_MODE_NONE, "none"), new Pair<>(ViewBean.CHOICE_MODE_SINGLE, "single"), new Pair<>(ViewBean.CHOICE_MODE_MULTI, "multi")};
         h = new Pair[]{new Pair<>(1, "Sunday"), new Pair<>(2, "Monday"), new Pair<>(3, "Tuesday"), new Pair<>(4, "Wednesday"), new Pair<>(5, "Thursday"), new Pair<>(6, "Friday"), new Pair<>(7, "Saturday")};
         i = new Pair[]{new Pair<>(TextBean.INPUT_TYPE_TEXT, "text"), new Pair<>(TextBean.INPUT_TYPE_NUMBER_SIGNED, "numberSigned"), new Pair<>(TextBean.INPUT_TYPE_NUMBER_DECIMAL, "numberDecimal"), new Pair<>(TextBean.INPUT_TYPE_NUMBER_SIGNED_DECIMAL, "numberSigned|numberDecimal"), new Pair<>(TextBean.INPUT_TYPE_PHONE, "phone"), new Pair<>(TextBean.INPUT_TYPE_PASSWORD, "textPassword")};
+        i_html = new Pair[]{
+            new Pair<>(TextBean.INPUT_TYPE_TEXT, "text"), 
+            new Pair<>(TextBean.INPUT_TYPE_PASSWORD, "password"), 
+            new Pair<>(TextBean.INPUT_TYPE_EMAIL, "email"), 
+            new Pair<>(TextBean.INPUT_TYPE_URL, "url"), 
+            new Pair<>(TextBean.INPUT_TYPE_PHONE, "tel"), 
+            new Pair<>(TextBean.INPUT_TYPE_NUMBER_DECIMAL, "number"), 
+            new Pair<>(TextBean.INPUT_TYPE_DATE, "date"), 
+            new Pair<>(TextBean.INPUT_TYPE_COLOR, "color"), 
+            new Pair<>(TextBean.INPUT_TYPE_RANGE, "range"),
+            new Pair<>(TextBean.INPUT_TYPE_FILE, "file"),
+            new Pair<>(TextBean.INPUT_TYPE_HIDDEN, "hidden")
+        };
         j = new String[]{ImageBean.SCALE_TYPE_FIT_XY, ImageBean.SCALE_TYPE_FIT_START, ImageBean.SCALE_TYPE_FIT_CENTER, ImageBean.SCALE_TYPE_FIT_END, ImageBean.SCALE_TYPE_CENTER, ImageBean.SCALE_TYPE_CENTER_CROP, ImageBean.SCALE_TYPE_CENTER_INSIDE};
         k = new String[]{"BANNER", "MEDIUM_RECTANGLE", "LARGE_BANNER", "SMART_BANNER"};
         l = new String[]{"true", "false"};
@@ -136,7 +154,11 @@ public class sq {
     }
 
     public static String a(String property, int value) {
-        Pair<Integer, String>[] pairs = a(property);
+        return a(property, value, false);
+    }
+
+    public static String a(String property, int value, boolean isWeb) {
+        Pair<Integer, String>[] pairs = a(property, isWeb);
 
         for (Pair<Integer, String> integerStringPair : pairs) {
             if (integerStringPair.first == value) {
@@ -152,12 +174,17 @@ public class sq {
     }
 
     public static Pair<Integer, String>[] a(String property) {
+        return a(property, false);
+    }
+
+    public static Pair<Integer, String>[] a(String property, boolean isWeb) {
         return switch (property) {
             case "property_layout_width", "property_layout_height" -> a;
-            case "property_orientation" -> b;
+            case "property_orientation" -> isWeb ? b_html : b;
+            case "property_gravity", "property_layout_gravity" -> isWeb ? c_html : c;
             case "property_text_size" -> o;
             case "property_text_style" -> d;
-            case "property_input_type" -> i;
+            case "property_input_type" -> isWeb ? i_html : i;
             case "property_ime_option" -> e;
             case "property_spinner_mode" -> f;
             case "property_choice_mode" -> g;

@@ -53,6 +53,7 @@ import laki.webide.R;
 import com.besome.sketch.editor.logic.LogicTopMenu;
 import laki.webide.core.LayoutUtil;
 import com.besome.sketch.beans.BlockBean;
+import laki.webide.activities.editor.view.CodeViewerActivity;
 
 public class LogicEditorActivity extends BaseAppCompatActivity implements OnClickListener, OnBlockCategorySelectListener, OnTouchListener {
 		public static final String LOGIC_NAME_SEPARATOR = "_";
@@ -71,7 +72,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
 		private boolean bInitIconDeleteAnimation = false;
 		private boolean bInitPaletteAnimation = false;
 		private boolean bShowIconDelete = false;
-		private BlockCopyInterface blockCopyInterface;
+		private RelativeLayout blockCopyInterface;
 		private VariableNameValidator booleanValidator;
 		private View currentTouchedView = null;
 		private ViewDummy dummy;
@@ -82,6 +83,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
 		private ImageView iconDelete;
 		private String id = "";
 		private boolean isDragged = false;
+        public String scId = "";
 		private boolean isPaletteOpened = false;
 		private LinearLayout layoutPalette;
 		private Runnable longPressed = new Runnable() {
@@ -147,72 +149,12 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
 				}
 		}
 		
-		private void addLists() {
-				Iterator it = DesignDataManager.getLists(filename).iterator();
-				int i = 0;
-				int i2 = 0;
-				while (it.hasNext()) {
-						if (((Integer) ((Pair) it.next()).first).intValue() == 1) {
-								i2++;
-						} else {
-								i++;
-						}
-				}
-				if (i2 > 0) {
-						ArrayList arrayList = new ArrayList();
-						addBlockToPalette("", " ", "addListInt", -3384542, new Object[0]);
-						addBlockToPalette("", " ", "insertListInt", -3384542, new Object[0]);
-						addBlockToPalette("", "d", "getAtListInt", -3384542, new Object[0]);
-						addBlockToPalette("", "d", "indexListInt", -3384542, new Object[0]);
-						addBlockToPalette("", "b", "containListInt", -3384542, new Object[0]);
-				}
-				if (i > 0) {
-						addBlockToPalette("", " ", "addListStr", -3384542, new Object[0]);
-						addBlockToPalette("", " ", "insertListStr", -3384542, new Object[0]);
-						addBlockToPalette("", "s", "getAtListStr", -3384542, new Object[0]);
-						addBlockToPalette("", "d", "indexListStr", -3384542, new Object[0]);
-						addBlockToPalette("", "b", "containListStr", -3384542, new Object[0]);
-				}
-				if (i2 > 0 || i > 0) {
-						addBlockToPalette("", " ", "deleteList", -3384542, new Object[0]);
-						addBlockToPalette("", "d", "lengthList", -3384542, new Object[0]);
-						addBlockToPalette("", " ", "clearList", -3384542, new Object[0]);
-				}
-		}
-		
+	 	
 		private void addVariables() {
-				Iterator it = DesignDataManager.getVariables(filename).iterator();
-				while (it.hasNext()) {
-						Pair pair = (Pair) it.next();
-						String name = (String) pair.second;
-						// CSS variable getter (round bubble)
-						addBlockToPalette(new CreateBlock("s", "(" + name + ")", "VARIABLE", "getVar_" + name, "var(--" + name + ")"));
-						// CSS variable setter (regular block)
-						addBlockToPalette(new CreateBlock(" ", "set variable " + name + " to %s.val", "VARIABLE", "setVar_" + name, "--" + name + ": %s;"));
-				}
-		}
-		
-		private void allocateBlockArea(int i) {
-				int i2 = -1;
-				if (this.isPaletteOpened) {
-						int i3 = getResources().getDisplayMetrics().widthPixels;
-						int i4 = getResources().getDisplayMetrics().heightPixels;
-						if (i3 <= i4) {
-								i3 = i4;
-						}
-						if (2 == i) {
-								i3 -= (int) LayoutUtil.getDip(this, 320.0f);
-						} else {
-								int height = ((i3 - getSupportActionBar().getHeight()) - SysUtil.getStatusBarHeight(this.context)) - ((int) LayoutUtil.getDip(this, 240.0f));
-								i3 = -1;
-								i2 = height;
-						}
-						this.blockCopyInterface.setLayoutParams(new LayoutParams(i3, i2));
-						this.blockCopyInterface.requestLayout();
-						return;
-				}
-				this.blockCopyInterface.setLayoutParams(new LayoutParams(-1, -1));
-				this.blockCopyInterface.requestLayout();
+				// CSS variable getter with selector
+				addBlockToPalette(new CreateBlock("s", "( %m.var )", "VARIABLE", "getVar", ""));
+				// CSS variable setter with selector
+				addBlockToPalette(new CreateBlock(" ", "set variable %m.var to %s.val", "VARIABLE", "setVar", ""));
 		}
 		
 		private void allocatePalette(int var1) {
@@ -246,7 +188,6 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
 				}
 				
 				this.initPaletteAnimation(var1);
-				this.allocateBlockArea(var1);
 		}
 		
 		private void backupCurrentData(Bundle bundle) {
@@ -592,9 +533,6 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
 				}
 		}
 		
-		
-		
-		
 		private void openPalette(boolean z) {
 				if (!this.bInitPaletteAnimation) {
 						initPaletteAnimation(getResources().getConfiguration().orientation);
@@ -607,137 +545,9 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
 						} else {
 								this.aniHidePalette.start();
 						}
-						allocateBlockArea(getResources().getConfiguration().orientation);
 				}
 		}
-		
-		private void pasteCopiedBlocks() {
-				if (DesignDataManager.isExistClipboard(filename)) {
-						int i;
-						BlockBean blockBean;
-						int i2;
-						int i3;
-						Block makeBlockFromBean;
-						Map hashMap = new HashMap();
-						Map hashMap2 = new HashMap();
-						ArrayList clipboard = DesignDataManager.getClipboard(filename);
-						Iterator it = clipboard.iterator();
-						while (it.hasNext()) {
-								Integer valueOf = Integer.valueOf(((BlockBean) it.next()).id);
-								BlockPane blockPane = this.pane;
-								i = blockPane.blockId;
-								blockPane.blockId = i + 1;
-								hashMap2.put(valueOf, Integer.valueOf(i));
-						}
-						Iterator it2 = clipboard.iterator();
-						while (it2.hasNext()) {
-								blockBean = (BlockBean) it2.next();
-								if (blockBean.opCode.equals("getArg")) {
-										i = 0;
-										i2 = 0;
-										while (i < this.pane.getRoot().args.size()) {
-												View view = (View) this.pane.getRoot().args.get(i);
-												i3 = ((view instanceof Block) && blockBean.type.equals(((Block) view).mType) && blockBean.spec.equals(((Block) view).mSpec)) ? 1 : i2;
-												i++;
-												i2 = i3;
-										}
-										if (i2 == 0) {
-												hashMap2.put(Integer.valueOf(blockBean.id), Integer.valueOf(0));
-										}
-								}
-						}
-						Iterator it3 = clipboard.iterator();
-						while (it3.hasNext()) {
-								blockBean = (BlockBean) it3.next();
-								blockBean.id = String.valueOf(hashMap2.get(Integer.valueOf(blockBean.id)));
-								i2 = blockBean.parameters.size();
-								for (i3 = 0; i3 < i2; i3++) {
-										String str = (String) blockBean.parameters.get(i3);
-										if (str != null && str.length() > 0 && str.charAt(0) == '@') {
-												Integer num = (Integer) hashMap2.get(Integer.valueOf(Integer.valueOf(str.substring(1)).intValue()));
-												if (num == null) {
-														blockBean.parameters.set(i3, "");
-												} else {
-														blockBean.parameters.set(i3, '@' + String.valueOf(num));
-												}
-										}
-								}
-								if (blockBean.subStack1 >= 0) {
-										blockBean.subStack1 = ((Integer) hashMap2.get(Integer.valueOf(blockBean.subStack1))).intValue();
-								}
-								if (blockBean.subStack2 >= 0) {
-										blockBean.subStack2 = ((Integer) hashMap2.get(Integer.valueOf(blockBean.subStack2))).intValue();
-								}
-								if (blockBean.nextBlock >= 0) {
-										blockBean.nextBlock = ((Integer) hashMap2.get(Integer.valueOf(blockBean.nextBlock))).intValue();
-								}
-						}
-						int[] iArr = new int[2];
-						this.editor.getLocationOnScreen(iArr);
-						int width = iArr[0] + (this.editor.getWidth() / 2);
-						i3 = ((int) LayoutUtil.getDip(getApplicationContext(), 4.0f)) + iArr[1];
-						it3 = clipboard.iterator();
-						Block block = null;
-						while (it3.hasNext()) {
-								blockBean = (BlockBean) it3.next();
-								if (!blockBean.id.equals("0")) {
-										makeBlockFromBean = makeBlockFromBean(blockBean);
-										hashMap.put(Integer.valueOf(makeBlockFromBean.getTag().toString()), makeBlockFromBean);
-										this.pane.addBlock(makeBlockFromBean, width, i3);
-										makeBlockFromBean.setOnTouchListener(this);
-										block = makeBlockFromBean;
-								}
-						}
-						Iterator it4 = clipboard.iterator();
-						while (it4.hasNext()) {
-								blockBean = (BlockBean) it4.next();
-								if (!blockBean.id.equals("0")) {
-										Block block2 = (Block) hashMap.get(Integer.valueOf(blockBean.id));
-										if (block2 != null) {
-												Block block3;
-												int size = blockBean.parameters.size();
-												for (int i4 = 0; i4 < size; i4++) {
-														String str2 = (String) blockBean.parameters.get(i4);
-														if (str2 != null && str2.length() > 0) {
-																if (str2.charAt(0) == '@') {
-																		block3 = (Block) hashMap.get(Integer.valueOf(Integer.valueOf(str2.substring(1)).intValue()));
-																		if (block3 != null) {
-																				block2.replaceArgWithBlock((BlockBase) block2.args.get(i4), block3);
-																		}
-																} else {
-																		((BlockArg) block2.args.get(i4)).setArgValue(str2);
-																		block2.recalcWidthToParent();
-																}
-														}
-												}
-												if (blockBean.subStack1 >= 0) {
-														block3 = (Block) hashMap.get(Integer.valueOf(blockBean.subStack1));
-														if (block3 != null) {
-																block2.insertBlockSub1(block3);
-														}
-												}
-												if (blockBean.subStack2 >= 0) {
-														block3 = (Block) hashMap.get(Integer.valueOf(blockBean.subStack2));
-														if (block3 != null) {
-																block2.insertBlockSub2(block3);
-														}
-												}
-												if (blockBean.nextBlock >= 0) {
-														makeBlockFromBean = (Block) hashMap.get(Integer.valueOf(blockBean.nextBlock));
-														if (makeBlockFromBean != null) {
-																block2.insertBlock(makeBlockFromBean);
-														}
-												}
-										}
-								}
-						}
-						block.topBlock().fixLayout();
-						this.pane.calculateWidthHeight();
-						return;
-				}
-				Toast.makeText(this, "No block for copying (for debug)", Toast.LENGTH_SHORT).show();
-		}
-		
+
 		private void saveLogic() {
 				DesignDataManager.setBlocks(filename, this.id + LOGIC_NAME_SEPARATOR + this.eventName, this.pane.getBlocks());
 		}
@@ -750,7 +560,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
 				ArrayList arrayList = new ArrayList();
 				RelativeLayout relativeLayout = (RelativeLayout) inflate.findViewById(R.id.block_area);
 				LinearLayout linearLayout = (LinearLayout) inflate.findViewById(R.id.remove_area);
-				Block block = new Block(getApplicationContext(), 0, "", " ", "definedFunc", new Object[]{Integer.valueOf(-7711273)});
+				Block block = new Block(this, 0, "", " ", "definedFunc", new Object[]{Integer.valueOf(-7711273)});
 				relativeLayout.addView(block);
 				TextInputLayout textInputLayout = (TextInputLayout) inflate.findViewById(R.id.ti_boolean);
 				TextInputLayout textInputLayout2 = (TextInputLayout) inflate.findViewById(R.id.ti_number);
@@ -913,10 +723,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
 						}
 				}
 		}
-		
-		
-		
-		
+
 		class LogicEditorActivity$14 implements OnClickListener {
 				// $FF: synthetic field
 				final LogicEditorActivity this$0;
@@ -972,8 +779,6 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
 						}
 				}
 		}
-		
-		
 		
 		class LogicEditorActivity$12 implements TextWatcher {
 				// $FF: synthetic field
@@ -1233,30 +1038,23 @@ var0.dismissProgress();
 				Builder builder = new Builder(this);
 				builder.setView(inflate);
 				builder.setTitle("Add Variable");
-				RadioGroup radioGroup = (RadioGroup) inflate.findViewById(R.id.rg_type);
 				EditText editText = (EditText) inflate.findViewById(R.id.ed_input);
 				editText.setPrivateImeOptions("defaultInputmode=english;");
 				VariableNameValidator variableNameValidator = new VariableNameValidator(this.context, (TextInputLayout) inflate.findViewById(R.id.ti_input), DefineSource.RESERVED_WORD, DefineSource.getUsedWord(DesignActivity.getScId()), DesignDataManager.getAllNamesForValid(filename));
 				builder.setNegativeButton("Cancel", null);
 				builder.setPositiveButton("Save", null);
 				this.mDlg = builder.create();
-				this.mDlg.setOnShowListener(new LogicEditorActivity$7(this, radioGroup, editText, variableNameValidator));
+				this.mDlg.setOnShowListener(new LogicEditorActivity$7(this, editText, variableNameValidator));
 				this.mDlg.show();
 		}
 
 		class LogicEditorActivity$7 implements DialogInterface.OnShowListener {
-				// $FF: synthetic field
 				final LogicEditorActivity this$0;
-				// $FF: synthetic field
 				final EditText val$edInput;
-				// $FF: synthetic field
-				final RadioGroup val$rgType;
-				// $FF: synthetic field
 				final VariableNameValidator val$varNameValidator;
 				
-				LogicEditorActivity$7(LogicEditorActivity var1, RadioGroup var2, EditText var3, VariableNameValidator var4) {
+				LogicEditorActivity$7(LogicEditorActivity var1, EditText var3, VariableNameValidator var4) {
 						this.this$0 = var1;
-						this.val$rgType = var2;
 						this.val$edInput = var3;
 						this.val$varNameValidator = var4;
 				}
@@ -1266,9 +1064,7 @@ var0.dismissProgress();
 				}
 		}
 		
-		
 		class LogicEditorActivity$7$1 implements OnClickListener {
-				// $FF: synthetic field
 				final LogicEditorActivity$7 this$1;
 				
 				LogicEditorActivity$7$1(LogicEditorActivity$7 var1) {
@@ -1276,18 +1072,10 @@ var0.dismissProgress();
 				}
 				
 				public void onClick(View var1) {
-						byte var2 = 1;
-						if(this.this$1.val$rgType.getCheckedRadioButtonId() == R.id.rb_boolean) {
-								var2 = 0;
-						} else if(this.this$1.val$rgType.getCheckedRadioButtonId() == R.id.rb_int) {
-								var2 = 1;
-						} else if(this.this$1.val$rgType.getCheckedRadioButtonId() == R.id.rb_string) {
-								var2 = 2;
-						}
-						
 						String var3 = this.this$1.val$edInput.getText().toString();
 						if(this.this$1.val$varNameValidator.isValid()) {
-								DesignDataManager.addVariable(LogicEditorActivity.filename, var2, var3);
+								// Always use String type (2) for CSS variables
+								DesignDataManager.addVariable(LogicEditorActivity.filename, 2, var3);
 								this.this$1.this$0.onBlockCategorySelect(0, -1147626);
 								LogicEditorActivity.access$800(this.this$1.this$0).dismiss();
 						}
@@ -1462,7 +1250,6 @@ var0.dismissProgress();
 		
 		
 		private void startBlockCopyInterface() {
-				this.blockCopyInterface.setCopyMode(!this.blockCopyInterface.getCopyMode());
 		}
 		
 		/*   private void startLogicTutorialActivity() {
@@ -1528,33 +1315,93 @@ startActivityForResult(intent, 209);
 						return;
 						case 1:
 						// SELECTORS
-						addBlockToPalette(new CreateBlock("c", "Class: .%s.name", "SELECTOR", ".class", ""));
-						addBlockToPalette(new CreateBlock("c", "ID: #%s.name", "SELECTOR", "#id", ""));
-						addBlockToPalette(new CreateBlock("c", "Tag: %s.name", "SELECTOR", "tag", ""));
-						return;
+                            addBlockToPalette(new CreateBlock("c", "Class: .%m.htmlClass", "SELECTOR", ".class", ""));
+                            addBlockToPalette(new CreateBlock("c", "ID: #%m.htmlId", "SELECTOR", "#id", ""));
+                            addBlockToPalette(new CreateBlock("c", "Tag: %m.htmlTag", "SELECTOR", "tag", ""));
+                        return;
 						case 2:
 						// LAYOUT
-						addBlockToPalette(new CreateBlock(" ", "width: %d.val px", "LAYOUT", "width", ""));
-						addBlockToPalette(new CreateBlock(" ", "height: %d.val px", "LAYOUT", "height", ""));
-						addBlockToPalette(new CreateBlock(" ", "display: %s.mode", "LAYOUT", "display", ""));
-						addBlockToPalette(new CreateBlock(" ", "margin: %d.val px", "LAYOUT", "margin", ""));
-						addBlockToPalette(new CreateBlock(" ", "padding: %d.val px", "LAYOUT", "padding", ""));
+						addBlockToPalette(new CreateBlock(" ", "display: %m.display", "LAYOUT", "display", ""));
+						addBlockToPalette(new CreateBlock(" ", "position: %m.position", "LAYOUT", "position", ""));
+						addBlockToPalette(new CreateBlock(" ", "box-sizing: %m.boxSizing", "LAYOUT", "box-sizing", ""));
+						addBlockToPalette(new CreateBlock(" ", "width: %d.val %m.unit", "LAYOUT", "width", ""));
+						addBlockToPalette(new CreateBlock(" ", "min-width: %d.val %m.unit", "LAYOUT", "min-width", ""));
+						addBlockToPalette(new CreateBlock(" ", "max-width: %d.val %m.unit", "LAYOUT", "max-width", ""));
+						addBlockToPalette(new CreateBlock(" ", "height: %d.val %m.unit", "LAYOUT", "height", ""));
+						addBlockToPalette(new CreateBlock(" ", "min-height: %d.val %m.unit", "LAYOUT", "min-height", ""));
+						addBlockToPalette(new CreateBlock(" ", "max-height: %d.val %m.unit", "LAYOUT", "max-height", ""));
+						
+						addBlockToPalette(new CreateBlock(" ", "overflow: %m.overflow", "LAYOUT", "overflow", ""));
+						addBlockToPalette(new CreateBlock(" ", "z-index: %d.val", "LAYOUT", "z-index", ""));
+						addBlockToPalette(new CreateBlock(" ", "visibility: %m.visibility", "LAYOUT", "visibility", ""));
+						addBlockToPalette(new CreateBlock(" ", "opacity: %d.val", "LAYOUT", "opacity", ""));
+						addBlockToPalette(new CreateBlock(" ", "Anchor %m.side : %d.val %m.unit", "LAYOUT", "anchor", ""));
+						addBlockToPalette(new CreateBlock(" ", "cursor: %m.cursor", "LAYOUT", "cursor", ""));
+						addBlockToPalette(new CreateBlock(" ", "pointer-events: %m.pointerEvents", "LAYOUT", "pointer-events", ""));
+						addBlockToPalette(new CreateBlock(" ", "user-select: %m.userSelect", "LAYOUT", "user-select", ""));
+						addBlockToPalette(new CreateBlock(" ", "object-fit: %m.objectFit", "LAYOUT", "object-fit", ""));
 						return;
 						case 3:
-						// TEXT
-						addBlockToPalette(new CreateBlock(" ", "color: %s.hex", "TEXT", "color", ""));
-						addBlockToPalette(new CreateBlock(" ", "font-size: %d.val px", "TEXT", "font-size", ""));
-						addBlockToPalette(new CreateBlock(" ", "text-align: %s.mode", "TEXT", "text-align", ""));
+						// SPACING
+						addBlockToPalette(new CreateBlock(" ", "margin: %d.val %m.unit", "SPACING", "margin", ""));
+						addBlockToPalette(new CreateBlock(" ", "padding: %d.val %m.unit", "SPACING", "padding", ""));
+						addBlockToPalette(new CreateBlock(" ", "gap: %d.val %m.unit", "SPACING", "gap", ""));
+						addBlockToPalette(new CreateBlock(" ", "row-gap: %d.val %m.unit", "SPACING", "row-gap", ""));
+						addBlockToPalette(new CreateBlock(" ", "column-gap: %d.val %m.unit", "SPACING", "column-gap", ""));
+						addBlockToPalette(new CreateBlock(" ", "margin-%m.side : %d.val %m.unit", "SPACING", "spacingSide", ""));
+						addBlockToPalette(new CreateBlock(" ", "padding-%m.side : %d.val %m.unit", "SPACING", "spacingSide", ""));
 						return;
 						case 4:
-						// BACKGROUND
-						addBlockToPalette(new CreateBlock(" ", "background-color: %s.hex", "BACKGROUND", "background-color", ""));
+						// TEXT EDIT
+						addBlockToPalette(new CreateBlock(" ", "color: %m.color", "TEXT", "color", ""));
+						addBlockToPalette(new CreateBlock(" ", "font-size: %d.val %m.unit", "TEXT", "font-size", ""));
+						addBlockToPalette(new CreateBlock(" ", "font-weight: %m.fontWeight", "TEXT", "font-weight", ""));
+						addBlockToPalette(new CreateBlock(" ", "font-family: %s.family", "TEXT", "font-family", ""));
+						addBlockToPalette(new CreateBlock(" ", "font-style: %m.fontStyle", "TEXT", "font-style", ""));
+						addBlockToPalette(new CreateBlock(" ", "text-align: %m.textAlign", "TEXT", "text-align", ""));
+						addBlockToPalette(new CreateBlock(" ", "text-transform: %m.textTransform", "TEXT", "text-transform", ""));
+						addBlockToPalette(new CreateBlock(" ", "text-decoration: %m.textDecoration", "TEXT", "text-decoration", ""));
+						addBlockToPalette(new CreateBlock(" ", "line-height: %d.val %m.unit", "TEXT", "line-height", ""));
+						addBlockToPalette(new CreateBlock(" ", "letter-spacing: %d.val %m.unit", "TEXT", "letter-spacing", ""));
+						addBlockToPalette(new CreateBlock(" ", "white-space: %m.whiteSpace", "TEXT", "white-space", ""));
+						addBlockToPalette(new CreateBlock(" ", "text-overflow: %m.textOverflow", "TEXT", "text-overflow", ""));
+						addBlockToPalette(new CreateBlock(" ", "word-break: %m.wordBreak", "TEXT", "word-break", ""));
+						addBlockToPalette(new CreateBlock(" ", "vertical-align: %m.verticalAlign", "TEXT", "vertical-align", ""));
+						addBlockToPalette(new CreateBlock(" ", "writing-mode: %m.writingMode", "TEXT", "writing-mode", ""));
+						addBlockToPalette(new CreateBlock(" ", "hyphens: %m.hyphens", "TEXT", "hyphens", ""));
+						addBlockToPalette(new CreateBlock(" ", "text-shadow: %s.val", "TEXT", "text-shadow", ""));
 						return;
 						case 5:
 						// BORDER
-						addBlockToPalette(new CreateBlock(" ", "border-width: %d.val px", "BORDER", "border-width", ""));
-						addBlockToPalette(new CreateBlock(" ", "border-color: %s.hex", "BORDER", "border-color", ""));
-						addBlockToPalette(new CreateBlock(" ", "border-radius: %d.val px", "BORDER", "border-radius", ""));
+						addBlockToPalette(new CreateBlock(" ", "border-width: %d.val %m.unit", "BORDER", "border-width", ""));
+						addBlockToPalette(new CreateBlock(" ", "border-style: %m.borderStyle", "BORDER", "border-style", ""));
+						addBlockToPalette(new CreateBlock(" ", "border-color: %m.color", "BORDER", "border-color", ""));
+						addBlockToPalette(new CreateBlock(" ", "border-radius: %d.val %m.unit", "BORDER", "border-radius", ""));
+						addBlockToPalette(new CreateBlock(" ", "border-%m.side-width: %d.val %m.unit", "BORDER", "border-side-width", ""));
+						addBlockToPalette(new CreateBlock(" ", "border-%m.side-color: %m.color", "BORDER", "border-side-color", ""));
+						addBlockToPalette(new CreateBlock(" ", "border-%m.side-style: %m.borderStyle", "BORDER", "border-side-style", ""));
+						addBlockToPalette(new CreateBlock(" ", "outline: %d.val %m.unit %m.borderStyle %m.color", "BORDER", "outline", ""));
+						return;
+						case 6:
+						// BACKGROUND
+						addBlockToPalette(new CreateBlock(" ", "background-color: %m.color", "BACKGROUND", "background-color", ""));
+						addBlockToPalette(new CreateBlock(" ", "background-image: url(%s.url)", "BACKGROUND", "background-image", ""));
+						addBlockToPalette(new CreateBlock(" ", "background-size: %m.bgSize", "BACKGROUND", "background-size", ""));
+						addBlockToPalette(new CreateBlock(" ", "background-repeat: %m.bgRepeat", "BACKGROUND", "background-repeat", ""));
+						addBlockToPalette(new CreateBlock(" ", "background-attachment: %m.bgAttachment", "BACKGROUND", "background-attachment", ""));
+						addBlockToPalette(new CreateBlock(" ", "background-origin: %m.bgOrigin", "BACKGROUND", "background-origin", ""));
+						addBlockToPalette(new CreateBlock(" ", "background-clip: %m.bgClip", "BACKGROUND", "background-clip", ""));
+						addBlockToPalette(new CreateBlock(" ", "background-blend-mode: %m.blendMode", "BACKGROUND", "background-blend-mode", ""));
+						addBlockToPalette(new CreateBlock(" ", "background-position: %s.pos", "BACKGROUND", "background-position", ""));
+						return;
+					case 7:
+						// FLEX
+						addBlockToPalette(new CreateBlock(" ", "flex-direction: %m.direction", "LAYOUT", "flex-direction", ""));
+						addBlockToPalette(new CreateBlock(" ", "justify-content: %m.justify", "LAYOUT", "justify-content", ""));
+						addBlockToPalette(new CreateBlock(" ", "align-items: %m.align", "LAYOUT", "align-items", ""));
+						addBlockToPalette(new CreateBlock(" ", "flex-wrap: %m.wrap", "LAYOUT", "flex-wrap", ""));
+						return;
+					case 8:
 						return;
 						default:
 						return;
@@ -1575,18 +1422,7 @@ startActivityForResult(intent, 209);
 								showAddBlockPopup();
 						}
 				}
-				/*     switch (view.getId()) {
-case R.id.btn_cancel:
-setResult(0);
-finish();
-return;
-case R.id.btn_accept:
-setResult(-1, new Intent());
-finish();
-return;
-default:
-return;
-}*/
+
 		}
 		
 		public void onConfigurationChanged(Configuration configuration) {
@@ -1640,7 +1476,8 @@ return;
 						}
 						this.paletteSelector = (PaletteSelector) findViewById(R.id.palette_selector);
 						this.paletteSelector.setOnBlockCategorySelectListener(this);
-						this.paletteBlock = (PaletteBlock) findViewById(R.id.palette_block);
+                    this.scId = getIntent().getStringExtra("sc_id");
+                        this.paletteBlock = (PaletteBlock) findViewById(R.id.palette_block);
 						this.dummy = (ViewDummy) findViewById(R.id.dummy);
 						this.iconDelete = (ImageView) findViewById(R.id.icon_delete);
 						// this.topMenu = (LogicTopMenu) findViewById(R.id.top_menu);
@@ -1648,9 +1485,8 @@ return;
 						this.editor = (ViewLogicEditor) findViewById(R.id.editor);
 						this.pane = this.editor.getBlockPane();
 						onBlockCategorySelect(0, -1147626);
-						this.blockCopyInterface = (BlockCopyInterface) findViewById(R.id.block_copy_interface);
-						this.blockCopyInterface.activity = this;
-						this.layoutPalette = (LinearLayout) findViewById(R.id.layout_palette);
+						this.blockCopyInterface = (RelativeLayout) findViewById(R.id.block_copy_interface);
+					this.layoutPalette = (LinearLayout) findViewById(R.id.layout_palette);
 						this.areaPalette = (LinearLayout) findViewById(R.id.area_palette);
 						this.fab = (FloatingActionButton) findViewById(R.id.fab_toggle_palette);
 						this.fab.setOnClickListener(new OnClickListener() {
@@ -1687,16 +1523,13 @@ return;
 
 		private void showSourceCode() {
 				CssSourceMaker csm = new CssSourceMaker(this);
-				
 				String result = csm.getSource(0, pane.getAllBlocks());
 				
-				Builder b = new Builder(this);
-				b.setTitle("CSS Source code");
-				b.setMessage(result);
-				b.setPositiveButton("OK", null);
-				b.create().show();
+				Intent intent = new Intent(this, CodeViewerActivity.class);
+				intent.putExtra("code", result);
+				intent.putExtra("scheme", CodeViewerActivity.SCHEME_CSS);
+				startActivity(intent);
 		}
-		
 		
 		protected void onPostCreate(@Nullable Bundle var1) {
 				super.onPostCreate(var1);
@@ -1729,13 +1562,13 @@ return;
 						if(var6.charAt(0) == 37) {
 								Block var11;
 								if(var6.charAt(1) == 98) {
-										Context var16 = this.getApplicationContext();
+										Context var16 = this;
 										int var17 = var4 + 1;
 										String var18 = var6.substring(3);
 										Object[] var19 = new Object[]{Integer.valueOf(-7711273)};
 										var11 = new Block(var16, var17, var18, "b", "getArg", var19);
 								} else if(var6.charAt(1) == 100) {
-										Context var12 = this.getApplicationContext();
+										Context var12 = this;
 										int var13 = var4 + 1;
 										String var14 = var6.substring(3);
 										Object[] var15 = new Object[]{Integer.valueOf(-7711273)};
@@ -1745,7 +1578,7 @@ return;
 												continue;
 										}
 										
-										Context var7 = this.getApplicationContext();
+										Context var7 = this;
 										int var8 = var4 + 1;
 										String var9 = var6.substring(3);
 										Object[] var10 = new Object[]{Integer.valueOf(-7711273)};

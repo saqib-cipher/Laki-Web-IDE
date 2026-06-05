@@ -351,14 +351,47 @@ public class DesignDataManager {
 
     public static ArrayList<String> getVariablesByType(String str, int i) {
         ArrayList<String> arrayList = new ArrayList();
-        Iterator it = ((ArrayList) mapVariables.get(str)).iterator();
-        while (it.hasNext()) {
-            Pair<Integer, String> pair = (Pair<Integer, String>) it.next();
-            if (((Integer) pair.first).intValue() == i) {
-                arrayList.add(pair.second);
+        if (mapVariables.containsKey(str)) {
+            ArrayList<Pair<Integer, String>> arrayList2 = mapVariables.get(str);
+            if (arrayList2 != null) {
+                Iterator<Pair<Integer, String>> it = arrayList2.iterator();
+                while (it.hasNext()) {
+                    Pair<Integer, String> pair = it.next();
+                    if (pair.first == i) {
+                        arrayList.add(pair.second);
+                    }
+                }
             }
         }
         return arrayList;
+    }
+
+    public static ArrayList<String> getHtmlSelectors(Context context, String scId, String filename, String menuName) {
+        ArrayList<String> results = new ArrayList<>();
+        if (filename == null || scId == null) return results;
+        
+        String htmlName = filename.replace(".java", ".html").replace(".css", ".html");
+        ArrayList<com.besome.sketch.beans.ViewBean> beans = laki.webide.compiler.HtmlParser.parse(context, scId, htmlName);
+        
+        java.util.HashSet<String> set = new java.util.HashSet<>();
+        for (com.besome.sketch.beans.ViewBean bean : beans) {
+            if (menuName.equals("htmlId")) {
+                if (bean.id != null && !bean.id.startsWith("_")) {
+                     set.add(bean.id);
+                }
+            } else if (menuName.equals("htmlClass")) {
+                if (bean.classNames != null && !bean.classNames.isEmpty()) {
+                    String[] parts = bean.classNames.split("\\s+");
+                    for (String p : parts) if (!p.isEmpty()) set.add(p);
+                }
+            } else if (menuName.equals("htmlTag")) {
+                String tag = (String) bean.parentAttributes.get("html_tag");
+                if (tag != null) set.add(tag);
+            }
+        }
+        results.addAll(set);
+        java.util.Collections.sort(results);
+        return results;
     }
 
  /*   public static ViewBean getViewBean(String str, String str2) {

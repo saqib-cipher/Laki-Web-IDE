@@ -18,31 +18,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.ImageView.ScaleType;
-import android.widget.LinearLayout.LayoutParams;
-/*import com.besome.sketch.DesignActivity;
-import com.besome.sketch.define.DefineSource;
-import com.besome.sketch.define.ScDefine;
-import com.besome.sketch.editor.logic.LogicEditorActivity;
-import com.besome.sketch.editor.logic.block.BlockBase;
-import com.besome.sketch.editor.logic.block.BlockArg.1;
-import com.besome.sketch.editor.logic.block.BlockArg.10;
-import com.besome.sketch.editor.logic.block.BlockArg.11;
-import com.besome.sketch.editor.logic.block.BlockArg.12;
-import com.besome.sketch.editor.logic.block.BlockArg.2;
-import com.besome.sketch.editor.logic.block.BlockArg.3;
-import com.besome.sketch.editor.logic.block.BlockArg.4;
-import com.besome.sketch.editor.logic.block.BlockArg.5;
-import com.besome.sketch.editor.logic.block.BlockArg.6;
-import com.besome.sketch.editor.logic.block.BlockArg.7;
-import com.besome.sketch.editor.logic.block.BlockArg.8;
-import com.besome.sketch.editor.logic.block.BlockArg.9;
-import com.besome.sketch.editor.view.ui.ColorPickerPopup;
-import com.besome.sketch.lib.utils.LayoutUtil;
-import com.besome.sketch.manager.DesignDataManager;
-import com.besome.sketch.manager.ProjectFileManager;
-import com.besome.sketch.manager.ResourceManager;
-import com.bumptech.glide.DrawableTypeRequest;
-import com.bumptech.glide.Glide;*/
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +26,7 @@ import java.util.Iterator;
 import android.content.DialogInterface;
 
 import laki.webide.R;
+import com.besome.sketch.lib.ui.ColorPickerDialog;
 
 public class BlockArg extends BlockBase {
     private Object argValue = "";
@@ -149,7 +126,11 @@ public class BlockArg extends BlockBase {
 
     private int getLabelWidth() {
         Rect var1 = new Rect();
-        this.mTextView.getPaint().getTextBounds(this.mTextView.getText().toString(), 0, this.mTextView.getText().length(), var1);
+        String text = this.mTextView.getText().toString();
+        if (text.isEmpty() && this.mTextView.getHint() != null) {
+            text = this.mTextView.getHint().toString();
+        }
+        this.mTextView.getPaint().getTextBounds(text, 0, text.length(), var1);
         return var1.width() + this.paddingText;
     }
 
@@ -212,17 +193,22 @@ public class BlockArg extends BlockBase {
 
         this.defaultArgWidth = (int)((float)this.defaultArgWidth * this.dip);
         this.paddingText = (int)((float)this.paddingText * this.dip);
+        int finalWidth = this.defaultArgWidth;
         if(this.mType.equals("m") || this.mType.equals("d") || this.mType.equals("n") || this.mType.equals("s")) {
             this.mTextView = this.makeEditText("");
             this.addView(this.mTextView);
+            finalWidth = Math.max(this.defaultArgWidth, this.getLabelWidth());
+            this.mTextView.getLayoutParams().width = finalWidth;
         }
 
-        this.setWidthAndTopHeight((float)this.defaultArgWidth, (float)this.labelAndArgHeight, false);
+        this.setWidthAndTopHeight((float)finalWidth, (float)this.labelAndArgHeight, false);
     }
 
     private TextView makeEditText(String var1) {
         TextView var2 = new TextView(this.mContext);
         var2.setText(var1);
+        var2.setHint(getHintText());
+        var2.setHintTextColor(0x60000000);
         var2.setTextSize(9.0F);
         android.widget.RelativeLayout.LayoutParams var3 = new android.widget.RelativeLayout.LayoutParams(this.defaultArgWidth, this.labelAndArgHeight);
         var3.setMargins(0, 0, 0, 0);
@@ -240,28 +226,20 @@ public class BlockArg extends BlockBase {
         }
     }
 
-   /* private void showColorPopup() {
-        View var1 = LayoutUtil.inflate(this.getContext(), R.layout.color_picker);
-        var1.setAnimation(AnimationUtils.loadAnimation(this.getContext(), R.anim.abc_fade_in));
-        Object var2 = this.argValue;
-        int var3 = 0;
-        if(var2 != null) {
-            int var5 = this.argValue.toString().length();
-            var3 = 0;
-            if(var5 > 0) {
-                int var6 = this.argValue.toString().indexOf("0xFF");
-                var3 = 0;
-                if(var6 == 0) {
-                    var3 = Color.parseColor(this.argValue.toString().replace("0xFF", "#"));
-                }
-            }
-        }
+    private void showColorPopup() {
+        if (!(mContext instanceof Activity)) return;
+        Activity activity = (Activity) mContext;
 
-        ColorPickerPopup var4 = new ColorPickerPopup(var1, (Activity)this.getContext(), var3, true, false);
-        var4.setColorSelectedListener(new 9(this));
-        var4.setAnimationStyle(R.anim.abc_fade_in);
-        var4.showAtLocation(var1, 17, 0, 0);
-    }*/
+        new LakiColorPicker(activity)
+            .setCurrentValue(argValue.toString())
+            .setOnColorSelectedListener(value -> {
+                setArgValue(value);
+                parentBlock.recalcWidthToParent();
+                parentBlock.topBlock().fixLayout();
+                parentBlock.pane.calculateWidthHeight();
+            })
+            .show();
+    }
 
  /*   private void showImagePopup() {
         View var1 = LayoutUtil.inflate(this.getContext(), R.layout.property_popup_selector_color);
@@ -411,7 +389,7 @@ public class BlockArg extends BlockBase {
                 }
 
                 if(this.mMenuName.equals("color")) {
-              //      this.showColorPopup();
+                    this.showColorPopup();
                     return;
                 }
 
@@ -427,153 +405,143 @@ public class BlockArg extends BlockBase {
 
     }
 
-  /*  public void showSelectPairPopup() {
-        View var1 = LayoutUtil.inflate(this.getContext(), R.layout.property_popup_selector_single);
-        Builder var2 = new Builder(this.getContext());
-        var2.setView(var1);
-        this.content = (ViewGroup)var1.findViewById(R.id.rg_content);
-        ArrayList var4 = new ArrayList();
-        if(this.mMenuName.equals("view")) {
-            var2.setTitle("Select widget");
-            var4 = DesignDataManager.getAllViewName(ProjectFileManager.getXmlNameFromJava(LogicEditorActivity.filename));
-        } else if(this.mMenuName.equals("textview")) {
-            var2.setTitle("Select widget");
-            var4 = DesignDataManager.getTextViewName(ProjectFileManager.getXmlNameFromJava(LogicEditorActivity.filename));
-        } else if(this.mMenuName.equals("imageview")) {
-            var2.setTitle("Select widget");
-            var4 = DesignDataManager.getViewNameByType(ProjectFileManager.getXmlNameFromJava(LogicEditorActivity.filename), 6);
-        } else if(this.mMenuName.equals("checkbox")) {
-            var2.setTitle("Select widget");
-            var4 = DesignDataManager.getViewNameByType(ProjectFileManager.getXmlNameFromJava(LogicEditorActivity.filename), 11);
-        } else if(this.mMenuName.equals("listview")) {
-            var2.setTitle("Select widget");
-            var4 = DesignDataManager.getViewNameByType(ProjectFileManager.getXmlNameFromJava(LogicEditorActivity.filename), 9);
-        } else if(this.mMenuName.equals("spinner")) {
-            var2.setTitle("Select widget");
-            var4 = DesignDataManager.getViewNameByType(ProjectFileManager.getXmlNameFromJava(LogicEditorActivity.filename), 10);
-        } else if(this.mMenuName.equals("listSpn")) {
-            var2.setTitle("select list (ListView, Spinner)");
-            var4 = DesignDataManager.getListSpnName(ProjectFileManager.getXmlNameFromJava(LogicEditorActivity.filename));
-        }
-
-        Iterator var6 = var4.iterator();
-
-        while(var6.hasNext()) {
-            Pair var12 = (Pair)var6.next();
-            RadioButton var13 = this.createPairItem(DefineSource.getWidgetName(((Integer)var12.first).intValue()), (String)var12.second);
-            this.content.addView(var13);
-        }
-
-        int var7 = this.content.getChildCount();
-
-        for(int var8 = 0; var8 < var7; ++var8) {
-            RadioButton var11 = (RadioButton)this.content.getChildAt(var8);
-            if(this.argValue.toString().equals(var11.getTag().toString())) {
-                var11.setChecked(true);
-                break;
-            }
-        }
-
-        var2.setNegativeButton("Cancel", new 7(this));
-        var2.setPositiveButton("Save", new 8(this));
-        this.mDlg = var2.create();
-        this.mDlg.show();
-    }*/
-
     public void showSelectPopup() {
-        View var1 = LayoutUtil.inflate(this.getContext(), R.layout.property_popup_selector_single);
-        Builder var2 = new Builder(this.getContext());
-        var2.setView(var1);
-        this.content = (ViewGroup)var1.findViewById(R.id.rg_content);
-        ArrayList var4 = new ArrayList();
-        if(this.mMenuName.equals("varInt")) {
-            var2.setTitle("Select Integer Variable");
-            var4 = DesignDataManager.getVariablesByType(LogicEditorActivity.filename, 1);
-        } else if(this.mMenuName.equals("varBool")) {
-            var2.setTitle("Select Boolean Variable");
-            var4 = DesignDataManager.getVariablesByType(LogicEditorActivity.filename, 0);
-        } else if(this.mMenuName.equals("varStr")) {
-            var2.setTitle("Select String Variable");
+        if (!(mContext instanceof Activity)) return;
+        Activity activity = (Activity) mContext;
+        
+        String title = "Select Item";
+        ArrayList<String> var4 = new ArrayList<>();
+        if(this.mMenuName.equals("var")) {
+            title = "Select CSS Variable";
             var4 = DesignDataManager.getVariablesByType(LogicEditorActivity.filename, 2);
-        } else if(this.mMenuName.equals("listInt")) {
-            var2.setTitle("Select Integer List");
-            var4 = DesignDataManager.getListsByType(LogicEditorActivity.filename, 1);
-        } else if(this.mMenuName.equals("listStr")) {
-            var2.setTitle("Select String List");
-            var4 = DesignDataManager.getListsByType(LogicEditorActivity.filename, 2);
-        } else if(this.mMenuName.equals("list")) {
-            var2.setTitle("Select List");
-            var4 = DesignDataManager.getAllLists(LogicEditorActivity.filename);
-        } else if(this.mMenuName.equals("intent")) {
-            var2.setTitle("Select intent component");
-            // var4 = DesignDataManager.getComponentsByType(LogicEditorActivity.filename, 1);
-        } else if(this.mMenuName.equals("file")) {
-            var2.setTitle("Select file component");
-            // var4 = DesignDataManager.getComponentsByType(LogicEditorActivity.filename, 2);
-        } else if(this.mMenuName.equals("intentAction")) {
-            var2.setTitle("Select intent action");
-            var4 = new ArrayList(Arrays.asList(DefineSource.getIntentAction()));
-        } else if(this.mMenuName.equals("activity")) {
-            var2.setTitle("Select activity");
-            // Simplified for now - can be expanded later
-            var4 = new ArrayList<>();
-        } else if(this.mMenuName.equals("calendar")) {
-            var2.setTitle("Select calendar component");
-            // var4 = DesignDataManager.getComponentsByType(LogicEditorActivity.filename, 3);
-        } else if(this.mMenuName.equals("calendarField")) {
-            var2.setTitle("Select calendar field");
-            var4 = new ArrayList(Arrays.asList(DefineSource.CALENDAR_FIELD));
-        } else if(this.mMenuName.equals("vibrator")) {
-            var2.setTitle("Select vibrator component");
-            // var4 = DesignDataManager.getComponentsByType(LogicEditorActivity.filename, 4);
-        } else if(this.mMenuName.equals("visible")) {
-            var2.setTitle("Select visibility");
-            var4 = new ArrayList(Arrays.asList(DefineSource.VISIBILITY_FIELD));
+        } else if(this.mMenuName.equals("htmlId")) {
+            title = "Select HTML ID";
+            String scId = (mContext instanceof LogicEditorActivity) ? ((LogicEditorActivity)mContext).scId : "";
+            var4 = DesignDataManager.getHtmlSelectors(mContext, scId, LogicEditorActivity.filename, "htmlId");
+        } else if(this.mMenuName.equals("htmlClass")) {
+            title = "Select HTML Class";
+            String scId = (mContext instanceof LogicEditorActivity) ? ((LogicEditorActivity)mContext).scId : "";
+            var4 = DesignDataManager.getHtmlSelectors(mContext, scId, LogicEditorActivity.filename, "htmlClass");
+        } else if(this.mMenuName.equals("htmlTag")) {
+            title = "Select HTML Tag";
+            String scId = (mContext instanceof LogicEditorActivity) ? ((LogicEditorActivity)mContext).scId : "";
+            var4 = DesignDataManager.getHtmlSelectors(mContext, scId, LogicEditorActivity.filename, "htmlTag");
+        } else if(this.mMenuName.equals("display")) {
+            title = "Select Display Mode";
+            var4 = new ArrayList<>(Arrays.asList("block", "inline", "inline-block", "flex", "grid", "inline-flex", "inline-grid", "none"));
+        } else if(this.mMenuName.equals("position")) {
+            title = "Select Position Mode";
+            var4 = new ArrayList<>(Arrays.asList("static", "relative", "absolute", "fixed", "sticky"));
+        } else if(this.mMenuName.equals("overflow")) {
+            title = "Select Overflow Mode";
+            var4 = new ArrayList<>(Arrays.asList("visible", "hidden", "scroll", "auto"));
+        } else if(this.mMenuName.equals("visibility")) {
+            title = "Select Visibility Mode";
+            var4 = new ArrayList<>(Arrays.asList("visible", "hidden", "collapse"));
+        } else if(this.mMenuName.equals("side")) {
+            title = "Select Side / Anchor";
+            var4 = new ArrayList<>(Arrays.asList("top", "right", "bottom", "left"));
+        } else if(this.mMenuName.equals("unit")) {
+            title = "Select CSS Unit";
+            var4 = new ArrayList<>(Arrays.asList("px", "%", "em", "rem", "vh", "vw", "auto"));
+        } else if(this.mMenuName.equals("direction")) {
+            title = "Select Flex Direction";
+            var4 = new ArrayList<>(Arrays.asList("row", "row-reverse", "column", "column-reverse"));
+        } else if(this.mMenuName.equals("justify")) {
+            title = "Select Content Justification";
+            var4 = new ArrayList<>(Arrays.asList("flex-start", "flex-end", "center", "space-between", "space-around", "space-evenly"));
+        } else if(this.mMenuName.equals("align")) {
+            title = "Select Item Alignment";
+            var4 = new ArrayList<>(Arrays.asList("stretch", "flex-start", "flex-end", "center", "baseline"));
+        } else if(this.mMenuName.equals("wrap")) {
+            title = "Select Flex Wrap";
+            var4 = new ArrayList<>(Arrays.asList("nowrap", "wrap", "wrap-reverse"));
+        } else if(this.mMenuName.equals("boxSizing")) {
+            title = "Select Box Sizing";
+            var4 = new ArrayList<>(Arrays.asList("border-box", "content-box"));
+        } else if(this.mMenuName.equals("fontWeight")) {
+            title = "Select Font Weight";
+            var4 = new ArrayList<>(Arrays.asList("normal", "bold", "lighter", "bolder", "100", "200", "300", "400", "500", "600", "700", "800", "900"));
+        } else if(this.mMenuName.equals("textAlign")) {
+            title = "Select Text Align";
+            var4 = new ArrayList<>(Arrays.asList("left", "right", "center", "justify", "start", "end"));
+        } else if(this.mMenuName.equals("textTransform")) {
+            title = "Select Text Transform";
+            var4 = new ArrayList<>(Arrays.asList("none", "capitalize", "uppercase", "lowercase"));
+        } else if(this.mMenuName.equals("textDecoration")) {
+            title = "Select Text Decoration";
+            var4 = new ArrayList<>(Arrays.asList("none", "underline", "overline", "line-through"));
+        } else if(this.mMenuName.equals("fontStyle")) {
+            title = "Select Font Style";
+            var4 = new ArrayList<>(Arrays.asList("normal", "italic", "oblique"));
+        } else if(this.mMenuName.equals("whiteSpace")) {
+            title = "Select White Space";
+            var4 = new ArrayList<>(Arrays.asList("normal", "nowrap", "pre", "pre-wrap", "pre-line"));
+        } else if(this.mMenuName.equals("borderStyle")) {
+            title = "Select Border Style";
+            var4 = new ArrayList<>(Arrays.asList("none", "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset"));
+        } else if(this.mMenuName.equals("bgRepeat")) {
+            title = "Select Background Repeat";
+            var4 = new ArrayList<>(Arrays.asList("repeat", "repeat-x", "repeat-y", "no-repeat", "round", "space"));
+        } else if(this.mMenuName.equals("bgSize")) {
+            title = "Select Background Size";
+            var4 = new ArrayList<>(Arrays.asList("auto", "cover", "contain"));
+        } else if(this.mMenuName.equals("bgAttachment")) {
+            title = "Select Background Attachment";
+            var4 = new ArrayList<>(Arrays.asList("scroll", "fixed", "local"));
+        } else if(this.mMenuName.equals("textOverflow")) {
+            title = "Select Text Overflow";
+            var4 = new ArrayList<>(Arrays.asList("clip", "ellipsis"));
+        } else if(this.mMenuName.equals("wordBreak")) {
+            title = "Select Word Break";
+            var4 = new ArrayList<>(Arrays.asList("normal", "break-all", "keep-all", "break-word"));
+        } else if(this.mMenuName.equals("verticalAlign")) {
+            title = "Select Vertical Align";
+            var4 = new ArrayList<>(Arrays.asList("baseline", "top", "middle", "bottom", "sub", "super", "text-top", "text-bottom"));
+        } else if(this.mMenuName.equals("cursor")) {
+            title = "Select Cursor Type";
+            var4 = new ArrayList<>(Arrays.asList("auto", "default", "pointer", "wait", "text", "move", "help", "not-allowed", "none"));
+        } else if(this.mMenuName.equals("pointerEvents")) {
+            title = "Select Pointer Events";
+            var4 = new ArrayList<>(Arrays.asList("auto", "none", "inherit", "initial"));
+        } else if(this.mMenuName.equals("userSelect")) {
+            title = "Select User Select";
+            var4 = new ArrayList<>(Arrays.asList("auto", "none", "text", "all"));
+        } else if(this.mMenuName.equals("writingMode")) {
+            title = "Select Writing Mode";
+            var4 = new ArrayList<>(Arrays.asList("horizontal-tb", "vertical-rl", "vertical-lr"));
+        } else if(this.mMenuName.equals("hyphens")) {
+            title = "Select Hyphens";
+            var4 = new ArrayList<>(Arrays.asList("none", "manual", "auto"));
+        } else if(this.mMenuName.equals("bgOrigin") || this.mMenuName.equals("bgClip")) {
+            title = "Select Box Area";
+            var4 = new ArrayList<>(Arrays.asList("border-box", "padding-box", "content-box"));
+        } else if(this.mMenuName.equals("blendMode")) {
+            title = "Select Blend Mode";
+            var4 = new ArrayList<>(Arrays.asList("normal", "multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"));
+        } else if(this.mMenuName.equals("objectFit")) {
+            title = "Select Object Fit";
+            var4 = new ArrayList<>(Arrays.asList("fill", "contain", "cover", "none", "scale-down"));
         }
 
-        Iterator var6 = var4.iterator();
+        new LakiDialogBox(activity, title)
+            .setList(var4)
+            .setCurrentValue(this.argValue.toString())
+            .setSelectionListener(value -> {
+                setArgValue(value);
+                parentBlock.recalcWidthToParent();
+                parentBlock.topBlock().fixLayout();
+                parentBlock.pane.calculateWidthHeight();
+            })
+            .show();
+    }
 
-        while(var6.hasNext()) {
-            RadioButton var12 = this.createSingleItem((String)var6.next());
-            this.content.addView(var12);
-        }
-
-        int var7 = this.content.getChildCount();
-
-        for(int var8 = 0; var8 < var7; ++var8) {
-            RadioButton var11 = (RadioButton)this.content.getChildAt(var8);
-            if(this.argValue.toString().equals(var11.getText().toString())) {
-                var11.setChecked(true);
-                break;
-            }
-        }
-
-        var2.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface var1, int var2) {
-                    mDlg.dismiss();
-                }
-        });
-        var2.setPositiveButton("Save", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface var1, int var2) {
-                    
-                    int var3 = content.getChildCount();
-
-                    for(int var4 = 0; var4 < var3; ++var4) {
-                        RadioButton var5 = (RadioButton)content.getChildAt(var4);
-                        if(var5.isChecked()) {
-                            setArgValue(var5.getText());
-                            parentBlock.recalcWidthToParent();
-                            parentBlock.topBlock().fixLayout();
-                            parentBlock.pane.calculateWidthHeight();
-                            break;
-                        }
-                    }
-                    
-                    mDlg.dismiss();
-                }
-            });
-        this.mDlg = var2.create();
-        this.mDlg.show();
+    private String getHintText() {
+        if (mMenuName == null) return "";
+        if (mMenuName.equals("htmlId")) return "id";
+        if (mMenuName.equals("htmlClass") || mMenuName.equals("classname")) return "class";
+        if (mMenuName.equals("unit")) return "unit";
+        if (mMenuName.equals("var")) return "var";
+        return "";
     }
 }
-

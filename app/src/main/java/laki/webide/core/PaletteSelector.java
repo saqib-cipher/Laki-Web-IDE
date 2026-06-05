@@ -8,7 +8,6 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 
 import laki.webide.R;
-//import com.besome.sketch.lib.utils.LayoutUtil;
 
 public class PaletteSelector extends LinearLayout implements OnClickListener {
     private Context mContext;
@@ -28,10 +27,24 @@ public class PaletteSelector extends LinearLayout implements OnClickListener {
         addCategoryItem(0, "Variable", 0xFFFF9800);
         addCategoryItem(1, "Selector", 0xFFE91E63);
         addCategoryItem(2, "Layout", 0xFF2196F3);
-        addCategoryItem(3, "Text", 0xFF4CAF50);
-        addCategoryItem(4, "Background", 0xFF9C27B0);
+        addCategoryItem(3, "Spacing", 0xFF8BC34A);
+        addCategoryItem(4, "Text Edit", 0xFF673AB7);
         addCategoryItem(5, "Border", 0xFF795548);
+        addCategoryItem(6, "Background", 0xFF9C27B0);
+        addCategoryItem(7, "Flex", 0xFF00BCD4);
+        addCategoryItem(8, "Other", 0xFF607D8B);
     }
+    /** CATEGORY_COLORS.put("VARIABLE", 0xFFFF9800);   //1 Orange (Standard Variable color)
+     CATEGORY_COLORS.put("SELECTOR", 0xFFE91E63);   //2 Pink
+     CATEGORY_COLORS.put("LAYOUT", 0xFF2196F3);     //3 Blue
+     CATEGORY_COLORS.put("SPACING", 0xFF8BC34A);    //4 Light Green
+     CATEGORY_COLORS.put("TEXT", 0xFF673AB7);       //5 Deep Purple
+     CATEGORY_COLORS.put("BORDER", 0xFF795548);     //6 Brown
+     CATEGORY_COLORS.put("BACKGROUND", 0xFF9C27B0); //7 Purple
+     CATEGORY_COLORS.put("FLEX", 0xFF00BCD4);       //8 Cyan
+     CATEGORY_COLORS.put("OTHER", 0xFF607D8B);      //9 Blue Gray
+     }
+     * */
 
     private void addCategoryItem(int i, String str, int i2) {
         PaletteSelectorItem paletteSelectorItem = new PaletteSelectorItem(this.mContext, i, str, i2);

@@ -383,20 +383,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
         
         dialog.setView(customView);
         dialog.setPositiveButton(R.string.common_word_add, (v, which) -> {
-            int variableType = 1;
-            if (!isCss) {
-                if (radioGroup.getCheckedRadioButtonId() == R.id.rb_boolean) {
-                    variableType = 0;
-                } else if (radioGroup.getCheckedRadioButtonId() != R.id.rb_int) {
-                    if (radioGroup.getCheckedRadioButtonId() == R.id.rb_string) {
-                        variableType = 2;
-                    } else if (radioGroup.getCheckedRadioButtonId() == R.id.rb_map) {
-                        variableType = 3;
-                    }
-                }
-            } else {
-                variableType = 2; // Default to String type for CSS variables
-            }
+            int variableType = 2; // Default to String type for CSS variables
 
             if (nameValidator.b()) {
                 b(variableType, Helper.getText(editText));

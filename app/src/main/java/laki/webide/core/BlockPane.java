@@ -5,8 +5,6 @@ import android.graphics.Point;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.RelativeLayout;
-/*import com.besome.sketch.define.BlockBean;
-import com.besome.sketch.lib.utils.LayoutUtil;*/
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -158,6 +156,9 @@ public class BlockPane extends RelativeLayout {
             objArr[INSERT_NORMAL] = Integer.valueOf(block.mColor);
             objArr[INSERT_ABOVE] = block.defaultArgValues;
             block2 = new Block(context, i3, str, str2, str3, objArr);
+            block2.category = block.category;
+            block2.mColor = block.mColor;
+            block2.setSpec(str, null); // Refresh visual parts with the new color
         } else {
             block2 = block;
         }
@@ -179,9 +180,7 @@ public class BlockPane extends RelativeLayout {
         this.root.setX(8.0f * dip);
         this.root.setY(dip * 8.0f);
     }
-    
-    
-    
+
    public Block blockDropped(Block var1, int var2, int var3, boolean var4) {
       Block var5 = var1;
       if(!var4) {
@@ -241,10 +240,7 @@ public class BlockPane extends RelativeLayout {
       this.getLayoutParams().height = var3;
    }
     
-    
-    
-    
-    public void draggingDone() {
+   public void draggingDone() {
         hideFeedbackShape();
         this.possibleTargets = new ArrayList();
         this.nearestTarget = null;

@@ -3,29 +3,40 @@ package laki.webide.core;
 import android.content.Context;
 import android.view.View;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class CssSourceMaker {
     private Context context;
+    private HashSet<Block> processed = new HashSet<>();
 
     public CssSourceMaker(Context context) {
         this.context = context;
     }
 
     public String getSource(int indent, ArrayList<Block> blocks) {
+        processed.clear();
         StringBuilder sb = new StringBuilder();
         for (Block block : blocks) {
-            if (block.parentBlock == null) { // Only top-level blocks
-                sb.append(makeSource(indent, block));
+            // Process if it's not already handled by a chain and it's a top-level block 
+            // (connected to root or floating)
+            if (!processed.contains(block)) {
+                if (block.parentBlock == null || block.parentBlock.getBlockType() == 2 || !blocks.contains(block.parentBlock)) {
+                    if (block.getBlockType() != 2) { // Skip Hat/Root blocks
+                        sb.append(makeSource(indent, block));
+                    }
+                }
             }
         }
         return sb.toString();
     }
 
     private String makeSource(int indent, Block block) {
+        if (block == null || processed.contains(block)) return "";
+        processed.add(block);
+        
         StringBuilder sb = new StringBuilder();
         String indentation = getIndent(indent);
         
-        // This is a simplified logic. In a real system, you'd map opCodes to templates.
         if (block.mType.equals("c")) {
             // Selector block
             sb.append(indentation).append(getParamValue(block, 0)).append(" {\n");
@@ -40,11 +51,31 @@ public class CssSourceMaker {
             if (op.startsWith("setVar_")) {
                 String varName = op.substring(7);
                 sb.append(indentation).append("--").append(varName).append(": ").append(getParamValue(block, 0)).append(";\n");
+            } else if (op.equals("setVar")) {
+                String varName = getParamValue(block, 0);
+                sb.append(indentation).append("--").append(varName).append(": ").append(getParamValue(block, 1)).append(";\n");
+            } else if (op.equals("anchor")) {
+                String side = getParamValue(block, 0);
+                String val = getParamValue(block, 1);
+                String unit = getParamValue(block, 2);
+                sb.append(indentation).append(side).append(": ").append(val).append(unit).append(";\n");
+            } else if (op.equals("spacingSide")) {
+                String label = block.mSpec; // e.g. "margin-%m.side :"
+                String type = label.startsWith("margin") ? "margin" : "padding";
+                String side = getParamValue(block, 0);
+                String val = getParamValue(block, 1);
+                String unit = getParamValue(block, 2);
+                sb.append(indentation).append(type).append("-").append(side).append(": ").append(val).append(unit).append(";\n");
             } else {
-                sb.append(indentation).append(op).append(": ").append(getParamValue(block, 0)).append(";\n");
+                StringBuilder valBuilder = new StringBuilder();
+                for (int i = 0; i < block.args.size(); i++) {
+                    valBuilder.append(getParamValue(block, i));
+                }
+                sb.append(indentation).append(op).append(": ").append(valBuilder.toString()).append(";\n");
             }
         }
 
+        // Process next block in the chain
         if (block.nextBlock != -1) {
             Block next = (Block) block.pane.findViewWithTag(block.nextBlock);
             sb.append(makeSource(indent, next));
@@ -62,6 +93,8 @@ public class CssSourceMaker {
                 Block inner = (Block) arg;
                 if (inner.mOpCode.startsWith("getVar_")) {
                     return "var(--" + inner.mOpCode.substring(7) + ")";
+                } else if (inner.mOpCode.equals("getVar")) {
+                    return "var(--" + getParamValue(inner, 0) + ")";
                 }
                 return "calc(...)";
             }
@@ -71,7 +104,7 @@ public class CssSourceMaker {
 
     private String getIndent(int count) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < count; i++) {
+        for (int j = 0; j < count; j++) {
             sb.append("    ");
         }
         return sb.toString();

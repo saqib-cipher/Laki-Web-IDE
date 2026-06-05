@@ -2,6 +2,7 @@ package laki.webide.core;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout.LayoutParams;
@@ -233,7 +234,7 @@ public class Block extends BlockBase {
         textView.setPadding(0, 0, 0, 0);
         textView.setGravity(16);
         textView.setTextColor(-1);
-        textView.setTypeface(null, BLOCK_TYPE_INPALETTE);
+        textView.setTypeface(null, Typeface.BOLD);
         LayoutParams layoutParams = new LayoutParams(-2, this.labelAndArgHeight);
         layoutParams.setMargins(0, 0, 0, 0);
         textView.setLayoutParams(layoutParams);
@@ -261,6 +262,25 @@ public class Block extends BlockBase {
             block = (Block) this.pane.findViewWithTag(Integer.valueOf(block.nextBlock));
         }
         return block;
+    }
+
+    public Object getArgValue(int index) {
+        if (args != null && index >= 0 && index < args.size()) {
+            View view = args.get(index);
+            if (view instanceof BlockArg) {
+                return ((BlockArg) view).getArgValue();
+            }
+        }
+        return null;
+    }
+
+    public void setArgValue(int index, Object value) {
+        if (args != null && index >= 0 && index < args.size()) {
+            View view = args.get(index);
+            if (view instanceof BlockArg) {
+                ((BlockArg) view).setArgValue(value);
+            }
+        }
     }
 
     public void fixLayout() {

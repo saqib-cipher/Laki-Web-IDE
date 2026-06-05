@@ -1,15 +1,35 @@
-# License
+# License — Laki Web IDE
 
-It's a complicated situation as mod. Basically, try not to use parts of Sketchware Pro's code in other serious projects which
-aren't for personal use only, as the code might and probably is an infringement of Sketchware's copyright.
+Project: `Laki Web IDE` (root project name)
 
-Sketchware Pro is **not** open-source by official definition, but rather source-available - you can view it, and maybe even
-make/submit changes to it, but you don't own the code. Neither do we, in my opinion.
+This repository contains source-available code derived from the Sketchware Pro codebase. The legal situation for Sketchware Pro
+and derivative works is mixed; parts of the code may not be suitable for reuse in commercial or redistributed projects without
+confirming original authorship and license terms.
 
-Still, feel free to fork this and improve it for personal purposes or just making Sketchware Pro better in general.
+Summary:
+- `Laki Web IDE` is provided as source-available software. You may inspect, modify, and use the code for personal and experimental
+  purposes.
+- Please do not rename the project or remove attribution. Preserve the project name `Laki Web IDE` and legacy attribution when
+  redistributing or publishing derived work.
+- This is not a grant of an open-source license; treat code reuse cautiously and respect third-party licenses included below.
 
-## Exceptions
+## Exceptions / Third-party components
 
-Since compiling Kotlin code in Sketchware Pro projects was supported, two new modules were added to the codebase: `build-logic` and
-`kotlinc`, both taken from [CodeAssist](https://github.com/tyron12233/CodeAssist). The upstream project's licensed under GPL-3.0,
-so these modules are licensed under the same license.
+Some modules in this repository are taken from other projects and are governed by their own licenses. In particular, the
+`build-logic` and `kotlinc` modules were derived from [CodeAssist](https://github.com/tyron12233/CodeAssist) and are licensed
+under GPL-3.0. Those modules remain GPL-3.0 and are subject to that license's requirements.
+
+If you plan to reuse or redistribute parts of this repository in other projects, review each module's header/license and the
+upstream project's licensing terms.
+
+## Attribution / Usage note
+
+- You may use this project for personal, educational, and development purposes.
+- If you redistribute or publish derived works, keep the project name and attribution intact: do not rename the project to remove
+  attribution to the original/legacy project.
+- For any commercial or public redistribution, consult the upstream license owners and secure permissions where necessary.
+
+## Questions
+
+If you need help clarifying which parts of the code are safe to reuse or need assistance preparing a permissive license for
+specific files, I can help annotate the repository and list third-party files and their licenses.

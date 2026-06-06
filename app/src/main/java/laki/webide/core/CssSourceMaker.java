@@ -56,20 +56,41 @@ public class CssSourceMaker {
                 sb.append(indentation).append("--").append(varName).append(": ").append(getParamValue(block, 1)).append(";\n");
             } else if (op.equals("anchor")) {
                 String side = getParamValue(block, 0);
-                String val = getParamValue(block, 1);
-                String unit = getParamValue(block, 2);
-                sb.append(indentation).append(side).append(": ").append(val).append(unit).append(";\n");
+                String valueWithUnit = getParamValue(block, 1);
+                sb.append(indentation).append(side).append(": ").append(valueWithUnit).append(";\n");
+            } else if (op.equals("minDim")) {
+                String dim = getParamValue(block, 0);
+                String valueWithUnit = getParamValue(block, 1);
+                sb.append(indentation).append("min-").append(dim).append(": ").append(valueWithUnit).append(";\n");
+            } else if (op.equals("maxDim")) {
+                String dim = getParamValue(block, 0);
+                String valueWithUnit = getParamValue(block, 1);
+                sb.append(indentation).append("max-").append(dim).append(": ").append(valueWithUnit).append(";\n");
             } else if (op.equals("spacingSide")) {
-                String label = block.mSpec; // e.g. "margin-%m.side :"
+                String label = block.mSpec; // e.g. "margin-%m.side : %v.unit"
                 String type = label.startsWith("margin") ? "margin" : "padding";
                 String side = getParamValue(block, 0);
-                String val = getParamValue(block, 1);
-                String unit = getParamValue(block, 2);
-                sb.append(indentation).append(type).append("-").append(side).append(": ").append(val).append(unit).append(";\n");
+                String valueWithUnit = getParamValue(block, 1);
+                sb.append(indentation).append(type).append("-").append(side).append(": ").append(valueWithUnit).append(";\n");
+            } else if (op.equals("asd")) {
+                sb.append(indentation).append(getParamValue(block, 0)).append("\n");
             } else {
                 StringBuilder valBuilder = new StringBuilder();
                 for (int i = 0; i < block.args.size(); i++) {
-                    valBuilder.append(getParamValue(block, i));
+                    String paramValue = getParamValue(block, i);
+                    if (paramValue != null && !paramValue.isEmpty()) {
+                        String type = (String) block.argTypes.get(i);
+                        
+                        // Handle Image auto-url wrapping
+                        if (type.contains(".image") && !paramValue.startsWith("url(") && !paramValue.contains("gradient")) {
+                            paramValue = "url('" + paramValue + "')";
+                        }
+
+                        if (valBuilder.length() > 0 && !type.contains(".unit")) {
+                            valBuilder.append(" ");
+                        }
+                        valBuilder.append(paramValue);
+                    }
                 }
                 sb.append(indentation).append(op).append(": ").append(valBuilder.toString()).append(";\n");
             }
@@ -91,12 +112,23 @@ public class CssSourceMaker {
                 return ((BlockArg) arg).getArgValue().toString();
             } else if (arg instanceof Block) {
                 Block inner = (Block) arg;
-                if (inner.mOpCode.startsWith("getVar_")) {
-                    return "var(--" + inner.mOpCode.substring(7) + ")";
-                } else if (inner.mOpCode.equals("getVar")) {
+                String op = inner.mOpCode;
+                if (op.startsWith("getVar_")) {
+                    return "var(--" + op.substring(7) + ")";
+                } else if (op.equals("getVar")) {
+                    return "var(--" + getParamValue(inner, 0) + ")";
+                } else if (op.equals("linearGradient")) {
+                    return "linear-gradient(" + getParamValue(inner, 0) + ", " + getParamValue(inner, 1) + ")";
+                } else if (op.equals("radialGradient")) {
+                    return "radial-gradient(" + getParamValue(inner, 0) + ", " + getParamValue(inner, 1) + ")";
+                } else if (op.equals("url")) {
+                    return "url(" + getParamValue(inner, 0) + ")";
+                } else if (op.equals("calc")) {
+                    return "calc(" + getParamValue(inner, 0) + ")";
+                } else if (op.equals("var")) {
                     return "var(--" + getParamValue(inner, 0) + ")";
                 }
-                return "calc(...)";
+                return "/* unknown block */";
             }
         }
         return "";

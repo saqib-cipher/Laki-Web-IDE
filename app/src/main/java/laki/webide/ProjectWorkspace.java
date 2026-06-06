@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 
 import laki.webide.compiler.CssCodeGenerator;
 import laki.webide.managers.CssLogicPersistenceManager;
+import laki.webide.utility.FilePathUtil;
 import mod.hey.studios.build.BuildSettings;
 import mod.hey.studios.project.ProjectSettings;
 import mod.hey.studios.util.ProjectFile;
@@ -208,7 +209,6 @@ public class ProjectWorkspace {
         material3LibraryManager = new Material3LibraryManager(sc_id);
         N.sc_id = sc_id;
         projectName = yB.c(metadata, "my_ws_name");
-        projectMyscPath = wq.f(projectName) + File.separator;
         packageName = "web.ide.project";
 
         applicationName = yB.c(metadata, "my_app_name");
@@ -225,9 +225,24 @@ public class ProjectWorkspace {
         fileUtil = new oB(true);
         packageNameAsFolders = packageName.replaceAll("\\.", File.separator);
 
-        // Web Project Paths only
-        assetsPath = projectMyscPath + "assets";
+        // Web Project Paths using FilePathUtil for consistency
+        projectMyscPath = FilePathUtil.getProjectRoot(sc_id) + File.separator;
+        assetsPath = new FilePathUtil().getPathAssets(sc_id);
         fontsPath = assetsPath + File.separator + "fonts";
+        
+        // Auto-migration check
+        String legacyPath = FileUtil.getExternalStorageDir() + "/.lakiwebsites/data/" + sc_id;
+        if (FileUtil.isExistFile(legacyPath) && !FileUtil.isExistFile(projectMyscPath)) {
+            try {
+                FileUtil.copyDirectory(new File(legacyPath), new File(projectMyscPath));
+                // Rename legacy folders to new web structure
+                FileUtil.moveFile(projectMyscPath + "files/assets", projectMyscPath + "asset");
+                FileUtil.moveFile(projectMyscPath + "files/java", projectMyscPath + "css");
+                FileUtil.moveFile(projectMyscPath + "files/resource", projectMyscPath + "res");
+            } catch (Exception e) {
+                Log.e("Migration", "Error migrating project", e);
+            }
+        }
         
         // Dummy values for Android compatibility to prevent compile errors
         binDirectoryPath = projectMyscPath + "bin";

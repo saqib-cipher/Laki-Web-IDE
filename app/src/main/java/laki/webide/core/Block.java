@@ -7,9 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
-/*import com.besome.sketch.define.BlockBean;
-import com.besome.sketch.define.DefineBlock;
-import com.besome.sketch.lib.utils.StringUtil;*/
+
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -45,6 +43,7 @@ public class Block extends BlockBase {
     public int subStack1 = -1;
     public int subStack2 = -1;
     public String category = "OTHER";
+    public String outputType = "";
 
     public Block(Context context, int i, String str, String str2, String str3, Object... objArr) {
         super(context, str2, false);
@@ -53,6 +52,10 @@ public class Block extends BlockBase {
         this.mOpCode = str3;
         this.mDefaultArgs = objArr;
         init(context);
+    }
+
+    public static Block fromBean(Context context, BlockBean bean) {
+        return new Block(context, Integer.valueOf(bean.id), bean.spec, bean.type, bean.opCode, new Object[]{Integer.valueOf(bean.color)});
     }
 
     private void addLabelsAndArgs(String str, int i) {
@@ -96,7 +99,18 @@ public class Block extends BlockBase {
                 return new BlockArg(this.mContext, "d", i, "");
             }
             if (charAt == 'm') {
-                return new BlockArg(this.mContext, "m", i, str.substring(3));
+                String menuName = str.substring(3);
+                if (menuName.endsWith(",") || menuName.endsWith(")")) {
+                    menuName = menuName.substring(0, menuName.length() - 1);
+                }
+                return new BlockArg(this.mContext, "m", i, menuName);
+            }
+            if (charAt == 'v') {
+                String menuName = str.substring(3);
+                if (menuName.endsWith(",") || menuName.endsWith(")")) {
+                    menuName = menuName.substring(0, menuName.length() - 1);
+                }
+                return new BlockArg(this.mContext, "v", i, menuName);
             }
             if (charAt == 's') {
                 return new BlockArg(this.mContext, "s", i, str.length() > BLOCK_TYPE_HAT ? str.substring(3) : "");
@@ -180,6 +194,11 @@ public class Block extends BlockBase {
                     var3 = 2;
                 }
                 break;
+            case 118:
+                if(var2.equals("v")) {
+                    var3 = 9;
+                }
+                break;
             case 3171:
                 if(var2.equals("cf")) {
                     var3 = 5;
@@ -194,6 +213,7 @@ public class Block extends BlockBase {
                 break;
             case 1:
             case 2:
+            case 9:
                 this.isReporter = true;
                 break;
             case 3:
@@ -245,8 +265,12 @@ public class Block extends BlockBase {
         Iterator it = this.args.iterator();
         while (it.hasNext()) {
             View view = (View) it.next();
-            if ((view instanceof BlockArg) && view.getX() < f && view.getX() + ((float) view.getWidth()) > f && view.getY() < f2 && view.getY() + ((float) view.getHeight()) > f2) {
-                ((BlockArg) view).showPopup();
+            if (view.getX() < f && view.getX() + ((float) view.getWidth()) > f && view.getY() < f2 && view.getY() + ((float) view.getHeight()) > f2) {
+                if (view instanceof BlockArg) {
+                    ((BlockArg) view).showPopup();
+                } else if (view instanceof Block) {
+                    ((Block) view).actionClick(f - view.getX(), f2 - view.getY());
+                }
             }
         }
     }

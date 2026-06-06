@@ -149,6 +149,11 @@ public class BlockBase extends RelativeLayout {
                     var5 = 10;
                 }
                 break;
+            case 118:
+                if(var4.equals("v")) {
+                    var5 = 11;
+                }
+                break;
             case 3171:
                 if(var4.equals("cf")) {
                     var5 = 5;
@@ -193,6 +198,9 @@ public class BlockBase extends RelativeLayout {
                 this.mShapeType = 7;
                 break;
             case 9:
+                this.mShapeType = 12;
+                break;
+            case 11:
                 this.mShapeType = 12;
                 break;
             case 10:

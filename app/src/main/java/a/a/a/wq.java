@@ -173,7 +173,23 @@ public class wq {
     }
 
     public static String f(String projectName) {
+        File simpleDir = new File(getAbsolutePathOf(simple));
+        if (simpleDir.exists() && simpleDir.isDirectory()) {
+            File[] files = simpleDir.listFiles();
+            if (files != null) {
+                for (File f : files) {
+                    if (f.getName().startsWith(projectName + "_")) {
+                        return f.getAbsolutePath();
+                    }
+                }
+            }
+        }
         return getAbsolutePathOf(simple + File.separator + projectName);
+    }
+
+    public static String f(String projectName, String sc_id) {
+        String folderName = (projectName == null || projectName.isEmpty()) ? sc_id : projectName + "_" + sc_id;
+        return getAbsolutePathOf(simple + File.separator + folderName);
     }
 
     public static String simple() {

@@ -9,7 +9,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import dev.aldi.sayuti.block.ExtraBlockFile;
+import laki.webide.core.block.ExtraBlockFile;
 import laki.webide.utility.SketchwareUtil;
 
 public class PaletteSelector {

@@ -11,7 +11,7 @@ I. CURRENT COMPONENT RESPONSIBILITIES
    - Role: Defines the DNA of a block (OpCode, Color, Type, Parameters). This is the digital data that gets saved to project files.
 
 2. PALETTE REGISTRATION (Visual Menu)
-   - Files: dev.aldi.sayuti.block.ExtraPaletteBlock.java, laki.webide.blocks.ExtraBlocks.java
+   - Files: laki.webide.core.block.ExtraPaletteBlock.java, laki.webide.blocks.ExtraBlocks.java
    - Role: Acts as the "Storefront". It determines which sidebar category a block belongs to and provides the static list of available blocks.
    - Status: Highly centralized switch-statements (Over 1,500 lines).
 

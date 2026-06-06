@@ -51,6 +51,7 @@ public class PaletteBlock extends LinearLayout {
         this.blockBuilder.addView(view);
         Block block = new Block(this.mContext, -1, cb.spec, cb.type, cb.opCode, new Object[0]);
         block.category = cb.category;
+        block.outputType = cb.outputType;
         block.setBlockType(1);
         block.mColor = cb.getColor();
         this.blockBuilder.addView(block);

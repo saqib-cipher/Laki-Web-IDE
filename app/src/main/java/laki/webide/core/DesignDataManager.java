@@ -16,6 +16,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import laki.webide.utility.FilePathUtil;
+
 public class DesignDataManager {
     public static final int VAR_TYPE_BOOLEAN = 0;
     public static final int VAR_TYPE_INT = 1;
@@ -392,6 +394,40 @@ public class DesignDataManager {
         results.addAll(set);
         java.util.Collections.sort(results);
         return results;
+    }
+
+    public static ArrayList<String> getProjectAssets(String scId, String type) {
+        ArrayList<String> results = new ArrayList<>();
+        if (scId == null) return results;
+        
+        FilePathUtil fpu = new FilePathUtil();
+        String assetsPath = fpu.getPathAssets(scId);
+        java.io.File folder = new java.io.File(assetsPath);
+        
+        if (folder.exists() && folder.isDirectory()) {
+            java.io.File[] files = folder.listFiles();
+            if (files != null) {
+                for (java.io.File file : files) {
+                    if (file.isFile()) {
+                        String name = file.getName().toLowerCase();
+                        if (type.equals("image")) {
+                            if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".svg") || name.endsWith(".gif") || name.endsWith(".webp")) {
+                                results.add(file.getName());
+                            }
+                        } else {
+                            results.add(file.getName());
+                        }
+                    }
+                }
+            }
+        }
+        java.util.Collections.sort(results);
+        return results;
+    }
+
+    public static String getAssetPath(String scId, String fileName) {
+        FilePathUtil fpu = new FilePathUtil();
+        return new java.io.File(fpu.getPathAssets(scId), fileName).getAbsolutePath();
     }
 
  /*   public static ViewBean getViewBean(String str, String str2) {

@@ -67,8 +67,14 @@ public class BlockPane extends RelativeLayout {
     private boolean dropCompatible(Block block, View view) {
         if (block.isReporter) {
             String str = block.mType;
-            if ((view instanceof BlockBase) && !((BlockBase) view).mType.equals(str)) {
-                return false;
+            if (view instanceof BlockBase) {
+                BlockBase target = (BlockBase) view;
+                if (target instanceof BlockArg && target.mType.equals("v")) {
+                    return block.outputType.equals(((BlockArg) target).socketType);
+                }
+                if (!target.mType.equals(str)) {
+                    return false;
+                }
             }
         }
         return true;
@@ -179,6 +185,35 @@ public class BlockPane extends RelativeLayout {
         float dip = LayoutUtil.getDip(getContext(), 1.0f);
         this.root.setX(8.0f * dip);
         this.root.setY(dip * 8.0f);
+    }
+
+    public void setupRoot(String spec, String opCode, View.OnTouchListener listener) {
+        addRoot(spec, opCode);
+        ArrayList<String> tokens = StringUtil.tokenize(spec);
+        int argIndex = 0;
+
+        for (int i = 0; i < tokens.size(); i++) {
+            String token = tokens.get(i);
+            if (token.charAt(0) == '%') {
+                Block argBlock = null;
+                if (token.charAt(1) == 'b') {
+                    argBlock = new Block(getContext(), argIndex + 1, token.substring(3), "b", "getArg", new Object[]{Integer.valueOf(-7711273)});
+                } else if (token.charAt(1) == 'd') {
+                    argBlock = new Block(getContext(), argIndex + 1, token.substring(3), "d", "getArg", new Object[]{Integer.valueOf(-7711273)});
+                } else if (token.charAt(1) == 's') {
+                    argBlock = new Block(getContext(), argIndex + 1, token.substring(3), "s", "getArg", new Object[]{Integer.valueOf(-7711273)});
+                }
+
+                if (argBlock != null) {
+                    argBlock.setBlockType(1);
+                    addView(argBlock);
+                    this.root.replaceArgWithBlock((BlockBase) this.root.args.get(argIndex), argBlock);
+                    argBlock.setOnTouchListener(listener);
+                    argIndex++;
+                }
+            }
+        }
+        this.root.fixLayout();
     }
 
    public Block blockDropped(Block var1, int var2, int var3, boolean var4) {

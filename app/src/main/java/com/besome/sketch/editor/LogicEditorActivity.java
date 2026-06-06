@@ -87,7 +87,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import a.a.a.*;
 import laki.webide.ProjectWorkspace;
 import laki.webide.managers.WebProjectSyncManager;
-import dev.aldi.sayuti.block.ExtraPaletteBlock;
+import laki.webide.core.block.ExtraPaletteBlock;
 import laki.webide.compiler.CssCodeGenerator;
 import laki.webide.validator.CssVariableValidator;
 import laki.webide.beans.CssLogicData;

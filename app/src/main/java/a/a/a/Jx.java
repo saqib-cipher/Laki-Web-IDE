@@ -1,6 +1,6 @@
 package a.a.a;
 
-import static dev.aldi.sayuti.block.ExtraBlockFile.getExtraBlockData;
+import static laki.webide.core.block.ExtraBlockFile.getExtraBlockData;
 
 import android.text.TextUtils;
 import android.util.Pair;

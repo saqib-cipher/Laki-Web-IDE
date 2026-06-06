@@ -1,4 +1,4 @@
-package dev.aldi.sayuti.block;
+package laki.webide.core.block;
 
 import static laki.webide.utility.ThemeUtils.getColor;
 import static laki.webide.utility.ThemeUtils.isDarkThemeEnabled;

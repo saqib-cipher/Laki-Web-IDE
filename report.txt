@@ -29,4 +29,4 @@ that are required for the core system to function.
 - com.google.android.material:material (UI components and themes)
 
 Report generated on: 2024-05-23
-Status: ACTIVE
+Status Is: ACTIVE

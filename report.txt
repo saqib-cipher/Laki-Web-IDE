@@ -1,4 +1,4 @@
-CORE SYSTEM DEPENDENCY REPORT
+CORE SYSTEM DEPENDENCY REPORT CARD 
 =============================
 This report lists files and resources located outside the 'laki.webide.core' package
 that are required for the core system to function.

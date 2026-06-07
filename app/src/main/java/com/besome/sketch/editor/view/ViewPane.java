@@ -37,41 +37,15 @@ import com.besome.sketch.beans.ProjectResourceBean;
 import com.besome.sketch.beans.ViewBean;
 import com.besome.sketch.design.DesignActivity;
 import com.besome.sketch.editor.manage.library.material3.Material3LibraryManager;
-import com.besome.sketch.editor.view.item.ItemAdView;
-import com.besome.sketch.editor.view.item.ItemBottomNavigationView;
-import com.besome.sketch.editor.view.item.ItemButton;
-import com.besome.sketch.editor.view.item.ItemCalendarView;
-import com.besome.sketch.editor.view.item.ItemCardView;
-import com.besome.sketch.editor.view.item.ItemCheckBox;
-import com.besome.sketch.editor.view.item.ItemEditText;
-import com.besome.sketch.editor.view.item.ItemFloatingActionButton;
-import com.besome.sketch.editor.view.item.ItemHorizontalScrollView;
-import com.besome.sketch.editor.view.item.ItemImageView;
-import com.besome.sketch.editor.view.item.ItemLinearLayout;
-import com.besome.sketch.editor.view.item.ItemListView;
-import com.besome.sketch.editor.view.item.ItemMapView;
-import com.besome.sketch.editor.view.item.ItemProgressBar;
-import com.besome.sketch.editor.view.item.ItemRecyclerView;
-import com.besome.sketch.editor.view.item.ItemRelativeLayout;
-import com.besome.sketch.editor.view.item.ItemSearchView;
-import com.besome.sketch.editor.view.item.ItemSeekBar;
-import com.besome.sketch.editor.view.item.ItemSignInButton;
-import com.besome.sketch.editor.view.item.ItemSpinner;
-import com.besome.sketch.editor.view.item.ItemSwitch;
-import com.besome.sketch.editor.view.item.ItemTabLayout;
-import com.besome.sketch.editor.view.item.ItemTextView;
-import com.besome.sketch.editor.view.item.ItemVerticalScrollView;
-import com.besome.sketch.editor.view.item.ItemWebView;
+import com.besome.sketch.editor.view.item.*;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import a.a.a.Gx;
 import a.a.a.kC;
 import a.a.a.lC;
@@ -79,16 +53,6 @@ import a.a.a.wB;
 import a.a.a.wq;
 import a.a.a.yB;
 import a.a.a.zB;
-import dev.aldi.sayuti.editor.view.item.ItemBadgeView;
-import dev.aldi.sayuti.editor.view.item.ItemCircleImageView;
-import dev.aldi.sayuti.editor.view.item.ItemCodeView;
-import dev.aldi.sayuti.editor.view.item.ItemLottieAnimation;
-import dev.aldi.sayuti.editor.view.item.ItemMaterialButton;
-import dev.aldi.sayuti.editor.view.item.ItemOTPView;
-import dev.aldi.sayuti.editor.view.item.ItemPatternLockView;
-import dev.aldi.sayuti.editor.view.item.ItemViewPager;
-import dev.aldi.sayuti.editor.view.item.ItemWaveSideBar;
-import dev.aldi.sayuti.editor.view.item.ItemYoutubePlayer;
 import mod.agus.jcoderz.beans.ViewBeans;
 import mod.agus.jcoderz.editor.view.item.ItemAnalogClock;
 import mod.agus.jcoderz.editor.view.item.ItemAutoCompleteTextView;
@@ -303,19 +267,9 @@ public class ViewPane extends RelativeLayout {
             case ViewBeans.VIEW_TYPE_WIDGET_TIMEPICKER -> new ItemTimePicker(context);
             case ViewBeans.VIEW_TYPE_WIDGET_DIGITALCLOCK -> new ItemDigitalClock(context);
             case ViewBeans.VIEW_TYPE_LAYOUT_TABLAYOUT -> new ItemTabLayout(context);
-            case ViewBeans.VIEW_TYPE_LAYOUT_VIEWPAGER -> new ItemViewPager(context);
             case ViewBeans.VIEW_TYPE_LAYOUT_BOTTOMNAVIGATIONVIEW ->
                     new ItemBottomNavigationView(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_BADGEVIEW -> new ItemBadgeView(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_PATTERNLOCKVIEW -> new ItemPatternLockView(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_WAVESIDEBAR -> new ItemWaveSideBar(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_MATERIALBUTTON -> new ItemMaterialButton(context);
             case ViewBeans.VIEW_TYPE_WIDGET_SIGNINBUTTON -> new ItemSignInButton(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_CIRCLEIMAGEVIEW -> new ItemCircleImageView(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_LOTTIEANIMATIONVIEW -> new ItemLottieAnimation(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_YOUTUBEPLAYERVIEW -> new ItemYoutubePlayer(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_OTPVIEW -> new ItemOTPView(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_CODEVIEW -> new ItemCodeView(context);
             case ViewBeans.VIEW_TYPE_WIDGET_RECYCLERVIEW -> new ItemRecyclerView(context);
             default -> getUnknownItemView(viewBean);
         };
@@ -540,11 +494,7 @@ public class ViewPane extends RelativeLayout {
                     ((ImageView) view).setImageResource(R.drawable.default_image);
                 }
             }
-            if (classInfo.b("CircleImageView")) {
-                updateCircleImageView((ItemCircleImageView) view, injectHandler);
-            } else {
-                ((ImageView) view).setScaleType(ImageView.ScaleType.valueOf(viewBean.image.scaleType));
-            }
+            ((ImageView) view).setScaleType(ImageView.ScaleType.valueOf(viewBean.image.scaleType));
         }
         if (classInfo.a("CompoundButton")) {
             ((CompoundButton) view).setChecked(viewBean.checked != 0);
@@ -574,9 +524,6 @@ public class ViewPane extends RelativeLayout {
         }
         if (classInfo.b("TabLayout")) {
             updateTabLayout((ItemTabLayout) view, injectHandler);
-        }
-        if (classInfo.b("MaterialButton")) {
-            updateMaterialButton((ItemMaterialButton) view, injectHandler);
         }
         if (classInfo.b("SignInButton")) {
             ItemSignInButton button = (ItemSignInButton) view;
@@ -1367,18 +1314,6 @@ public class ViewPane extends RelativeLayout {
         cardView.setStrokeColor(PropertiesUtil.isHexColor(strokeColor) ? PropertiesUtil.parseColor(strokeColor) : Color.WHITE);
     }
 
-    private void updateCircleImageView(ItemCircleImageView imageView, InjectAttributeHandler handler) {
-        String borderColor = handler.getAttributeValueOf("civ_border_color");
-        String backgroundColor = handler.getAttributeValueOf("civ_circle_background_color");
-        String borderWidth = handler.getAttributeValueOf("civ_border_width");
-        String borderOverlay = handler.getAttributeValueOf("civ_border_overlay");
-
-        imageView.setBorderColor(PropertiesUtil.isHexColor(borderColor) ? PropertiesUtil.parseColor(borderColor) : 0xff008dcd);
-        imageView.setCircleBackgroundColor(PropertiesUtil.isHexColor(backgroundColor) ? PropertiesUtil.parseColor(backgroundColor) : 0xff008dcd);
-        imageView.setBorderWidth(PropertiesUtil.resolveSize(borderWidth, 3));
-        imageView.setBorderOverlay(Boolean.parseBoolean(TextUtils.isEmpty(borderOverlay) ? "false" : borderOverlay));
-    }
-
     private void updateTabLayout(ItemTabLayout tabLayout, InjectAttributeHandler handler) {
         String gravity = handler.getAttributeValueOf("tabGravity");
         String mode = handler.getAttributeValueOf("tabMode");
@@ -1402,13 +1337,6 @@ public class ViewPane extends RelativeLayout {
         int tabTextColor = PropertiesUtil.isHexColor(textColor) ? PropertiesUtil.parseColor(textColor) : 0xff57beee;
         int tabSelectedTextColor = PropertiesUtil.isHexColor(selectedTextColor) ? PropertiesUtil.parseColor(selectedTextColor) : Color.WHITE;
         tabLayout.setTabTextColors(tabTextColor, tabSelectedTextColor);
-    }
-
-    private void updateMaterialButton(ItemMaterialButton materialButton, InjectAttributeHandler handler) {
-        String radius = handler.getAttributeValueOf("cornerRadius");
-        String stroke = handler.getAttributeValueOf("strokeWidth");
-        materialButton.setStrokeWidth(PropertiesUtil.resolveSize(stroke, 0));
-        materialButton.setCornerRadius(PropertiesUtil.resolveSize(radius, 8));
     }
 
     private String extractAttrValue(String line, String attribute) {

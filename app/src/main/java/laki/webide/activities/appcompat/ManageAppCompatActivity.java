@@ -24,7 +24,7 @@ import java.util.Objects;
 
 import a.a.a.jC;
 import a.a.a.mB;
-import dev.aldi.sayuti.editor.injection.AppCompatInjection;
+// import dev.aldi.sayuti.editor.injection.AppCompatInjection;
 import mod.hey.studios.util.Helper;
 import laki.webide.R;
 import laki.webide.activities.appcompat.adapters.AppCompatAdapter;
@@ -86,11 +86,11 @@ public class ManageAppCompatActivity extends BaseAppCompatActivity {
                         + "/injection/appcompat/"
                         + filename.replaceAll(".xml", "");
         if (!FileUtil.isExistFile(path) || FileUtil.readFile(path).isEmpty()) {
-            activityInjections =
+            /*activityInjections =
                     new Gson()
                             .fromJson(
                                     AppCompatInjection.getDefaultActivityInjections(),
-                                    Helper.TYPE_MAP_LIST);
+                                    Helper.TYPE_MAP_LIST);*/
         } else {
             activityInjections = new Gson().fromJson(FileUtil.readFile(path), Helper.TYPE_MAP_LIST);
         }
@@ -226,7 +226,7 @@ public class ManageAppCompatActivity extends BaseAppCompatActivity {
     @Override
     public void onStop() {
         super.onStop();
-        AppCompatInjection.refreshInjections();
+        // AppCompatInjection.refreshInjections();
     }
 
     private void initializeProjectBean() {
@@ -235,9 +235,6 @@ public class ManageAppCompatActivity extends BaseAppCompatActivity {
     }
 
     private void resetData() {
-        var defInjections = AppCompatInjection.getDefaultActivityInjections();
-        activityInjections = new Gson().fromJson(defInjections, Helper.TYPE_MAP_LIST);
-        FileUtil.writeFile(path, defInjections);
     }
 
     private void setNote(String title, String message) {

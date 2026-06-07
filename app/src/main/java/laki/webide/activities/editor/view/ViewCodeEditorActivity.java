@@ -24,7 +24,6 @@ import a.a.a.jC;
 import io.github.rosemoe.sora.widget.CodeEditor;
 import mod.hey.studios.util.Helper;
 import laki.webide.R;
-import laki.webide.activities.appcompat.ManageAppCompatActivity;
 import laki.webide.activities.preview.LayoutPreviewActivity;
 import laki.webide.databinding.ViewCodeEditorBinding;
 import laki.webide.managers.inject.InjectRootLayoutManager;
@@ -104,7 +103,7 @@ public class ViewCodeEditorActivity extends BaseAppCompatActivity {
         projectLibrary = jC.c(sc_id).c();
         getOnBackPressedDispatcher().addCallback(this, onBackPressedCallback);
         setSupportActionBar(binding.toolbar);
-        getSupportActionBar().setTitle("XML Editor");
+        getSupportActionBar().setTitle("Code Editor");
         getSupportActionBar().setSubtitle(title);
         binding.toolbar.setNavigationOnClickListener(v -> {
             if (onBackPressedCallback.isEnabled()) {
@@ -121,17 +120,12 @@ public class ViewCodeEditorActivity extends BaseAppCompatActivity {
         } else if (title.endsWith(".css")) {
             EditorUtils.loadCssConfig(editor);
         } else {
-            EditorUtils.loadXmlConfig(editor);
-        }
-        if (projectFile.fileType == ProjectFileBean.PROJECT_FILE_TYPE_ACTIVITY
-                && projectLibrary.isEnabled()) {
-            setNote("Use AppCompat Manager to modify attributes for CoordinatorLayout, Toolbar, and other appcompat layout/widget.");
+            EditorUtils.loadHtmlConfig(editor);
         }
         binding.close.setOnClickListener(v -> {
             prefs.edit().putInt("note_" + sc_id, 1).apply();
             setNote(null);
         });
-        binding.noteCard.setOnClickListener(v -> toAppCompat());
     }
 
     @Override
@@ -151,10 +145,7 @@ public class ViewCodeEditorActivity extends BaseAppCompatActivity {
         menu.add(Menu.NONE, 2, Menu.NONE, "Save")
                 .setIcon(AppCompatResources.getDrawable(this, R.drawable.ic_mtrl_save))
                 .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-        if (projectFile.fileType == ProjectFileBean.PROJECT_FILE_TYPE_ACTIVITY
-                && projectLibrary.isEnabled()) {
-            menu.add(Menu.NONE, 3, Menu.NONE, "Edit AppCompat");
-        }
+        menu.add(Menu.NONE, 3, Menu.NONE, "Pretty print");
         menu.add(Menu.NONE, 4, Menu.NONE, "Reload color schemes");
         menu.add(Menu.NONE, 5, Menu.NONE, "Layout Preview");
         return true;
@@ -176,11 +167,21 @@ public class ViewCodeEditorActivity extends BaseAppCompatActivity {
                 return true;
             }
             case 3 -> {
-                toAppCompat();
+                String title = getIntent().getStringExtra("title");
+                if (title.endsWith(".html")) {
+                    String format = mod.hey.studios.code.SrcCodeEditor.prettifyXml(editor.getText().toString(), 4, getIntent());
+                    if (format != null) {
+                        editor.setText(format);
+                    } else {
+                        SketchwareUtil.toastError("Failed to format file");
+                    }
+                } else {
+                    SketchwareUtil.toast("Only HTML files can be formatted");
+                }
                 return true;
             }
             case 4 -> {
-                EditorUtils.loadXmlConfig(binding.editor);
+                EditorUtils.loadHtmlConfig(binding.editor);
                 return true;
             }
             case 5 -> {
@@ -191,13 +192,6 @@ public class ViewCodeEditorActivity extends BaseAppCompatActivity {
                 return super.onOptionsItemSelected(item);
             }
         }
-    }
-
-    private void toAppCompat() {
-        var intent = new Intent(getApplicationContext(), ManageAppCompatActivity.class);
-        intent.putExtra("sc_id", sc_id);
-        intent.putExtra("file_name", getIntent().getStringExtra("title"));
-        startActivity(intent);
     }
 
     private void toLayoutPreview() {

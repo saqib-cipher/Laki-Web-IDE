@@ -31,7 +31,6 @@ import a.a.a.lC;
 import a.a.a.mB;
 import a.a.a.wq;
 import a.a.a.yB;
-import mod.hey.studios.project.ProjectSettingsDialog;
 import mod.hey.studios.project.backup.BackupRestoreManager;
 import mod.hey.studios.util.Helper;
 import laki.webide.R;
@@ -53,11 +52,6 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.Projec
         preference = new DB(activity, "project");
 
     }
-
-    public void setAllProjects(List<HashMap<String, Object>> projects) {
-        allProjects = projects;
-    }
-
     public void filterData(String query) {
         List<HashMap<String, Object>> newProjects = query.isEmpty() ? allProjects : new ArrayList<>();
         if (!query.isEmpty()) {
@@ -233,21 +227,10 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.Projec
         projectsFragment.openProjectSettings.launch(intent);
     }
 
-    private void showProjectSettingDialog(HashMap<String, Object> project) {
-        new ProjectSettingsDialog(activity, yB.c(project, "sc_id")).show();
-    }
-
     private void backupProject(HashMap<String, Object> project) {
         String scId = yB.c(project, "sc_id");
         String appName = yB.c(project, "my_ws_name");
         new BackupRestoreManager(activity).backup(scId, appName);
-    }
-
-    private void toExportProjectActivity(HashMap<String, Object> project) {
-        Intent intent = new Intent(activity, ExportProjectActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        intent.putExtra("sc_id", yB.c(project, "sc_id"));
-        activity.startActivity(intent);
     }
 
     private void changePinState(HashMap<String, Object> projectMap) {
@@ -286,15 +269,8 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.Projec
             projectOptionsBSD.dismiss();
         });
 
-        binding.exportSign.setOnClickListener(v -> {
-            toExportProjectActivity(projectMap);
-            projectOptionsBSD.dismiss();
-        });
-
-        binding.projectConfig.setOnClickListener(v -> {
-            showProjectSettingDialog(projectMap);
-            projectOptionsBSD.dismiss();
-        });
+        binding.projectConfig.setVisibility(View.GONE);
+        binding.exportSign.setVisibility(View.GONE);
 
         binding.projectDelete.setOnClickListener(v -> {
             projectOptionsBSD.dismiss();

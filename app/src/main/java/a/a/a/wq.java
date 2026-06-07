@@ -24,6 +24,7 @@ public class wq {
     public static final String[] O = {"255022168522663_266931247331755", "255022168522663_268282677196612", "255022168522663_268283823863164", "255022168522663_266575314034015", "255022168522663_279474749410738"};
     public static final String a = ".lakiwebsites" + File.separator + "libs";
     public static final String simple = ".lakiwebsites" + File.separator + "simple";
+    public static final String complex = ".lakiwebsites" + File.separator + "complex";
     public static final String b = ".lakiwebsites" + File.separator + "mysc";
     public static final String c = ".lakiwebsites" + File.separator + "mysc" + File.separator + "list";
     public static final String d = ".lakiwebsites" + File.separator + "data";
@@ -188,8 +189,13 @@ public class wq {
     }
 
     public static String f(String projectName, String sc_id) {
+        return f(projectName, sc_id, false);
+    }
+
+    public static String f(String projectName, String sc_id, boolean isComplex) {
         String folderName = (projectName == null || projectName.isEmpty()) ? sc_id : projectName + "_" + sc_id;
-        return getAbsolutePathOf(simple + File.separator + folderName);
+        String root = isComplex ? complex : simple;
+        return getAbsolutePathOf(root + File.separator + folderName);
     }
 
     public static String simple() {

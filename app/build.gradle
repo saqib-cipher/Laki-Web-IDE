@@ -15,10 +15,10 @@ android {
         applicationId = "laki.webide"
         namespace = "laki.webide"
 
-        targetSdk = 34
+        targetSdk = 36
         minSdk = 26
         versionCode = 1
-        versionName = "LatikeshMarathe"
+        versionName = "L.1"
 
         buildConfigField("String", "GIT_HASH", "\"${gitCommitHash}\"")
 
@@ -87,22 +87,12 @@ dependencies {
 
     implementation libs.bundles.coil
 
-    implementation libs.bundles.bundletool
-    implementation(libs.sdklib) {
-        exclude group: "com.intellij", module: "annotations"
-    }
-
-    implementation libs.bundles.shrinker
-    implementation libs.zipalign.java
-
     implementation libs.gson
-    implementation libs.scpkix.jdk15on
 
     implementation libs.markwon
 
     implementation libs.bundles.networking
 
-    implementation libs.ecj
     implementation libs.stax.api
 
     implementation libs.dependencyresolver

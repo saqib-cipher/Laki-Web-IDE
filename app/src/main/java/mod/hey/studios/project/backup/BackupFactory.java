@@ -42,6 +42,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import a.a.a.lC;
 import a.a.a.yB;
+import laki.webide.utility.FilePathUtil;
 import mod.hey.studios.editor.manage.block.ExtraBlockInfo;
 import mod.hey.studios.editor.manage.block.v2.BlockLoader;
 import mod.hey.studios.project.custom_blocks.CustomBlocksManager;
@@ -329,32 +330,32 @@ public class BackupFactory {
         FileUtil.makeDir(outFolder.getAbsolutePath());
         FileUtil.makeDir(new File(getBackupDir() + File.separator + projectNameOnly).getAbsolutePath());
 
-        // Copy data
+        // Copy logic data (settings)
         File dataF = new File(outFolder, "data");
         FileUtil.makeDir(dataF.getAbsolutePath());
-        //6.3.0 fix1
         copySafe(getDataDir(), dataF);
 
-        // Copy res
-        File resF = new File(outFolder, "resources");
-        FileUtil.makeDir(resF.getAbsolutePath());
-
-        for (String subfolder : resSubfolders) {
-            File resSubf = new File(resF, subfolder);
-            FileUtil.makeDir(resSubf.getAbsolutePath());
-
-            //6.3.0 fix1
-            copySafe(getResDir(subfolder), resSubf);
-
-            // Write an empty file inside each folder (except icons)
-            if (!subfolder.equals("icons")) {
-                //6.3.0 fix1
-                createNomediaFileIn(resSubf);
-                //FileUtil.writeFile(new File(resSubf, ".nomedia").getAbsolutePath(), "");
+        // Copy web-specific files (HTML, CSS, Assets)
+        File webF = new File(outFolder, "web");
+        FileUtil.makeDir(webF.getAbsolutePath());
+        
+        File projectRoot = new File(FilePathUtil.getProjectRoot(sc_id));
+        
+        // Copy HTML files from root
+        File[] rootFiles = projectRoot.listFiles();
+        if (rootFiles != null) {
+            for (File f : rootFiles) {
+                if (f.isFile() && f.getName().toLowerCase().endsWith(".html")) {
+                    copy(f, new File(webF, f.getName()));
+                }
             }
         }
+        
+        // Copy CSS and Asset folders
+        copySafe(new File(projectRoot, "css"), new File(webF, "css"));
+        copySafe(new File(projectRoot, "asset"), new File(webF, "asset"));
 
-        // Copy project
+        // Copy project metadata
         File projectF = new File(outFolder, "project");
         copy(getProjectPath(), projectF);
 
@@ -502,14 +503,14 @@ public class BackupFactory {
             return;
         }
 
-        // Copy data
+        // Copy data (settings)
         copy(data, getDataDir());
 
-        // Copy res
-        for (String subfolder : resSubfolders) {
-            File subf = new File(res, subfolder);
-
-            copySafe(subf, getResDir(subfolder));
+        // Copy web files (HTML, CSS, Assets)
+        File web = new File(outFolder, "web");
+        if (web.exists()) {
+            File projectRoot = new File(FilePathUtil.getProjectRoot(sc_id));
+            copy(web, projectRoot);
         }
 
         // Create parent folder
@@ -558,27 +559,22 @@ public class BackupFactory {
     private void createBackupsFolder() {
         // Create the backups folder if it doesn't exist
         String backupsPath = getBackupDir();
-
         FileUtil.makeDir(backupsPath);
     }
 
     private File getDataDir() {
-        return new File(Environment.getExternalStorageDirectory(),
-                ".lakiwebsites/data/" + sc_id);
+        return new File(FilePathUtil.getProjectRoot(sc_id), "settings");
     }
 
     private File getResDir(String subfolder) {
-        return new File(Environment.getExternalStorageDirectory(),
-                ".lakiwebsites/resources/" + subfolder + "/" + sc_id);
+        return new File(FilePathUtil.getProjectRoot(sc_id), "res/" + subfolder);
     }
 
     private File getProjectPath() {
-        return new File(Environment.getExternalStorageDirectory(),
-                ".lakiwebsites/mysc/list/" + sc_id + "/project");
+        return new File(FilePathUtil.getProjectRoot(sc_id), "project");
     }
 
     private File getLocalLibsPath() {
-        return new File(Environment.getExternalStorageDirectory(),
-                ".lakiwebsites/data/" + sc_id + "/local_library");
+        return new File(FilePathUtil.getProjectRoot(sc_id), "settings/local_library");
     }
 }

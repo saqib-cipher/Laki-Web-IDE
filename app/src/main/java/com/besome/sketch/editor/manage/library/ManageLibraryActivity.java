@@ -32,7 +32,6 @@ import java.util.List;
 import a.a.a.MA;
 import a.a.a.jC;
 import a.a.a.mB;
-import dev.aldi.sayuti.editor.manage.ManageLocalLibraryActivity;
 import mod.hey.studios.activity.managers.nativelib.ManageNativelibsActivity;
 import mod.hey.studios.util.Helper;
 import mod.jbk.editor.manage.library.ExcludeBuiltInLibrariesActivity;
@@ -280,10 +279,6 @@ public class ManageLibraryActivity extends BaseAppCompatActivity implements View
                         toGoogleMapActivity(googleMapLibraryBean);
                         break;
 
-                    case ProjectLibraryBean.PROJECT_LIB_TYPE_LOCAL_LIB:
-                        launchActivity(ManageLocalLibraryActivity.class);
-                        break;
-
                     case ProjectLibraryBean.PROJECT_LIB_TYPE_NATIVE_LIB:
                         launchActivity(ManageNativelibsActivity.class);
                         break;
@@ -378,7 +373,6 @@ public class ManageLibraryActivity extends BaseAppCompatActivity implements View
         addLibraryItem(googleMapLibraryBean, basicCategory, false);
 
         LibraryCategoryView externalCategory = addCategoryItem("External libraries");
-        addLibraryItem(new ProjectLibraryBean(ProjectLibraryBean.PROJECT_LIB_TYPE_LOCAL_LIB), externalCategory);
         addLibraryItem(new ProjectLibraryBean(ProjectLibraryBean.PROJECT_LIB_TYPE_NATIVE_LIB), externalCategory, false);
 
         LibraryCategoryView advancedCategory = addCategoryItem("Advanced");

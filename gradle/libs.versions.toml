@@ -4,7 +4,6 @@ appcompat = "1.7.1"
 desugar_jdk_libs_nio = "2.1.5"
 firebaseBom = "34.3.0"
 sora-editor = "0.23.5"
-bundletool = "1.18.2"
 cardview = "1.0.0"
 circleimageview = "3.1.0"
 coil = "2.0.0"
@@ -13,7 +12,6 @@ markwon = "4.6.2"
 coreSplashscreen = "1.0.1"
 libsu = "5.0.4"
 dependencyresolver = "05ec26af0b"
-ecj = "3.26.0"
 exifinterface = "1.4.1"
 filepicker = "74526bea66"
 flexbox = "3.0.0"
@@ -23,21 +21,13 @@ insetter = "0.6.1"
 javaparserSymbolSolver = "3.25.3"
 lottie = "6.6.7"
 material = "1.14.0-alpha05"
-nbJavacAndroid = "17.0.0.3"
 okhttp = "4.12.0"
 okio = "3.16.0"
 preference = "1.2.1"
-proguardCore = "9.0.2"
-protobufJava = "3.19.2"
-r8 = "8.11.18"
-recyclerview = "1.4.0"
-scpkixJdk15on = "1.47.0.2"
-sdklib = "25.3.0"
 staxApi = "1.0-2"
+recyclerview = "1.4.0"
 swiperefreshlayout = "1.1.0"
 viewpager = "1.1.0"
-woodstoxCore = "7.1.1"
-zipalignJava = "1.2.2"
 
 [libraries]
 androidx-activity = { module = "androidx.activity:activity", version.ref = "activity" }
@@ -65,8 +55,6 @@ editor = { module = "io.github.Rosemoe.sora-editor:editor" }
 language-java = { module = "io.github.Rosemoe.sora-editor:language-java" }
 language-textmate = { module = "io.github.Rosemoe.sora-editor:language-textmate" }
 
-bundletool = { module = "com.android.tools.build:bundletool", version.ref = "bundletool" }
-
 circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
 coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 coil-kt-coil-svg = { module = "io.coil-kt:coil-svg", version.ref = "coilSvg" }
@@ -81,26 +69,12 @@ filepicker = { module = "com.github.PranavPurwar:filepicker", version.ref = "fil
 
 markwon = { module = "io.noties.markwon:core", version.ref = "markwon" }
 
-ecj = { module = "org.eclipse.jdt:ecj", version.ref = "ecj" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 
-proguard-core = { module = "com.guardsquare:proguard-core", version.ref = "proguardCore" }
-
-protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobufJava" }
-r8 = { module = "com.android.tools:r8", version.ref = "r8" }
-
-scpkix-jdk15on = { module = "com.madgag:scpkix-jdk15on", version.ref = "scpkixJdk15on" }
-
-sdklib = { module = "com.android.tools:sdklib", version.ref = "sdklib" }
-
 stax-api = { module = "javax.xml.stream:stax-api", version.ref = "staxApi" }
-
-woodstox-core = { module = "com.fasterxml.woodstox:woodstox-core", version.ref = "woodstoxCore" }
-
-zipalign-java = { module = "com.github.Iyxan23:zipalign-java", version.ref = "zipalignJava" }
 
 [bundles]
 ui = ["androidx-activity", "androidx-appcompat", "androidx-splashscreen", "androidx-recyclerview",
@@ -109,7 +83,5 @@ ui = ["androidx-activity", "androidx-appcompat", "androidx-splashscreen", "andro
 image = ["glide", "circleimageview"]
 coil = ["coil", "coil-kt-coil-svg"]
 networking = ["okhttp", "okio"]
-bundletool = ["bundletool", "protobuf-java"]
-shrinker = ["r8", "proguard-core"]
 editor_and_lang = ["editor", "language-java", "language-textmate"]
 firebase = ["firebase-analytics", "firebase-crashlytics", "firebase-messaging"]

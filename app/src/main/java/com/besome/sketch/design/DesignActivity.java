@@ -832,14 +832,6 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     }
 
     /**
-     * Opens {@link AndroidManifestInjection}.
-     */
-    void toAndroidManifestManager() {
-        if (projectFile == null) return;
-        launchActivity(AndroidManifestInjection.class, null, new Pair<>("file_name", currentJavaFileName));
-    }
-
-    /**
      * Opens {@link ManageAppCompatActivity}.
      */
     void toAppCompatInjectionManager() {

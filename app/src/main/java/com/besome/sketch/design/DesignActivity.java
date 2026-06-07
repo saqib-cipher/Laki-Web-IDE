@@ -64,8 +64,6 @@ import mod.agus.jcoderz.editor.manage.resource.ManageResourceActivity;
 import mod.hey.studios.activity.managers.assets.ManageAssetsActivity;
 import mod.hey.studios.activity.managers.java.ManageJavaActivity;
 import mod.hey.studios.project.custom_blocks.CustomBlocksDialog;
-import mod.hey.studios.project.proguard.ManageProguardActivity;
-import mod.hey.studios.project.stringfog.ManageStringFogFragment;
 import mod.hey.studios.util.SystemLogPrinter;
 import mod.hilal.saif.activities.android_manifest.AndroidManifestInjection;
 import mod.hilal.saif.activities.tools.ConfigActivity;

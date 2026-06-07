@@ -33,25 +33,35 @@ jobs:
 
       - name: Build Debug APK
         run: |
-          ./gradlew assembleDebug \
-          --stacktrace \
-          --info \
-          > logs/build-log.txt 2>&1 || true
+          ./gradlew assembleDebug --stacktrace --info > full_output.txt 2>&1 || touch build_failed
 
-      - name: Upload Build Logs
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs
-          path: logs/build-log.txt
-
-      - name: Check Build Result
+      - name: Generate Smart Build Log
         run: |
-          if grep -q "BUILD FAILED" logs/build-log.txt; then
-            echo "Gradle build failed"
+          if [ -f build_failed ]; then
+            echo "BUILD FAILED" > logs/build-log.txt
+            echo "===================================" >> logs/build-log.txt
+            echo "DETECTED ERRORS:" >> logs/build-log.txt
+            # Extract lines starting with 'e:' (Kotlin errors) or 'error:'
+            grep -E "^e: |^error:|^.*: error:" full_output.txt | head -n 100 >> logs/build-log.txt
+            echo "" >> logs/build-log.txt
+            echo "===================================" >> logs/build-log.txt
+            echo "FINAL SUMMARY:" >> logs/build-log.txt
+            # Get the tail of the log which contains the Gradle failure summary
+            tail -n 100 full_output.txt >> logs/build-log.txt
             exit 1
+          else
+            echo "Build Successful" > logs/build-log.txt
           fi
 
+      - name: Upload Build Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: logs/build-log.txt
+
       - name: Upload Debug APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk

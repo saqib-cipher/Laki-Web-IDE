@@ -83,32 +83,6 @@ public class ExcludeBuiltInLibrariesActivity extends BaseAppCompatActivity {
     @Nullable
     private static Pair<Boolean, List<BuiltInLibraries.BuiltInLibrary>> readConfig(String sc_id) {
         File configPath = getConfigPath(sc_id);
-        if (configPath.isFile()) {
-            String content = FileUtil.readFile(configPath.getAbsolutePath());
-
-            String errorMessage;
-            try {
-                Pair<Boolean, List<String>> config = new Gson().fromJson(content, new TypeToken<>() {
-                });
-                if (config != null) {
-                    List<BuiltInLibraries.BuiltInLibrary> libraries = config.second.stream()
-                            .map(s -> {
-                                Optional<BuiltInLibraries.BuiltInLibrary> library = BuiltInLibraries.BuiltInLibrary.ofName(s);
-                                return library.orElse(null);
-                            })
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toList());
-                    return new Pair<>(config.first, libraries);
-                }
-                errorMessage = "read config was null";
-                // fall-through to shared handler
-            } catch (Exception e) {
-                errorMessage = Log.getStackTraceString(e);
-                // fall-through to shared handler
-            }
-
-            LogUtil.e(TAG, "Couldn't parse config: " + errorMessage);
-        }
         return null;
     }
 

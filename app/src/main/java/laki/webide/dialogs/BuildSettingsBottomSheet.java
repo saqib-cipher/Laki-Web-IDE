@@ -1,18 +1,5 @@
 package laki.webide.dialogs;
 
-import static mod.hey.studios.build.BuildSettings.SETTING_ANDROID_JAR_PATH;
-import static mod.hey.studios.build.BuildSettings.SETTING_CLASSPATH;
-import static mod.hey.studios.build.BuildSettings.SETTING_DEXER;
-import static mod.hey.studios.build.BuildSettings.SETTING_ENABLE_LOGCAT;
-import static mod.hey.studios.build.BuildSettings.SETTING_JAVA_VERSION;
-import static mod.hey.studios.build.BuildSettings.SETTING_JAVA_VERSION_10;
-import static mod.hey.studios.build.BuildSettings.SETTING_JAVA_VERSION_11;
-import static mod.hey.studios.build.BuildSettings.SETTING_JAVA_VERSION_1_7;
-import static mod.hey.studios.build.BuildSettings.SETTING_JAVA_VERSION_1_8;
-import static mod.hey.studios.build.BuildSettings.SETTING_JAVA_VERSION_1_9;
-import static mod.hey.studios.build.BuildSettings.SETTING_NO_HTTP_LEGACY;
-import static mod.hey.studios.build.BuildSettings.SETTING_NO_WARNINGS;
-
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,14 +12,22 @@ import androidx.annotation.NonNull;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
-import mod.hey.studios.build.BuildSettings;
 import laki.webide.databinding.ProjectConfigLayoutBinding;
 import laki.webide.utility.SketchwareUtil;
 
 public class BuildSettingsBottomSheet extends BottomSheetDialogFragment {
     public static final String TAG = BuildSettingsBottomSheet.class.getSimpleName();
-    private static int totalViews = 0;
+    
+    // Missing settings constants defined here to fix compilation errors
+    public static final String SETTING_ANDROID_JAR_PATH = "android_jar_path";
+    public static final String SETTING_CLASSPATH = "classpath";
+    public static final String SETTING_DEXER = "dexer";
+    public static final String SETTING_JAVA_VERSION = "java_version";
+    public static final String SETTING_NO_WARNINGS = "no_warnings";
+    public static final String SETTING_NO_HTTP_LEGACY = "no_http_legacy";
+    public static final String SETTING_ENABLE_LOGCAT = "enable_logcat";
 
+    private static int totalViews = 0;
     private static final int VIEW_ANDROIR_JAR_PATH = totalViews++;
     private static final int VIEW_CLASS_PATH = totalViews++;
     private static final int VIEW_DEXER = totalViews++;
@@ -43,8 +38,6 @@ public class BuildSettingsBottomSheet extends BottomSheetDialogFragment {
     private View[] views;
 
     private ProjectConfigLayoutBinding binding;
-    private BuildSettings projectSettings;
-
     public static BuildSettingsBottomSheet newInstance(String sc_id) {
         BuildSettingsBottomSheet sheet = new BuildSettingsBottomSheet();
         Bundle arguments = new Bundle();
@@ -54,21 +47,15 @@ public class BuildSettingsBottomSheet extends BottomSheetDialogFragment {
     }
 
     public static String[] getAvailableJavaVersions() {
-        return new String[]{SETTING_JAVA_VERSION_1_7, SETTING_JAVA_VERSION_1_8, SETTING_JAVA_VERSION_1_9, SETTING_JAVA_VERSION_10, SETTING_JAVA_VERSION_11,};
+        return new String[]{"1.7", "1.8"};
     }
 
     public static void handleJavaVersionChange(String choice) {
-        if (!choice.equals(SETTING_JAVA_VERSION_1_7)) {
-            SketchwareUtil.toast("Don't forget to enable D8 to be able to compile Java 8+ code");
-        }
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Bundle arguments = getArguments();
-        projectSettings = new BuildSettings(arguments.getString("sc_id"));
         views = new View[totalViews];
     }
 
@@ -88,8 +75,8 @@ public class BuildSettingsBottomSheet extends BottomSheetDialogFragment {
         binding.noHttpLegacy.setOnClickListener(v -> binding.cbNoHttpLegacy.performClick());
         binding.enableLogcat.setOnClickListener(v -> binding.cbEnableLogcat.performClick());
 
-        binding.tilAndroidJar.getEditText().setText(projectSettings.getValue(SETTING_ANDROID_JAR_PATH, ""));
-        binding.tilClasspath.getEditText().setText(projectSettings.getValue(SETTING_CLASSPATH, ""));
+        binding.tilAndroidJar.getEditText().setText("");
+        binding.tilClasspath.getEditText().setText("");
 
         setRadioGroupOptions(binding.rgDexer, new String[]{"Dx", "D8"}, SETTING_DEXER, "Dx");
         setRadioGroupOptions(binding.rgJavaVersion, getAvailableJavaVersions(), SETTING_JAVA_VERSION, "1.7");
@@ -100,7 +87,7 @@ public class BuildSettingsBottomSheet extends BottomSheetDialogFragment {
 
         binding.btnCancel.setOnClickListener(v -> dismiss());
         binding.btnSave.setOnClickListener(v -> {
-            projectSettings.setValues(views);
+            SketchwareUtil.toast("Settings saving is disabled in Web IDE");
             dismiss();
         });
     }
@@ -131,7 +118,7 @@ public class BuildSettingsBottomSheet extends BottomSheetDialogFragment {
 
     private void setRadioGroupOptions(RadioGroup radioGroup, String[] options, String key, String defaultValue) {
         radioGroup.removeAllViews();
-        String value = projectSettings.getValue(key, defaultValue);
+        String value = defaultValue; // projectSettings was removed
         for (String option : options) {
             RadioButton radioButton = new RadioButton(radioGroup.getContext());
             radioButton.setText(option);
@@ -151,8 +138,7 @@ public class BuildSettingsBottomSheet extends BottomSheetDialogFragment {
     }
 
     private void setCheckboxValue(CheckBox checkBox, String key, boolean defaultValue) {
-        String value = projectSettings.getValue(key, defaultValue ? "true" : "false");
-        checkBox.setChecked(value.equals("true"));
+        checkBox.setChecked(defaultValue); // projectSettings was removed
 
         checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {

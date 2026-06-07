@@ -33,6 +33,7 @@ public class ProjectWorkspace {
     public final String projectMyscPath;
     public final String projectName;
     public final String applicationName;
+    public final String packageName;
     public final int colorAccent;
     public final int colorPrimary;
     public final int colorPrimaryDark;
@@ -60,6 +61,7 @@ public class ProjectWorkspace {
         material3LibraryManager = new Material3LibraryManager(sc_id);
         N.sc_id = sc_id;
         projectName = yB.c(metadata, "my_ws_name");
+        packageName = "web.ide.project";
         
         projectSettings = new ProjectSettings(sc_id);
         fileUtil = new oB(true);
@@ -109,6 +111,10 @@ public class ProjectWorkspace {
     }
 
     public void a(iC projectLibraryManager, hC projectFileManager, eC projectDataManager) {
+        a(projectLibraryManager, projectFileManager, projectDataManager, ExportType.DEBUG_APP);
+    }
+
+    public void a(iC projectLibraryManager, hC projectFileManager, eC projectDataManager, ExportType exportingType) {
         N = new jq();
         N.packageName = "web.ide.project";
         N.projectName = applicationName;
@@ -175,4 +181,12 @@ public class ProjectWorkspace {
     public String getXMLString() { return ""; }
     public String getXMLColor() { return ""; }
     public String getXMLStyle() { return ""; }
+
+    public enum ExportType {
+        AAB,
+        SIGN_APP,
+        DEBUG_APP,
+        ANDROID_STUDIO,
+        SOURCE_CODE_VIEWING
+    }
 }

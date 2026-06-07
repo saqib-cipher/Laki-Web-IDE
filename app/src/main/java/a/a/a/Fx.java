@@ -792,7 +792,7 @@ public class Fx {
                 if (isViewBindingEnabled && paramAdapter.startsWith("binding.")) {
                     paramAdapter = paramAdapter.substring("binding.".length());
                 }
-                opcode = String.format("%s.setAdapter(new %s(%s));", param, Lx.a(paramAdapter, isViewBindingEnabled), params.get(1));
+                opcode = String.format("%s.setAdapter(new %s(%s));", params.get(1));
                 break;
             case "listRefresh":
                 opcode = String.format("((BaseAdapter)%s.getAdapter()).notifyDataSetChanged();", params.get(0));

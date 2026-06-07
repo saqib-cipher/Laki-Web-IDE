@@ -305,50 +305,11 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
      * Opens the debug APK to install.
      */
     private void installBuiltApk() {
-        if (!ConfigActivity.isSettingEnabled(ConfigActivity.SETTING_ROOT_AUTO_INSTALL_PROJECTS)) {
-            requestPackageInstallerInstall();
-        } else {
-            File apkUri = new File(q.finalToInstallApkPath);
-            long length = apkUri.length();
-            Shell.getShell(shell -> {
-                if (shell.isRoot()) {
-                    List<String> stdout = new LinkedList<>();
-                    List<String> stderr = new LinkedList<>();
 
-                    Shell.cmd("cat " + apkUri + " | pm install -S " + length).to(stdout, stderr).submit(result -> {
-                        if (result.isSuccess()) {
-                            SketchwareUtil.toast("Package installed successfully!");
-                            if (ConfigActivity.isSettingEnabled(ConfigActivity.SETTING_ROOT_AUTO_OPEN_AFTER_INSTALLING)) {
-                                Intent launcher = getPackageManager().getLaunchIntentForPackage(q.packageName);
-                                if (launcher != null) {
-                                    startActivity(launcher);
-                                } else {
-                                    SketchwareUtil.toastError("Couldn't launch project, either not installed or not with launcher activity.");
-                                }
-                            }
-                        } else {
-                            String sharedErrorMessage = "Failed to install package, result code: " + result.getCode() + ". ";
-                            SketchwareUtil.toastError(sharedErrorMessage + "Logs are available in /Internal storage/.lakiwebsites/debug.txt", Toast.LENGTH_LONG);
-                            LogUtil.e("DesignActivity", sharedErrorMessage + "stdout: " + stdout + ", stderr: " + stderr);
-                        }
-                    });
-                } else {
-                    SketchwareUtil.toastError("No root access granted. Continuing using default package install prompt.");
-                    requestPackageInstallerInstall();
-                }
-            });
-        }
     }
 
     private void requestPackageInstallerInstall() {
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        Uri apkUri = FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".provider", new File(q.finalToInstallApkPath));
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-        intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
 
-        startActivity(intent);
     }
 
     @Override
@@ -462,15 +423,11 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
             return true;
         });
         bottomMenu.add(Menu.NONE, 4, Menu.NONE, "Install last built APK").setVisible(false).setOnMenuItemClickListener(item -> {
-            if (FileUtil.isExistFile(q.finalToInstallApkPath)) {
-                installBuiltApk();
-            } else SketchwareUtil.toast("APK doesn't exist anymore");
+             SketchwareUtil.toast("APK doesn't exist anymore");
             return true;
         });
         bottomMenu.add(Menu.NONE, 6, Menu.NONE, "Show Apk signatures").setVisible(false).setOnMenuItemClickListener(item -> {
-            ApkSignatures apkSignatures = new ApkSignatures(this, q.finalToInstallApkPath);
-            apkSignatures.showSignaturesDialog();
-            return true;
+           return true;
         });
         bottomMenu.add(Menu.NONE, 7, Menu.NONE, "Direct HTML editor").setOnMenuItemClickListener(item -> {
             toViewCodeEditor();
@@ -869,7 +826,6 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
      * Opens {@link ManageProguardActivity}.
      */
     void toProguardManager() {
-        launchActivity(ManageProguardActivity.class, null);
     }
 
     /**
@@ -890,11 +846,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
      * Opens {@link ManageStringFogFragment}.
      */
     void toStringFogManager() {
-        var fragmentManager = getSupportFragmentManager();
-        if (fragmentManager.findFragmentByTag("stringFogFragment") == null) {
-            var bottomSheet = new ManageStringFogFragment();
-            bottomSheet.show(fragmentManager, "stringFogFragment");
-        }
+
     }
 
     /**

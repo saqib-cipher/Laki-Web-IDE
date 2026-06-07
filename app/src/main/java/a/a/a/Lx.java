@@ -20,6 +20,7 @@ public class Lx {
     public static String a(String type, String name, AccessModifier am) { return ""; }
     public static String a(String type, String name, AccessModifier am, boolean vb) { return ""; }
     public static String a(String type, String name, AccessModifier am, String... params) { return ""; }
+    public static String a(String s, boolean b) { return ""; }
     public static String i(String pkg, boolean m3) { return ""; }
     public static String e(String pkg) { return ""; }
     public static String h(String pkg) { return ""; }

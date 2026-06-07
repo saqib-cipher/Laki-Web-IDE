@@ -1,0 +1,23 @@
+FILE DOCUMENTATION: ManageEvent.java
+====================================
+
+PURPOSE:
+Originally, this file acted as the "Registry and Code Generator" for the Android Logic Editor system.
+It defined which Android components had which events (like onClick, onRatingChanged) and
+generated the corresponding Java Listener/Override code.
+
+CURRENT WORK (Web IDE Transition):
+In the context of Laki Web IDE, this file is LEGACY.
+1. It is currently EMPTIED to stop the IDE from generating Android-specific Java code.
+2. It remains in the project to prevent compilation errors in classes that still reference its method signatures.
+3. In the future, this logic should be replaced by a JavaScript-focused event manager for Web projects.
+
+KEY METHODS:
+- addExtraEvents: Registered Android component events.
+- f / g: Generated Java @Override methods and Listener declarations.
+- h / i: Defined the "Hat" block specifications for the logic editor.
+- getDrawableForEvent: Provided icons for the event list.
+
+STATUS:
+ISOLATED / DISABLED.
+Safe to refactor or remove once all dependencies in a.a.a package are cleaned up.

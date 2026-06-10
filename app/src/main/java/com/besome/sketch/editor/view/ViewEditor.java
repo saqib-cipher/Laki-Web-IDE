@@ -598,14 +598,24 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
             webTagCounts.clear();
             for (ViewBean bean : arrayList) {
                 if (bean.id.contains("_")) {
-                    String prefix = bean.id.substring(0, bean.id.lastIndexOf("_"));
-                    try {
-                        int count = Integer.parseInt(bean.id.substring(bean.id.lastIndexOf("_") + 1));
-                        int currentMax = webTagCounts.getOrDefault(prefix, 0);
-                        if (count > currentMax) {
-                            webTagCounts.put(prefix, count);
+                    String afterUnderscore = bean.id.substring(bean.id.lastIndexOf("_") + 1);
+                    int digitStart = -1;
+                    for (int i = afterUnderscore.length() - 1; i >= 0; i--) {
+                        if (!Character.isDigit(afterUnderscore.charAt(i))) {
+                            digitStart = i + 1;
+                            break;
                         }
-                    } catch (NumberFormatException ignored) {}
+                    }
+                    if (digitStart != -1 && digitStart < afterUnderscore.length()) {
+                        String tagNameParsed = afterUnderscore.substring(0, digitStart);
+                        try {
+                            int count = Integer.parseInt(afterUnderscore.substring(digitStart));
+                            int currentMax = webTagCounts.getOrDefault(tagNameParsed, 0);
+                            if (count > currentMax) {
+                                webTagCounts.put(tagNameParsed, count);
+                            }
+                        } catch (NumberFormatException ignored) {}
+                    }
                 }
             }
         }
@@ -988,56 +998,57 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
 
     private String generateWidgetId(ViewBean bean) {
         int type = bean.type;
-        String b2;
+        String tagName;
         boolean isWeb = b.endsWith(".html");
         
         if (isWeb && bean.convert != null && !bean.convert.isEmpty()) {
-            b2 = bean.convert.toLowerCase();
+            tagName = bean.convert.toLowerCase();
         } else {
-            b2 = !bean.isCustomWidget ? LakiFiles.b(type) : widgetsCreatorManager.generateCustomWidgetId(bean.convert);
+            tagName = !bean.isCustomWidget ? LakiFiles.b(type) : widgetsCreatorManager.generateCustomWidgetId(bean.convert);
         }
         
-        StringBuilder sb = new StringBuilder();
-        sb.append(b2);
-        if (isWeb) sb.append("_");
+        String pageName = "";
+        if (isWeb) {
+            pageName = b.replace(".html", "").replace(".xml", "").toLowerCase();
+        }
         
         int count;
         if (isWeb) {
-            count = webTagCounts.getOrDefault(b2, 0) + 1;
-            webTagCounts.put(b2, count);
+            count = webTagCounts.getOrDefault(tagName, 0) + 1;
+            webTagCounts.put(tagName, count);
         } else {
             count = countItems[type] + 1;
             countItems[type] = count;
         }
         
-        sb.append(count);
-        String sb2 = sb.toString();
+        String finalId;
+        if (isWeb) {
+            finalId = pageName + "_" + tagName + count;
+        } else {
+            finalId = tagName + count;
+        }
+        
         ArrayList<ViewBean> d = jC.a(a).d(b);
         while (true) {
             boolean isIdUsed = false;
             for (ViewBean view : d) {
-                if (sb2.equals(view.id)) {
+                if (finalId.equals(view.id)) {
                     isIdUsed = true;
                     break;
                 }
             }
             if (!isIdUsed) {
-                return sb2;
+                return finalId;
             }
             
+            count++;
             if (isWeb) {
-                count = webTagCounts.getOrDefault(b2, 0) + 1;
-                webTagCounts.put(b2, count);
+                webTagCounts.put(tagName, count);
+                finalId = pageName + "_" + tagName + count;
             } else {
-                count = countItems[type] + 1;
                 countItems[type] = count;
+                finalId = tagName + count;
             }
-            
-            StringBuilder sb3 = new StringBuilder();
-            sb3.append(b2);
-            if (isWeb) sb3.append("_");
-            sb3.append(count);
-            sb2 = sb3.toString();
         }
     }
 

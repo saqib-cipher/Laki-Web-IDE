@@ -25,6 +25,7 @@ import com.besome.sketch.editor.view.ViewEditor;
 import com.besome.sketch.editor.view.ViewProperty;
 import com.besome.sketch.editor.view.palette.PaletteWidget;
 
+import com.besome.sketch.beans.ViewBean;
 import java.util.ArrayList;
 
 import laki.webide.core.LakiFiles;
@@ -328,9 +329,9 @@ public class ViewEditorFragment extends qA {
                     viewBeans = HtmlParser.parse(requireContext(), sc_id, projectFileBean.getXmlName());
                 }
 
-                if (viewBeans != null && !viewBeans.isEmpty()) {
-                    jC.a(sc_id).c.put(projectFileBean.getXmlName(), viewBeans);
-                }
+                // Sanitize and store in Sketchware manager
+                ArrayList<ViewBean> cleanBeans = SketchwareUtil.sanitizeViewBeans(viewBeans);
+                jC.a(sc_id).c.put(projectFileBean.getXmlName(), cleanBeans);
             }
             b(jC.a(sc_id).d(projectFileBean.getXmlName()));
             a(jC.a(sc_id).h(projectFileBean.getXmlName()));

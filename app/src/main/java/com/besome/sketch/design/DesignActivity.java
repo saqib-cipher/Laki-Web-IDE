@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
+import com.besome.sketch.beans.ViewBean;
 import com.besome.sketch.adapters.JavaFileAdapter;
 import com.besome.sketch.beans.ProjectFileBean;
 import com.besome.sketch.common.SrcViewerActivity;
@@ -52,6 +53,7 @@ import com.topjohnwu.superuser.Shell;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -305,13 +307,6 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     /**
      * Opens the debug APK to install.
      */
-    private void installBuiltApk() {
-
-    }
-
-    private void requestPackageInstallerInstall() {
-
-    }
 
     @Override
     public void onBackPressed() {
@@ -427,9 +422,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
              SketchwareUtil.toast("APK doesn't exist anymore");
             return true;
         });
-        bottomMenu.add(Menu.NONE, 6, Menu.NONE, "Show Apk signatures").setVisible(false).setOnMenuItemClickListener(item -> {
-           return true;
-        });
+
         bottomMenu.add(Menu.NONE, 7, Menu.NONE, "Direct HTML editor").setOnMenuItemClickListener(item -> {
             toViewCodeEditor();
             return true;
@@ -759,7 +752,9 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
             // NEW: Fetch head code from the HeadEditorManager (JSON settings) instead of blocks
             String headCode = laki.webide.managers.HeadEditorManager.getGeneratedHtml(sc_id, projectFile);
             
-            var htmlGenerator = new HtmlGenerator(filename, a.a.a.eC.a(viewBeans), headCode);
+            // Sanitize view beans before generating HTML
+            ArrayList<ViewBean> cleanBeans = laki.webide.utility.SketchwareUtil.sanitizeViewBeans(viewBeans);
+            var htmlGenerator = new HtmlGenerator(filename, a.a.a.eC.a(cleanBeans), headCode);
             String content = htmlGenerator.generate();
 
             runOnUiThread(() -> {
@@ -817,19 +812,6 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     }
 
     /**
-     * Opens {@link ManagePermissionActivity}.
-     */
-    void toPermissionManager() {
-        launchActivity(ManagePermissionActivity.class, null);
-    }
-
-    /**
-     * Opens {@link ManageProguardActivity}.
-     */
-    void toProguardManager() {
-    }
-
-    /**
      * Opens {@link ManageResourceActivity}.
      */
     void toResourceManager() {
@@ -841,13 +823,6 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
      */
     void toResourceEditor() {
         launchActivity(ResourcesEditorActivity.class, openResourcesManager);
-    }
-
-    /**
-     * Opens {@link ManageStringFogFragment}.
-     */
-    void toStringFogManager() {
-
     }
 
     /**

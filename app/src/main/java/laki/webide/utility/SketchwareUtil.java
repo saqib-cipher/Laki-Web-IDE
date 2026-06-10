@@ -29,11 +29,52 @@ import java.util.Random;
 import java.util.function.Consumer;
 
 import a.a.a.bB;
+import a.a.a.eC;
+import com.besome.sketch.beans.ViewBean;
 import mod.hey.studios.util.Helper;
 import mod.jbk.util.LogUtil;
 import laki.webide.R;
 
 public class SketchwareUtil {
+
+    /**
+     * Sanitizes a list of ViewBeans to remove Android bloat and prevent NPEs.
+     * Removes nulls, empty IDs, and auto-injected widgets like _fab.
+     */
+    public static ArrayList<ViewBean> sanitizeViewBeans(ArrayList<ViewBean> input) {
+        if (input == null) return new ArrayList<>();
+        ArrayList<ViewBean> clean = new ArrayList<>();
+        boolean hasRoot = false;
+
+        for (ViewBean bean : input) {
+            // 1. Remove nulls and malformed beans
+            if (bean == null || bean.id == null || bean.id.trim().isEmpty()) continue;
+
+            // 2. Remove unwanted Android widgets (e.g., auto-injected FAB)
+            if (bean.id.equals("_fab")) continue;
+
+            // 3. Ensure parent is set (default to root if missing)
+            if (bean.parent == null || bean.parent.trim().isEmpty()) {
+                if (!bean.id.equals("root")) bean.parent = "root";
+            }
+
+            if (bean.id.equals("root")) {
+                hasRoot = true;
+                // Move root to front
+                clean.add(0, bean);
+            } else {
+                clean.add(bean);
+            }
+        }
+
+        // 4. Ensure a virtual root exists for the Web Editor
+        if (!hasRoot) {
+            ViewBean root = new ViewBean("root", ViewBean.VIEW_TYPE_LAYOUT_LINEAR);
+            clean.add(0, root);
+        }
+
+        return clean;
+    }
 
     public static boolean isConnected() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);

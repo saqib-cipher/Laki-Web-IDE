@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import laki.webide.core.LakiFiles;
 import laki.webide.utility.FileUtil;
+import laki.webide.utility.SketchwareUtil;
 
 public class WebProjectSyncManager {
 
@@ -61,8 +62,9 @@ public class WebProjectSyncManager {
 
         // Sync Designer State (HTML Tags & Visual History)
         String tagsPath = LakiFiles.getPageHtmlTagsPath(workspace.projectMyscPath, file.fileName);
-        ArrayList<ViewBean> currentViews = eC.a(projectDataManager.d(file.getXmlName()));
-        FileUtil.writeFile(tagsPath, new Gson().toJson(currentViews));
+        ArrayList<ViewBean> currentViews = projectDataManager.d(file.getXmlName());
+        ArrayList<ViewBean> cleanViews = SketchwareUtil.sanitizeViewBeans(currentViews);
+        FileUtil.writeFile(tagsPath, new Gson().toJson(cleanViews));
 
         // Sync extra page settings
         syncExtraSettings(workspace, file);

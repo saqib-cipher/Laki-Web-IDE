@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.besome.sketch.beans.ProjectFileBean;
 import com.besome.sketch.beans.SrcCodeBean;
+import com.besome.sketch.beans.ViewBean;
 import com.besome.sketch.editor.manage.library.material3.Material3LibraryManager;
 
 import java.io.File;
@@ -128,7 +129,8 @@ public class ProjectWorkspace {
         for (ProjectFileBean layout : projectFileManager.b()) {
             String xmlName = layout.getXmlName();
             String headCode = laki.webide.managers.HeadEditorManager.getGeneratedHtml(sc_id, layout);
-            HtmlGenerator htmlGen = new HtmlGenerator(xmlName, eC.a(projectDataManager.d(xmlName)), headCode);
+            ArrayList<ViewBean> cleanBeans = laki.webide.utility.SketchwareUtil.sanitizeViewBeans(projectDataManager.d(xmlName));
+            HtmlGenerator htmlGen = new HtmlGenerator(xmlName, eC.a(cleanBeans), headCode);
             String outputCode = htmlGen.generate();
             srcCodeBeans.add(new SrcCodeBean(xmlName.replace(".xml", ".html"), CommandBlock.applyCommands(xmlName, outputCode)));
         }
@@ -146,7 +148,8 @@ public class ProjectWorkspace {
                 }
             }
             String headCode = laki.webide.managers.HeadEditorManager.getGeneratedHtml(sc_id, (fileBean != null ? fileBean : new ProjectFileBean(0, filename)));
-            HtmlGenerator htmlGen = new HtmlGenerator(filename, eC.a(projectDataManager.d(filename)), headCode);
+            ArrayList<ViewBean> cleanBeans = laki.webide.utility.SketchwareUtil.sanitizeViewBeans(projectDataManager.d(filename));
+            HtmlGenerator htmlGen = new HtmlGenerator(filename, eC.a(cleanBeans), headCode);
             return CommandBlock.applyCommands(filename, htmlGen.generate());
         } else if (filename.endsWith(".css")) {
             String baseName = filename.replace(".css", "");

@@ -3,7 +3,6 @@ package laki.webide;
 import android.content.Context;
 import android.util.Log;
 
-import com.besome.sketch.beans.BlockBean;
 import com.besome.sketch.beans.ProjectFileBean;
 import com.besome.sketch.beans.SrcCodeBean;
 import com.besome.sketch.editor.manage.library.material3.Material3LibraryManager;
@@ -23,7 +22,8 @@ import laki.webide.util.library.BuiltInLibraryManager;
 import laki.webide.utility.FileUtil;
 
 import a.a.a.*;
-
+import laki.webide.core.LakiFiles;
+import laki.webide.core.BlockBean;
 public class ProjectWorkspace {
 
     public final String assetsPath;
@@ -67,6 +67,8 @@ public class ProjectWorkspace {
         fileUtil = new oB(true);
 
         projectMyscPath = FilePathUtil.getProjectRoot(sc_id) + File.separator;
+        LakiFiles.createSimpleProjectStructure(projectMyscPath);
+
         assetsPath = new FilePathUtil().getPathAssets(sc_id);
         fontsPath = assetsPath + File.separator + "fonts";
         resDirectoryPath = new FilePathUtil().getPathResource(sc_id);
@@ -99,9 +101,9 @@ public class ProjectWorkspace {
         }
         String targetPath;
         if (fileName.endsWith(".html")) {
-            targetPath = projectMyscPath + fileName;
+            targetPath = LakiFiles.getHtmlPath(projectMyscPath) + File.separator + fileName;
         } else if (fileName.endsWith(".css")) {
-            targetPath = projectMyscPath + "css" + File.separator + fileName;
+            targetPath = LakiFiles.getCssPath(projectMyscPath) + File.separator + fileName;
         } else if (fileName.endsWith(".js")) {
             targetPath = projectMyscPath + "js" + File.separator + fileName;
         } else {
@@ -156,10 +158,19 @@ public class ProjectWorkspace {
                 }
             }
             String javaName = (fileBean != null) ? fileBean.getJavaName() : filename;
+            String pageName = (fileBean != null) ? fileBean.fileName : baseName;
             String activityName = (fileBean != null) ? fileBean.getActivityName() : ProjectFileBean.getActivityName(baseName);
-            ArrayList<BlockBean> cssBlocks = CssLogicPersistenceManager.load(sc_id, javaName).blocks;
+            ArrayList<laki.webide.core.BlockBean> cssBlocks = CssLogicPersistenceManager.load(sc_id, pageName).blocks;
             if (cssBlocks.isEmpty()) {
-                cssBlocks = projectDataManager.a(javaName, laki.webide.events.ExtCSS.EVENT_ID + "_" + laki.webide.events.ExtCSS.LISTENER_TYPE);
+                ArrayList<com.besome.sketch.beans.BlockBean> legacyBlocks = projectDataManager.a(javaName, laki.webide.events.ExtCSS.EVENT_ID + "_" + laki.webide.events.ExtCSS.LISTENER_TYPE);
+                for (com.besome.sketch.beans.BlockBean lb : legacyBlocks) {
+                    laki.webide.core.BlockBean nb = new laki.webide.core.BlockBean(lb.id, lb.spec, lb.type, lb.opCode);
+                    nb.nextBlock = lb.nextBlock;
+                    nb.subStack1 = lb.subStack1;
+                    nb.subStack2 = lb.subStack2;
+                    nb.parameters = new ArrayList<>(lb.parameters);
+                    cssBlocks.add(nb);
+                }
             }
             String customCss = new CssCodeGenerator(activityName, N, cssBlocks, false).a();
             return "/* EXTEND_CSS_START */\n" + customCss + "\n/* EXTEND_CSS_END */";

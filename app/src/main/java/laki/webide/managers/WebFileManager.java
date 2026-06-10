@@ -1,36 +1,29 @@
 package laki.webide.managers;
 
 import java.io.File;
+import laki.webide.core.LakiFiles;
 import laki.webide.utility.FileUtil;
-import a.a.a.wq;
+import a.a.a.lC;
+import a.a.a.yB;
 
+/**
+ * Low-level File creator using the unified LakiFiles system.
+ */
 public class WebFileManager {
 
-    public static void createNewFile(String projectName, String fileName, String type) {
-        String projectPath = wq.f(projectName);
-        String filePath;
-        String content = "";
+    public static void createNewFile(String sc_id, String fileName, String type) {
+        String projectName = yB.c(lC.b(sc_id), "my_ws_name");
+        String projectRoot = LakiFiles.getProjectRoot(projectName, sc_id, false);
         
         if (type.equalsIgnoreCase("html")) {
-            filePath = projectPath + File.separator + fileName + ".html";
-            content = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n" +
-                    "    <!-- HEAD_START -->\n" +
-                    "    <meta charset=\"UTF-8\" />\n" +
-                    "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n" +
-                    "    <title>" + fileName + "</title>\n" +
-                    "    <link rel=\"stylesheet\" href=\"css/global.css\" />\n" +
-                    "    <link rel=\"stylesheet\" href=\"css/" + fileName + ".css\" />\n" +
-                    "    <!-- HEAD_END -->\n" +
-                    "</head>\n<body>\n" +
-                    "</body>\n</html>";
+            LakiFiles.initializePageSettings(projectRoot, fileName);
+            LakiFiles.createInitialWebFiles(projectRoot, fileName);
         } else if (type.equalsIgnoreCase("css")) {
-            filePath = projectPath + File.separator + "css" + File.separator + fileName + ".css";
+            // Already handled by createInitialWebFiles if type was html
+            // but for standalone creation:
+            FileUtil.writeFile(LakiFiles.getCssPath(projectRoot) + File.separator + fileName + ".css", "/* CSS for " + fileName + " */");
         } else if (type.equalsIgnoreCase("js")) {
-            filePath = projectPath + File.separator + "js" + File.separator + fileName + ".js";
-        } else {
-            filePath = projectPath + File.separator + fileName;
+            FileUtil.writeFile(projectRoot + File.separator + "js" + File.separator + fileName + ".js", "// JS for " + fileName);
         }
-        
-        FileUtil.writeFile(filePath, content);
     }
 }

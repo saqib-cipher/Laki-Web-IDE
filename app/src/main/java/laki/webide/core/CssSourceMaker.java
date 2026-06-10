@@ -36,10 +36,31 @@ public class CssSourceMaker {
         
         StringBuilder sb = new StringBuilder();
         String indentation = getIndent(indent);
+        CreateBlock def = CreateBlock.getDefinition(block.mOpCode);
         
         if (block.mType.equals("c")) {
-            // Selector block
-            sb.append(indentation).append(getParamValue(block, 0)).append(" {\n");
+            // Container/Selector/Media block
+            String header = "";
+            if (def != null && def.cssTemplate != null && !def.cssTemplate.isEmpty()) {
+                ArrayList<String> params = new ArrayList<>();
+                for (int i = 0; i < block.args.size(); i++) {
+                    params.add(getParamValue(block, i));
+                }
+                try {
+                    header = String.format(def.cssTemplate, params.toArray());
+                } catch (Exception e) {
+                    header = def.cssTemplate;
+                }
+            } else {
+                // Fallback for old selectors
+                String val = getParamValue(block, 0);
+                if (block.mOpCode.equals(".class")) header = "." + val;
+                else if (block.mOpCode.equals("#id")) header = "#" + val;
+                else if (block.mOpCode.equals("tag")) header = val;
+                else header = block.mOpCode + (val.isEmpty() ? "" : " " + val);
+            }
+
+            sb.append(indentation).append(header).append(" {\n");
             if (block.subStack1 != -1) {
                 Block sub = (Block) block.pane.findViewWithTag(block.subStack1);
                 sb.append(makeSource(indent + 1, sub));
@@ -54,34 +75,28 @@ public class CssSourceMaker {
             } else if (op.equals("setVar")) {
                 String varName = getParamValue(block, 0);
                 sb.append(indentation).append("--").append(varName).append(": ").append(getParamValue(block, 1)).append(";\n");
-            } else if (op.equals("anchor")) {
-                String side = getParamValue(block, 0);
-                String valueWithUnit = getParamValue(block, 1);
-                sb.append(indentation).append(side).append(": ").append(valueWithUnit).append(";\n");
-            } else if (op.equals("minDim")) {
-                String dim = getParamValue(block, 0);
-                String valueWithUnit = getParamValue(block, 1);
-                sb.append(indentation).append("min-").append(dim).append(": ").append(valueWithUnit).append(";\n");
-            } else if (op.equals("maxDim")) {
-                String dim = getParamValue(block, 0);
-                String valueWithUnit = getParamValue(block, 1);
-                sb.append(indentation).append("max-").append(dim).append(": ").append(valueWithUnit).append(";\n");
-            } else if (op.equals("spacingSide")) {
-                String label = block.mSpec; // e.g. "margin-%m.side : %v.unit"
-                String type = label.startsWith("margin") ? "margin" : "padding";
-                String side = getParamValue(block, 0);
-                String valueWithUnit = getParamValue(block, 1);
-                sb.append(indentation).append(type).append("-").append(side).append(": ").append(valueWithUnit).append(";\n");
+            } else if (def != null && def.cssTemplate != null && !def.cssTemplate.isEmpty()) {
+                ArrayList<String> params = new ArrayList<>();
+                for (int i = 0; i < block.args.size(); i++) {
+                    params.add(getParamValue(block, i));
+                }
+                try {
+                    String line = String.format(def.cssTemplate, params.toArray());
+                    if (!line.endsWith(";") && !line.isEmpty()) line += ";";
+                    sb.append(indentation).append(line).append("\n");
+                } catch (Exception e) {
+                    sb.append(indentation).append("/* error generating ").append(op).append(" */\n");
+                }
             } else if (op.equals("asd")) {
                 sb.append(indentation).append(getParamValue(block, 0)).append("\n");
             } else {
+                // Default property: value logic
                 StringBuilder valBuilder = new StringBuilder();
                 for (int i = 0; i < block.args.size(); i++) {
                     String paramValue = getParamValue(block, i);
                     if (paramValue != null && !paramValue.isEmpty()) {
-                        String type = (String) block.argTypes.get(i);
+                        String type = block.argType(block.args.get(i));
                         
-                        // Handle Image auto-url wrapping
                         if (type.contains(".image") && !paramValue.startsWith("url(") && !paramValue.contains("gradient")) {
                             paramValue = "url('" + paramValue + "')";
                         }
@@ -112,23 +127,34 @@ public class CssSourceMaker {
                 return ((BlockArg) arg).getArgValue().toString();
             } else if (arg instanceof Block) {
                 Block inner = (Block) arg;
+                CreateBlock innerDef = CreateBlock.getDefinition(inner.mOpCode);
+                if (innerDef != null && innerDef.cssTemplate != null && !innerDef.cssTemplate.isEmpty()) {
+                    ArrayList<String> params = new ArrayList<>();
+                    for (int i = 0; i < inner.args.size(); i++) {
+                        params.add(getParamValue(inner, i));
+                    }
+                    try {
+                        return String.format(innerDef.cssTemplate, params.toArray());
+                    } catch (Exception e) {
+                        return "/* error in reporter " + inner.mOpCode + " */";
+                    }
+                }
+                
                 String op = inner.mOpCode;
                 if (op.startsWith("getVar_")) {
                     return "var(--" + op.substring(7) + ")";
-                } else if (op.equals("getVar")) {
+                } else if (op.equals("getVar") || op.equals("var")) {
                     return "var(--" + getParamValue(inner, 0) + ")";
                 } else if (op.equals("linearGradient")) {
                     return "linear-gradient(" + getParamValue(inner, 0) + ", " + getParamValue(inner, 1) + ")";
                 } else if (op.equals("radialGradient")) {
                     return "radial-gradient(" + getParamValue(inner, 0) + ", " + getParamValue(inner, 1) + ")";
                 } else if (op.equals("url")) {
-                    return "url(" + getParamValue(inner, 0) + ")";
+                    return "url('" + getParamValue(inner, 0) + "')";
                 } else if (op.equals("calc")) {
                     return "calc(" + getParamValue(inner, 0) + ")";
-                } else if (op.equals("var")) {
-                    return "var(--" + getParamValue(inner, 0) + ")";
                 }
-                return "/* unknown block */";
+                return "/* unknown reporter */";
             }
         }
         return "";

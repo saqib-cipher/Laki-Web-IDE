@@ -1,9 +1,12 @@
 package laki.webide.beans;
 
-import com.besome.sketch.beans.BlockBean;
+import laki.webide.core.BlockBean;
 import com.google.gson.annotations.Expose;
 import java.util.ArrayList;
 
+/**
+ * Data wrapper for CSS Logic, using Laki core beans.
+ */
 public class CssLogicData {
     @Expose
     public ArrayList<BlockBean> blocks = new ArrayList<>();

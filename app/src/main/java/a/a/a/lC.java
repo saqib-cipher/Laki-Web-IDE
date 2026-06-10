@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import laki.webide.core.LakiFiles;
 
 public class lC {
     public static DB a;
@@ -15,7 +16,7 @@ public class lC {
         String str = "project";
         ArrayList<HashMap<String, Object>> arrayList = new ArrayList<>();
         oB oBVar = new oB();
-        File[] listFiles = new File(wq.n()).listFiles();
+        File[] listFiles = new File(LakiFiles.n()).listFiles();
         if (listFiles == null) {
             return arrayList;
         }
@@ -45,33 +46,33 @@ public class lC {
     }
 
     public static void a(Context context, String str) {
-        File file = new File(wq.c(str));
+        File file = new File(LakiFiles.c(str));
         if (file.exists()) {
             oB oBVar = new oB();
             oBVar.a(file);
-            oBVar.b(wq.d(str));
+            oBVar.b(LakiFiles.d(str));
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(wq.g());
+            stringBuilder.append(LakiFiles.g());
             stringBuilder.append(File.separator);
             stringBuilder.append(str);
             oBVar.b(stringBuilder.toString());
             stringBuilder = new StringBuilder();
-            stringBuilder.append(wq.t());
+            stringBuilder.append(LakiFiles.t());
             stringBuilder.append(File.separator);
             stringBuilder.append(str);
             oBVar.b(stringBuilder.toString());
             stringBuilder = new StringBuilder();
-            stringBuilder.append(wq.d());
+            stringBuilder.append(LakiFiles.d());
             stringBuilder.append(File.separator);
             stringBuilder.append(str);
             oBVar.b(stringBuilder.toString());
             stringBuilder = new StringBuilder();
-            stringBuilder.append(wq.e());
+            stringBuilder.append(LakiFiles.e());
             stringBuilder.append(File.separator);
             stringBuilder.append(str);
             oBVar.b(stringBuilder.toString());
-            oBVar.b(wq.b(str));
-            oBVar.b(wq.a(str));
+            oBVar.b(LakiFiles.b(str));
+            oBVar.b(LakiFiles.a(str));
             stringBuilder = new StringBuilder();
             stringBuilder.append("D01_");
             stringBuilder.append(str);
@@ -98,11 +99,11 @@ public class lC {
     }
 
     public static void a(String str, HashMap<String, Object> hashMap) {
-        File file = new File(wq.n());
+        File file = new File(LakiFiles.n());
         if (!file.exists()) {
             file.mkdirs();
         }
-        str = wq.c(str);
+        str = LakiFiles.c(str);
         str = str + File.separator + "project";
         String a = vB.a(hashMap);
         oB oBVar = new oB();
@@ -126,7 +127,7 @@ public class lC {
         oB oBVar = new oB();
         HashMap<String, Object> hashMap = null;
         try {
-            String c = wq.c(str);
+            String c = LakiFiles.c(str);
             if (!new File(c).exists()) {
                 return null;
             }
@@ -148,7 +149,7 @@ public class lC {
     }
 
     public static void b(String str, HashMap<String, Object> hashMap) {
-        File file = new File(wq.c(str));
+        File file = new File(LakiFiles.c(str));
         if (file.exists()) {
             String path = file + File.separator + "project";
             oB fileUtil = new oB();

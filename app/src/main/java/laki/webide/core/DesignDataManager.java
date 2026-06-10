@@ -370,24 +370,28 @@ public class DesignDataManager {
 
     public static ArrayList<String> getHtmlSelectors(Context context, String scId, String filename, String menuName) {
         ArrayList<String> results = new ArrayList<>();
-        if (filename == null || scId == null) return results;
+        if (filename == null || scId == null || scId.isEmpty()) return results;
         
-        String htmlName = filename.replace(".java", ".html").replace(".css", ".html");
+        String htmlName = filename;
+        if (htmlName.endsWith(".java")) htmlName = htmlName.replace(".java", ".html");
+        else if (htmlName.endsWith(".css")) htmlName = htmlName.replace(".css", ".html");
+        else if (!htmlName.endsWith(".html")) htmlName = htmlName + ".html";
+        
         ArrayList<com.besome.sketch.beans.ViewBean> beans = laki.webide.compiler.HtmlParser.parse(context, scId, htmlName);
         
         java.util.HashSet<String> set = new java.util.HashSet<>();
         for (com.besome.sketch.beans.ViewBean bean : beans) {
             if (menuName.equals("htmlId")) {
-                if (bean.id != null && !bean.id.startsWith("_")) {
+                if (bean.id != null && !bean.id.startsWith("_") && !bean.id.equals("root")) {
                      set.add(bean.id);
                 }
-            } else if (menuName.equals("htmlClass")) {
+            } else if (menuName.equals("htmlClass") || menuName.equals("classname")) {
                 if (bean.classNames != null && !bean.classNames.isEmpty()) {
                     String[] parts = bean.classNames.split("\\s+");
                     for (String p : parts) if (!p.isEmpty()) set.add(p);
                 }
             } else if (menuName.equals("htmlTag")) {
-                String tag = (String) bean.parentAttributes.get("html_tag");
+                String tag = bean.parentAttributes.get("html_tag");
                 if (tag != null) set.add(tag);
             }
         }

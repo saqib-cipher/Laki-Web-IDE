@@ -233,7 +233,13 @@ public class BlockArg extends BlockBase {
             }
         }
         rg.setOnCheckedChangeListener((group, checkedId) -> directInput.setVisibility(checkedId == R.id.rb_directinput ? View.VISIBLE : View.GONE));
-        tvUnit.setOnClickListener(view -> new LakiDialogBox((Activity)getContext(), "Select Unit").setList(new ArrayList<>(Arrays.asList("px", "%", "em", "rem", "vh", "vw", "auto"))).setSelectionListener(tvUnit::setText).show());
+        tvUnit.setOnClickListener(view -> {
+            ArrayList<String> units = CssRegistry.getMenuData(mContext, "unit", tvUnit.getText().toString());
+            new LakiDialogBox((Activity)getContext(), "Select Unit")
+                .setList(units)
+                .setSelectionListener(tvUnit::setText)
+                .show();
+        });
         builder.setNegativeButton("Cancel", null);
         builder.setPositiveButton("Save", (dialog, which) -> {
             int id = rg.getCheckedRadioButtonId();
@@ -247,6 +253,7 @@ public class BlockArg extends BlockBase {
         if (mMenuName == null || mMenuName.isEmpty()) return "";
         if (mMenuName.equals("htmlId")) return "id";
         if (mMenuName.equals("htmlClass") || mMenuName.equals("classname")) return "class";
+        if (mMenuName.equals("htmlTag")) return "tag";
         return mMenuName;
     }
 }

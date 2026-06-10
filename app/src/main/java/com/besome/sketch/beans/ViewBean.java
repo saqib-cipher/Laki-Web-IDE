@@ -425,7 +425,7 @@ public class ViewBean extends nA implements Parcelable {
         convert = other.convert;
         classNames = other.classNames;
         progressStyle = other.progressStyle;
-        parentAttributes = other.parentAttributes;
+        parentAttributes = new HashMap<>(other.parentAttributes);
         isCustomWidget = other.isCustomWidget;
     }
 

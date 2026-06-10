@@ -15,7 +15,10 @@ public class CategoryRegistry {
         CATEGORY_COLORS.put("BORDER", 0xFF795548);     //6 Brown
         CATEGORY_COLORS.put("BACKGROUND", 0xFF9C27B0); //7 Purple
         CATEGORY_COLORS.put("FLEX", 0xFF00BCD4);       //8 Cyan
-        CATEGORY_COLORS.put("OTHER", 0xFF607D8B);      //9 Blue Gray
+        CATEGORY_COLORS.put("GRID", 0xFF3F51B5);       //9 Indigo
+        CATEGORY_COLORS.put("ANIMATION", 0xFFFFC107);  //10 Amber
+        CATEGORY_COLORS.put("RESPONSIVE", 0xFF009688); //11 Teal
+        CATEGORY_COLORS.put("OTHER", 0xFF607D8B);      //12 Blue Gray
     }
 
     public static int getColor(String category) {

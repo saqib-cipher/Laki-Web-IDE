@@ -23,6 +23,20 @@ public class CreateBlock {
         this(type, spec, category, opCode, cssTemplate);
         this.outputType = outputType;
     }
+
+    // --- Helper Methods for Cleaner Definitions ---
+
+    public static CreateBlock command(String spec, String category, String opCode, String cssTemplate) {
+        return new CreateBlock(" ", spec, category, opCode, cssTemplate);
+    }
+
+    public static CreateBlock container(String spec, String category, String opCode, String cssTemplate) {
+        return new CreateBlock("c", spec, category, opCode, cssTemplate);
+    }
+
+    public static CreateBlock reporter(String spec, String category, String opCode, String cssTemplate, String outputType) {
+        return new CreateBlock("s", spec, category, opCode, cssTemplate, outputType);
+    }
     
     // For palette buttons (Add/Remove variable)
     public CreateBlock(String label, String opCode, boolean isButton) {
@@ -48,9 +62,13 @@ public class CreateBlock {
 
             case 1:
                 // SELECTORS
-                list.add(new CreateBlock("c", "class %m.htmlClass", "SELECTOR", ".class", ""));
-                list.add(new CreateBlock("c", "ID %m.htmlId", "SELECTOR", "#id", ""));
-                list.add(new CreateBlock("c", "tag %m.htmlTag", "SELECTOR", "tag", ""));
+                list.add(new CreateBlock("c", "class .%m.htmlClass", "SELECTOR", ".class", ".%s"));
+                list.add(new CreateBlock("c", "ID #%m.htmlId", "SELECTOR", "#id", "#%s"));
+                list.add(new CreateBlock("c", "tag %m.htmlTag", "SELECTOR", "tag", "%s"));
+                list.add(new CreateBlock("c", "class .%m.htmlClass when %m.pseudoState", "SELECTOR", ".classState", ".%s:%s"));
+                list.add(new CreateBlock("c", "#%m.htmlId when %m.pseudoState", "SELECTOR", "#idState", "#%s:%s"));
+                list.add(new CreateBlock("c", "tag %m.htmlTag when %m.pseudoState", "SELECTOR", "tagState", "%s:%s"));
+                list.add(new CreateBlock(" ", "set content to %s", "SELECTOR", "content", "content: '%s'"));
                 break;
 
             case 2:
@@ -132,31 +150,74 @@ public class CreateBlock {
 
             case 7:
                 // FLEX
-                list.add(new CreateBlock(" ", "set flex direction to %m.direction", "LAYOUT", "flex-direction", ""));
-                list.add(new CreateBlock(" ", "set justify content to %m.justify", "LAYOUT", "justify-content", ""));
-                list.add(new CreateBlock(" ", "set align items to %m.align", "LAYOUT", "align-items", ""));
-                list.add(new CreateBlock(" ", "set flex wrap mode to %m.wrap", "LAYOUT", "flex-wrap", ""));
-                list.add(new CreateBlock(" ", "set flex grow factor to %d.val", "LAYOUT", "flex-grow", ""));
-                list.add(new CreateBlock(" ", "set flex shrink factor to %d.val", "LAYOUT", "flex-shrink", ""));
-                list.add(new CreateBlock(" ", "set flex basis size to %d.val %m.unit", "LAYOUT", "flex-basis", ""));
-                list.add(new CreateBlock(" ", "set align self to %m.align", "LAYOUT", "align-self", ""));
+                list.add(new CreateBlock(" ", "set flex direction to %m.direction", "FLEX", "flex-direction", ""));
+                list.add(new CreateBlock(" ", "set justify content to %m.justify", "FLEX", "justify-content", ""));
+                list.add(new CreateBlock(" ", "set align items to %m.align", "FLEX", "align-items", ""));
+                list.add(new CreateBlock(" ", "set flex wrap mode to %m.wrap", "FLEX", "flex-wrap", ""));
+                list.add(new CreateBlock(" ", "set flex grow factor to %d.val", "FLEX", "flex-grow", ""));
+                list.add(new CreateBlock(" ", "set flex shrink factor to %d.val", "FLEX", "flex-shrink", ""));
+                list.add(new CreateBlock(" ", "set flex basis size to %d.val %m.unit", "FLEX", "flex-basis", ""));
+                list.add(new CreateBlock(" ", "set align self to %m.align", "FLEX", "align-self", ""));
                 break;
 
             case 8:
+                // GRID
+                list.add(CreateBlock.command("set display mode %m.display", "GRID", "grid-display", "display: %s"));
+                list.add(CreateBlock.command("set grid columns %s.val", "GRID", "grid-template-columns", "grid-template-columns: %s"));
+                list.add(CreateBlock.command("set grid rows %s.val", "GRID", "grid-template-rows", "grid-template-rows: %s"));
+                list.add(CreateBlock.command("set grid gap %d.val %m.unit", "GRID", "grid-gap", "gap: %s%s"));
+                list.add(CreateBlock.command("set grid column span %d.val", "GRID", "grid-col-span", "grid-column: span %s"));
+                list.add(CreateBlock.command("set grid row span %d.val", "GRID", "grid-row-span", "grid-row: span %s"));
+                list.add(CreateBlock.command("align self %m.align", "GRID", "grid-align-self", "align-self: %s"));
+                list.add(CreateBlock.command("justify self %m.align", "GRID", "grid-justify-self", "justify-self: %s"));
+                break;
+
+            case 9:
+                // ANIMATION & EFFECTS
+                list.add(new CreateBlock(" ", "set box shadow %s.val", "ANIMATION", "box-shadow", "box-shadow: %s"));
+                list.add(new CreateBlock(" ", "set opacity %d.val", "ANIMATION", "opacity", "opacity: %s"));
+                list.add(new CreateBlock(" ", "set transition %s.val", "ANIMATION", "transition", "transition: %s"));
+                list.add(new CreateBlock(" ", "set transition duration %d.val ms", "ANIMATION", "transition-duration", "transition-duration: %sms"));
+                list.add(new CreateBlock(" ", "set animation %s.name %d.duration ms %m.easing", "ANIMATION", "animation", "animation: %s %sms %s"));
+                list.add(new CreateBlock("c", "define keyframes %s.name", "ANIMATION", "keyframes", "@keyframes %s"));
+                break;
+
+            case 10:
+                // RESPONSIVE
+                list.add(CreateBlock.container("when min-width %d.val px", "RESPONSIVE", "media-min", "@media (min-width: %spx)"));
+                list.add(CreateBlock.container("when max-width %d.val px", "RESPONSIVE", "media-max", "@media (max-width: %spx)"));
+                list.add(CreateBlock.container("when media ( %m.dimension : %d.val px )", "RESPONSIVE", "media-dim", "@media (%s: %spx)"));
+                list.add(CreateBlock.container("when media %s.condition", "RESPONSIVE", "media-custom", "@media %s"));
+                break;
+            
+            case 11:
                 // OTHER
-                list.add(new CreateBlock("s", "linear gradient from %m.color and %m.color", "OTHER", "linearGradient", "", "image"));
-                list.add(new CreateBlock("s", "radial gradient from %m.color and %m.color", "OTHER", "radialGradient", "", "image"));
-                list.add(new CreateBlock("s", "get image from url %s.url", "OTHER", "url", "", "image"));
-                list.add(new CreateBlock("s", "calculate math %s.expression", "OTHER", "calc", "", "unit"));
-                list.add(new CreateBlock("s", "value %d.val unit %m.unit", "OTHER", "unitValue", "", "unit"));
-                list.add(new CreateBlock("s", "get variable value %m.var", "OTHER", "var", ""));
+                list.add(new CreateBlock("s", "linear gradient from %m.color and %m.color", "OTHER", "linearGradient", "linear-gradient(%s, %s)", "image"));
+                list.add(new CreateBlock("s", "radial gradient from %m.color and %m.color", "OTHER", "radialGradient", "radial-gradient(%s, %s)", "image"));
+                list.add(new CreateBlock("s", "get image from url %s.url", "OTHER", "url", "url('%s')", "image"));
+                list.add(new CreateBlock("s", "calculate math %s.expression", "OTHER", "calc", "calc(%s)", "unit"));
+                list.add(new CreateBlock("s", "value %d.val unit %m.unit", "OTHER", "unitValue", "%s%s", "unit"));
+                list.add(new CreateBlock("s", "get variable value %m.var", "OTHER", "var", "var(--%s)"));
                 list.add(new CreateBlock(" ", "apply transform effects %v.transform", "OTHER", "transform", ""));
                 list.add(new CreateBlock(" ", "apply filter effects %v.filter", "OTHER", "filter", ""));
                 list.add(new CreateBlock(" ", "set transition timing to %s.val", "OTHER", "transition", ""));
                 list.add(new CreateBlock(" ", "Add Source Directly %s", "OTHER", "asd", ""));
                 break;
         }
+
         return list;
+    }
+
+    public static CreateBlock getDefinition(String opCode) {
+        for (int i = 0; i <= 11; i++) {
+            ArrayList<CreateBlock> blocks = getBlocksForCategory(i);
+            for (CreateBlock b : blocks) {
+                if (b.opCode.equals(opCode)) {
+                    return b;
+                }
+            }
+        }
+        return null;
     }
 
     public static String getEventSpec(String eventName, String id, String filename) {

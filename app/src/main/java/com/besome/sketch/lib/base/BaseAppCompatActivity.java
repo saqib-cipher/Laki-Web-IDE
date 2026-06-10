@@ -163,9 +163,24 @@ public abstract class BaseAppCompatActivity extends AppCompatActivity {
         return false;
     }
 
+    protected void applyEdgeToEdge() {
+        enableEdgeToEdgeNoContrast();
+        View root = findViewById(android.R.id.content);
+        if (root != null) {
+            handleInsetts(root);
+        }
+    }
+
+    protected void applyEdgeToEdge(View root) {
+        enableEdgeToEdgeNoContrast();
+        if (root != null) {
+            handleInsetts(root);
+        }
+    }
+
     public void handleInsetts(View root) {
         Insetter.builder()
-                .padding(WindowInsetsCompat.Type.navigationBars())
+                .padding(WindowInsetsCompat.Type.systemBars())
                 .applyToView(root);
     }
 
@@ -176,4 +191,5 @@ public abstract class BaseAppCompatActivity extends AppCompatActivity {
             getWindow().setNavigationBarContrastEnforced(false);
         }
     }
+
 }

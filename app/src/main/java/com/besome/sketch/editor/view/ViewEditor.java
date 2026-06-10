@@ -58,7 +58,7 @@ import a.a.a.jC;
 import a.a.a.oB;
 import a.a.a.uy;
 import a.a.a.wB;
-import a.a.a.wq;
+import laki.webide.core.LakiFiles;
 import mod.agus.jcoderz.beans.ViewBeans;
 import mod.hey.studios.util.ProjectFile;
 import mod.jbk.util.LogUtil;
@@ -380,7 +380,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
                         if (!jC.d(a).l(backgroundResource) && Op.g().b(backgroundResource)) {
                             ProjectResourceBean a2 = Op.g().a(backgroundResource);
                             try {
-                                oBVar.a(wq.a() + File.separator + "image" + File.separator + "data" + File.separator + a2.resFullName, wq.g() + File.separator + a + File.separator + a2.resFullName);
+                                oBVar.a(LakiFiles.a() + File.separator + "image" + File.separator + "data" + File.separator + a2.resFullName, LakiFiles.g() + File.separator + a + File.separator + a2.resFullName);
                             } catch (Exception e) {
                                 LogUtil.e("ViewEditor", "", e);
                             }
@@ -390,7 +390,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
                         if (!jC.d(a).l(resName) && Op.g().b(resName)) {
                             ProjectResourceBean a3 = Op.g().a(resName);
                             try {
-                                oBVar.a(wq.a() + File.separator + "image" + File.separator + "data" + File.separator + a3.resFullName, wq.g() + File.separator + a + File.separator + a3.resFullName);
+                                oBVar.a(LakiFiles.a() + File.separator + "image" + File.separator + "data" + File.separator + a3.resFullName, LakiFiles.g() + File.separator + a + File.separator + a3.resFullName);
                             } catch (Exception e2) {
                                 LogUtil.e("ViewEditor", "", e2);
                             }
@@ -758,7 +758,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
     public ItemView createAndAddView(ViewBean viewBean) {
         View itemView = viewPane.createItemView(viewBean);
         viewPane.addViewAndUpdateIndex(itemView);
-        String generatedId = wq.b(viewBean.type);
+        String generatedId = LakiFiles.b(viewBean.type);
         if (viewBean.id.indexOf(generatedId) == 0 && viewBean.id.length() > generatedId.length()) {
             try {
                 int intValue = Integer.parseInt(viewBean.id.substring(generatedId.length()));
@@ -994,7 +994,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
         if (isWeb && bean.convert != null && !bean.convert.isEmpty()) {
             b2 = bean.convert.toLowerCase();
         } else {
-            b2 = !bean.isCustomWidget ? wq.b(type) : widgetsCreatorManager.generateCustomWidgetId(bean.convert);
+            b2 = !bean.isCustomWidget ? LakiFiles.b(type) : widgetsCreatorManager.generateCustomWidgetId(bean.convert);
         }
         
         StringBuilder sb = new StringBuilder();

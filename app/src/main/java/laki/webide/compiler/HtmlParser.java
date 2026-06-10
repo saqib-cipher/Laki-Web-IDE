@@ -5,7 +5,7 @@ import android.util.Xml;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import com.besome.sketch.beans.ViewBean;
-import java.io.StringReader;
+import java.io.*;
 import java.util.*;
 import org.xmlpull.v1.XmlPullParser;
 import laki.webide.ProjectWorkspace;
@@ -38,7 +38,7 @@ public class HtmlParser {
 
     public static ArrayList<ViewBean> parse(Context context, String sc_id, String xmlName) {
         ProjectWorkspace workspace = new ProjectWorkspace(context, sc_id);
-        String htmlPath = workspace.projectMyscPath + "/" + xmlName;
+        String htmlPath = laki.webide.core.LakiFiles.getHtmlPath(workspace.projectMyscPath) + File.separator + xmlName;
         
         if (!FileUtil.isExistFile(htmlPath)) return new ArrayList<>();
 
@@ -80,7 +80,12 @@ public class HtmlParser {
                         if (isIgnoredTag(tagName)) {
                             // Skip metadata tags
                         } else if (tagName.equals("body")) {
-                            // Body is the permanent root marker
+                            // Body is the permanent root marker - apply its attributes to root
+                            ViewBean bodyBean = createViewBean(parser, tagName);
+                            ViewBean root = hierarchyManager.peek(); // This is the virtual root
+                            root.classNames = bodyBean.classNames;
+                            root.parentAttributes.putAll(bodyBean.parentAttributes);
+                            root.inject = bodyBean.inject;
                         } else {
                             ViewBean bean = createViewBean(parser, tagName);
                             hierarchyManager.pushView(bean);

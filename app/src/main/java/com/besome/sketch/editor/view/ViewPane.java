@@ -50,7 +50,7 @@ import a.a.a.Gx;
 import a.a.a.kC;
 import a.a.a.lC;
 import a.a.a.wB;
-import a.a.a.wq;
+import laki.webide.core.LakiFiles;
 import a.a.a.yB;
 import a.a.a.zB;
 import mod.agus.jcoderz.beans.ViewBeans;
@@ -1252,7 +1252,7 @@ public class ViewPane extends RelativeLayout {
         if (sc_id == null) {
             return key;
         }
-        String filePath = wq.b(sc_id) + "/files/resource/values/strings.xml";
+        String filePath = LakiFiles.getSystemDataPath(sc_id) + "/files/resource/values/strings.xml";
 
         ArrayList<HashMap<String, Object>> stringsListMap = new ArrayList<>();
 

@@ -40,6 +40,7 @@ import java.util.Objects;
 import a.a.a.HB;
 import a.a.a.iB;
 import a.a.a.wq;
+import laki.webide.core.LakiFiles;
 import mod.hey.studios.util.Helper;
 import laki.webide.R;
 import laki.webide.databinding.ActivityIconCreatorBinding;
@@ -156,7 +157,6 @@ public class IconCreatorActivity extends BaseAppCompatActivity {
         binding.appIcoScore.setVisibility(View.GONE);
         binding.textureCont.setVisibility(View.GONE);
         binding.appIcoTexture.setVisibility(View.GONE);
-
 
         binding.toolbar.setNavigationOnClickListener(_v -> onBackPressed());
 
@@ -468,7 +468,7 @@ public class IconCreatorActivity extends BaseAppCompatActivity {
     }
 
     private String getCustomIconPath() {
-        return wq.e() + File.separator + sc_id + File.separator + "icon.png";
+        return LakiFiles.e() + File.separator + sc_id + File.separator + "icon.png";
     }
 
     private void pickCustomIcon(int code) {
@@ -753,7 +753,7 @@ public class IconCreatorActivity extends BaseAppCompatActivity {
     }
 
     private String baseDir() {
-        return wq.b(sc_id) + File.separator + "files" + File.separator + "app-icon" + File.separator;
+        return LakiFiles.getSystemDataPath(sc_id) + File.separator + "files" + File.separator + "app-icon" + File.separator;
     }
 
     private String getIconPath(String folder, String fileName) {

@@ -1,0 +1,32 @@
+Laki Web IDE - Bugfix Report: Folder Structure & Drag-and-Drop Saving
+
+Problem Analysis:
+1. Migration Inconsistency: While the project has transitioned to a new folder structure (.lakiwebsites/simple/[ProjectName]_[sc_id]), the underlying Sketchware managers (eC, hC, iC, kC) still default to the old structure (.lakiwebsites/data/[sc_id]).
+2. Saving vs. Loading Desync:
+   - Drag-and-drop triggers WebProjectSyncManager.syncCurrentFile(), which saves the visual state to the NEW structure (settings/[page]_htmltags.json).
+   - However, certain actions like Undo/Redo or manual saving via ProjectSaver might still be prioritizing the old structure or missing sync calls.
+3. Incomplete Sync: WebProjectSyncManager.syncFile() currently only syncs HTML, CSS, and htmltags.json. It misses htmlhead.json and extendcssblocks.json.
+4. Preview Path Bug: DesignActivity.java's "Preview" button looks for HTML at the project root instead of the /html/ subfolder.
+5. Undo/Redo Disk Sync: ViewEditorFragment's onUndo/onRedo methods do not trigger a disk sync (syncCurrentFile), causing visual data loss if the app is closed immediately after an undo/redo.
+
+Completed:
+- Identified path resolution logic in LakiFiles and FilePathUtil.
+- Analyzed sync trigger points in ViewEditorFragment (History/Property changes).
+- Fixed path resolution in ViewEditorFragment.i() to prioritize the new structure.
+
+Remaining / Needed Changes:
+1. Update ViewEditorFragment.java:
+   - Call WebProjectSyncManager.syncCurrentFile() inside onUndo() and onRedo() to ensure visual state is saved to the new structure after these actions.
+2. Update DesignActivity.java:
+   - Fix btnRun icon/text and correct the HTML preview path to: q.projectMyscPath + "html" + File.separator + [fileName].html.
+   - Ensure LakiFiles.createSimpleProjectStructure(q.projectMyscPath) is called during project load to prevent "File Not Found" errors during sync.
+3. Update WebProjectSyncManager.java:
+   - Add sync logic for [page]_htmlhead.json and [page]_extendcssblocks.json to syncDesignerState() or similar.
+   - Add logging to confirm successful file writes to the new structure.
+4. Backup Factory:
+   - Verify that BackupFactory correctly restores into the new structure (appears to be done, but needs verification).
+
+Files to be modified:
+- C:/MyProjects/ad/Laki Web IDE/app/src/main/java/a/a/a/ViewEditorFragment.java
+- C:/MyProjects/ad/Laki Web IDE/app/src/main/java/com/besome/sketch/design/DesignActivity.java
+- C:/MyProjects/ad/Laki Web IDE/app/src/main/java/laki/webide/managers/WebProjectSyncManager.java

@@ -37,6 +37,7 @@ import java.util.Map;
 
 import laki.webide.R;
 import laki.webide.activities.editor.view.CodeViewerActivity;
+import laki.webide.managers.CssLogicPersistenceManager;
 
 public class LogicEditorActivity extends BaseAppCompatActivity implements OnClickListener, OnBlockCategorySelectListener, OnTouchListener {
     public static final String LOGIC_NAME_SEPARATOR = "_";
@@ -276,7 +277,25 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
 
     private void loadLogic() {
         Map hashMap = new HashMap();
-        ArrayList blocks = DesignDataManager.getBlocks(filename, this.id + LOGIC_NAME_SEPARATOR + this.eventName);
+        ArrayList<BlockBean> blocks;
+        
+        if (laki.webide.events.ExtCSS.isMatch(this.id)) {
+            laki.webide.beans.CssLogicData data = CssLogicPersistenceManager.load(scId, filename);
+            blocks = data.blocks;
+            
+            // Sync variables to DesignDataManager for palette visibility
+            if (data.variables != null) {
+                ArrayList<String> existing = DesignDataManager.getAllLists(filename);
+                for (String v : data.variables) {
+                    if (!existing.contains(v)) {
+                        DesignDataManager.addList(filename, 2, v);
+                    }
+                }
+            }
+        } else {
+            blocks = DesignDataManager.getBlocks(filename, this.id + LOGIC_NAME_SEPARATOR + this.eventName);
+        }
+
         if (blocks != null) {
             Iterator it = blocks.iterator();
             int i = 1;
@@ -344,7 +363,15 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
     }
 
     private void saveLogic() {
-        DesignDataManager.setBlocks(filename, this.id + LOGIC_NAME_SEPARATOR + this.eventName, this.pane.getBlocks());
+        ArrayList<BlockBean> blocks = this.pane.getBlocks();
+        if (laki.webide.events.ExtCSS.isMatch(this.id)) {
+            // For CSS logic, we also need variables. 
+            // In the current custom block system, variables are managed by DesignDataManager.
+            ArrayList<String> variables = DesignDataManager.getAllLists(filename); // Temporary mapping
+            CssLogicPersistenceManager.save(scId, filename, blocks, variables);
+        } else {
+            DesignDataManager.setBlocks(filename, this.id + LOGIC_NAME_SEPARATOR + this.eventName, blocks);
+        }
     }
 
     private void showIconDelete(boolean z) {
@@ -368,6 +395,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
             return;
         }
         if (checkValidForever() && checkValidZero()) {
+            saveLogic();
             super.onBackPressed();
         }
     }
@@ -400,6 +428,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         setContentView(R.layout.the_logic_editor);
+        applyEdgeToEdge(findViewById(R.id.editor));
         this.context = this.getApplicationContext();
         this.id = getIntent().getStringExtra("id");
         this.eventName = getIntent().getStringExtra("event");

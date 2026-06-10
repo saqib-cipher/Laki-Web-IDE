@@ -28,6 +28,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import laki.webide.R;
+import laki.webide.core.LakiFiles;
 import laki.webide.databinding.FrManageImageListBinding;
 import laki.webide.databinding.ManageImageListItemBinding;
 
@@ -91,7 +92,7 @@ public class fu extends qA implements View.OnClickListener {
         ArrayList<ProjectResourceBean> selectedCollections = new ArrayList<>();
         for (ProjectResourceBean image : collectionImages) {
             if (image.isSelected) {
-                selectedCollections.add(new ProjectResourceBean(ProjectResourceBean.PROJECT_RES_TYPE_FILE, image.resName, wq.a() + File.separator + "image" + File.separator + "data" + File.separator + image.resFullName));
+                selectedCollections.add(new ProjectResourceBean(ProjectResourceBean.PROJECT_RES_TYPE_FILE, image.resName, LakiFiles.a() + File.separator + "image" + File.separator + "data" + File.separator + image.resFullName));
             }
         }
         if (!selectedCollections.isEmpty()) {
@@ -174,7 +175,7 @@ public class fu extends qA implements View.OnClickListener {
             holder.binding.imgNinePatch.setVisibility(image.isNinePatch() ? View.VISIBLE : View.GONE);
             Glide.with(requireActivity())
                     .asBitmap()
-                    .load(wq.a() + File.separator + "image" + File.separator + "data" + File.separator + image.resFullName)
+                    .load(LakiFiles.a() + File.separator + "image" + File.separator + "data" + File.separator + image.resFullName)
                     .centerCrop()
                     .error(R.drawable.ic_remove_grey600_24dp)
                     .into(new BitmapImageViewTarget(holder.binding.img).getView());

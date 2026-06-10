@@ -55,7 +55,9 @@ public class Block extends BlockBase {
     }
 
     public static Block fromBean(Context context, BlockBean bean) {
-        return new Block(context, Integer.valueOf(bean.id), bean.spec, bean.type, bean.opCode, new Object[]{Integer.valueOf(bean.color)});
+        Block block = new Block(context, Integer.valueOf(bean.id), bean.spec, bean.type, bean.opCode, new Object[]{Integer.valueOf(bean.color)});
+        if (bean.category != null) block.category = bean.category;
+        return block;
     }
 
     private void addLabelsAndArgs(String str, int i) {
@@ -151,6 +153,11 @@ public class Block extends BlockBase {
         this.minHatWidth = (int)((float)this.minHatWidth * this.dip);
         this.minLoopWidth = (int)((float)this.minLoopWidth * this.dip);
         this.defaultSpace = (int)((float)this.defaultSpace * this.dip);
+
+        if (this.mDefaultArgs != null && this.mDefaultArgs.length > 0 && this.mDefaultArgs[0] instanceof Integer) {
+            this.mColor = (Integer) this.mDefaultArgs[0];
+        }
+
         String var2 = this.mType;
         byte var3 = -1;
         switch(var2.hashCode()) {

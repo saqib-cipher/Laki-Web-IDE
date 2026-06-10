@@ -8,7 +8,11 @@ import a.a.a.hC;
 import a.a.a.eC;
 import a.a.a.iC;
 import com.besome.sketch.beans.ProjectFileBean;
+import com.besome.sketch.beans.ViewBean;
+import com.google.gson.Gson;
 import java.util.ArrayList;
+import laki.webide.core.LakiFiles;
+import laki.webide.utility.FileUtil;
 
 public class WebProjectSyncManager {
 
@@ -51,6 +55,34 @@ public class WebProjectSyncManager {
         String cssFileName = file.getXmlName().replace(".xml", "").replace(".html", "") + ".css";
         String cssCode = workspace.getFileSrc(cssFileName, projectFileManager, projectDataManager, projectLibraryManager);
         workspace.a(cssFileName, cssCode);
+
+        // Ensure project structure exists (Settings, etc.)
+        LakiFiles.createSimpleProjectStructure(workspace.projectMyscPath);
+
+        // Sync Designer State (HTML Tags & Visual History)
+        String tagsPath = LakiFiles.getPageHtmlTagsPath(workspace.projectMyscPath, file.fileName);
+        ArrayList<ViewBean> currentViews = eC.a(projectDataManager.d(file.getXmlName()));
+        FileUtil.writeFile(tagsPath, new Gson().toJson(currentViews));
+
+        // Sync extra page settings
+        syncExtraSettings(workspace, file);
+    }
+
+    private static void syncExtraSettings(ProjectWorkspace workspace, ProjectFileBean file) {
+        String projectRoot = workspace.projectMyscPath;
+        String pageName = file.fileName;
+
+        // Sync HTML Head (if not already handled)
+        String headPath = LakiFiles.getPageHtmlHeadPath(projectRoot, pageName);
+        if (!FileUtil.isExistFile(headPath)) {
+            FileUtil.writeFile(headPath, "{}");
+        }
+
+        // Sync Extend CSS Blocks (if not already handled)
+        String blocksPath = LakiFiles.getPageExtendBlocksPath(projectRoot, pageName);
+        if (!FileUtil.isExistFile(blocksPath)) {
+            FileUtil.writeFile(blocksPath, "[]");
+        }
     }
     
     /**

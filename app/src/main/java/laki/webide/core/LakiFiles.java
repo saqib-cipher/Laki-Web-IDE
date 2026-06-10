@@ -1,15 +1,57 @@
-package a.a.a;
+package laki.webide.core;
 
 import android.content.Context;
 import android.os.Environment;
-
 import java.io.File;
-
+import a.a.a.DB;
 import laki.webide.SketchApplication;
-import laki.webide.core.LakiFiles;
 
-public class wq {
+/**
+ * Global Registry for all Web IDE Folder and File Structures.
+ * Centralizing this ensures consistency across Creation, Save, Backup, and Restore.
+ */
+public class LakiFiles {
 
+    // 1. Root and Core Sub-Roots
+    public static final String ROOT = ".lakiwebsites";
+    public static final String SUB_SIMPLE = "simple";
+    public static final String SUB_COMPLEX = "complex";
+
+    // 2. System and Metadata Paths
+    public static final String DIR_DATA = "data";
+    public static final String DIR_MYSYNC = "mysc";
+    public static final String DIR_LIST = "list";
+    public static final String DIR_HTML = "html";
+    public static final String DIR_CSS = "css";
+    public static final String DIR_ASSETS = "assets";
+    public static final String DIR_SETTINGS = "settings";
+
+    // 2.1 Assets Subfolders
+    public static final String SUB_IMAGES = "images";
+    public static final String SUB_FONTS = "fonts";
+    public static final String SUB_ICONS = "icons";
+    public static final String SUB_SOUNDS = "sounds";
+
+    // 2.2 Critical Setting Files
+    public static final String FILE_EXTEND_CSS_BLOCKS = "extendcssblocks.json";
+    public static final String FILE_HTML_TAGS = "htmltags.json";
+    public static final String FILE_HTML_HEAD = "htmlhead.json";
+
+    // 3. Advance Project Structure (Future Frameworks)
+    public static final String DIR_REACT = "react";
+    public static final String DIR_ANGULAR = "angular";
+
+    // 3.1 React Subfolders
+    public static final String SUB_REACT_SRC = "src";
+    public static final String SUB_REACT_PUBLIC = "public";
+    public static final String SUB_REACT_COMPONENTS = "src/components";
+
+    // 3.2 Angular Subfolders
+    public static final String SUB_ANGULAR_SRC = "src";
+    public static final String SUB_ANGULAR_APP = "src/app";
+    public static final String SUB_ANGULAR_ASSETS = "src/assets";
+
+    // --- Migrated from wq.java ---
     public static final String A = "lakiwebsites" + File.separator + "localization" + File.separator + "strings_provided.xml";
     public static final String B = "lakiwebsites" + File.separator + "signed_apk";
     public static final String C = "lakiwebsites" + File.separator + "keystore";
@@ -24,11 +66,11 @@ public class wq {
     public static final String[] N = {"1486507718310013_1788685811425534", "1486507718310013_1804931006467681", "1486507718310013_1805009746459807", "1486507718310013_1805001526460629", "1486507718310013_1805273579766757", "1486507718310013_1805397669754348", "1486507718310013_1805436593083789", "1486507718310013_1805666736394108", "1486507718310013_1805724186388363", "1486507718310013_1809233042704144"};
     public static final String[] O = {"255022168522663_266931247331755", "255022168522663_268282677196612", "255022168522663_268283823863164", "255022168522663_266575314034015", "255022168522663_279474749410738"};
     public static final String a = ".lakiwebsites" + File.separator + "libs";
-    public static final String simple = LakiFiles.ROOT + File.separator + LakiFiles.SUB_SIMPLE;
-    public static final String complex = LakiFiles.ROOT + File.separator + LakiFiles.SUB_COMPLEX;
-    public static final String b = LakiFiles.ROOT + File.separator + LakiFiles.DIR_MYSYNC;
-    public static final String c = b + File.separator + LakiFiles.DIR_LIST;
-    public static final String d = LakiFiles.ROOT + File.separator + LakiFiles.DIR_DATA;
+    public static final String simple = ROOT + File.separator + SUB_SIMPLE;
+    public static final String complex = ROOT + File.separator + SUB_COMPLEX;
+    public static final String b = ROOT + File.separator + DIR_MYSYNC;
+    public static final String c = b + File.separator + DIR_LIST;
+    public static final String d = ROOT + File.separator + DIR_DATA;
     public static final String e = ".lakiwebsites" + File.separator + "bak";
     public static final String f = ".lakiwebsites" + File.separator + "temp" + File.separator + "images";
     public static final String g = ".lakiwebsites" + File.separator + "temp" + File.separator + "sounds";
@@ -54,8 +96,37 @@ public class wq {
     public static final String CUSTOM_COMPONENT_FILE = EXTRA_SYSTEM_DATA + File.separator + "component.json";
     public static final String EXTRA_DATA_EXPORT = EXTRA_SYSTEM_DATA + File.separator + "export";
 
+    /**
+     * @return The physical root path of the IDE on external storage.
+     */
+    public static String getExternalRoot() {
+        return new File(Environment.getExternalStorageDirectory(), ROOT).getAbsolutePath();
+    }
+
     public static String getAbsolutePathOf(String path) {
         return new File(Environment.getExternalStorageDirectory(), path).getAbsolutePath();
+    }
+
+    /**
+     * Resolves the root folder for a specific project.
+     * Convention: /.lakiwebsites/[simple|advance]/[ProjectName]_[sc_id]/
+     */
+    public static String getProjectRoot(String projectName, String sc_id, boolean isComplex) {
+        String subRoot = isComplex ? SUB_COMPLEX : SUB_SIMPLE;
+        String folderName = (projectName == null || projectName.isEmpty()) ? sc_id : projectName + "_" + sc_id;
+        return getExternalRoot() + File.separator + subRoot + File.separator + folderName;
+    }
+
+    public static String getSystemDataPath(String sc_id) {
+        return getExternalRoot() + File.separator + DIR_DATA + File.separator + sc_id;
+    }
+
+    public static String getSystemMetadataPath(String sc_id) {
+        return getExternalRoot() + File.separator + DIR_MYSYNC + File.separator + DIR_LIST + File.separator + sc_id;
+    }
+
+    public static String getProjectListPath() {
+        return getExternalRoot() + File.separator + DIR_MYSYNC + File.separator + DIR_LIST;
     }
 
     public static String a() {
@@ -155,15 +226,15 @@ public class wq {
     }
 
     public static String b(String sc_id) {
-        return LakiFiles.getSystemDataPath(sc_id);
+        return getSystemDataPath(sc_id);
     }
 
     public static String c() {
-        return getAbsolutePathOf(LakiFiles.ROOT + File.separator + "download");
+        return getAbsolutePathOf(ROOT + File.separator + "download");
     }
 
     public static String c(String sc_id) {
-        return LakiFiles.getSystemMetadataPath(sc_id);
+        return getSystemMetadataPath(sc_id);
     }
 
     public static String d() {
@@ -194,7 +265,7 @@ public class wq {
     }
 
     public static String f(String projectName, String sc_id, boolean isComplex) {
-        return LakiFiles.getProjectRoot(projectName, sc_id, isComplex);
+        return getProjectRoot(projectName, sc_id, isComplex);
     }
 
     public static String simple() {
@@ -300,5 +371,142 @@ public class wq {
 
     public static String[] z() {
         return new String[]{"Blowfish", "Blowfish/CBC/PKCS5Padding"};
+    }
+
+    // --- Path Resolvers for Simple Projects ---
+
+    public static String getHtmlPath(String projectRoot) {
+        return projectRoot + File.separator + DIR_HTML;
+    }
+
+    public static String getCssPath(String projectRoot) {
+        return projectRoot + File.separator + DIR_CSS;
+    }
+
+    public static String getAssetsPath(String projectRoot) {
+        return projectRoot + File.separator + DIR_ASSETS;
+    }
+
+    public static String getSettingsPath(String projectRoot) {
+        return projectRoot + File.separator + DIR_SETTINGS;
+    }
+
+    public static String getImagesPath(String projectRoot) {
+        return getAssetsPath(projectRoot) + File.separator + SUB_IMAGES;
+    }
+
+    /**
+     * Resolves path for page-specific block data.
+     * Result: /[ProjectRoot]/settings/[pageName]_extendcssblocks.json
+     */
+    public static String getPageExtendBlocksPath(String projectRoot, String pageName) {
+        return getSettingsPath(projectRoot) + File.separator + pageName + "_" + FILE_EXTEND_CSS_BLOCKS;
+    }
+
+    /**
+     * Resolves path for page-specific HTML tag settings.
+     * Result: /[ProjectRoot]/settings/[pageName]_htmltags.json
+     */
+    public static String getPageHtmlTagsPath(String projectRoot, String pageName) {
+        return getSettingsPath(projectRoot) + File.separator + pageName + "_" + FILE_HTML_TAGS;
+    }
+
+    /**
+     * Resolves path for page-specific HTML head configurations.
+     * Result: /[ProjectRoot]/settings/[pageName]_htmlhead.json
+     */
+    public static String getPageHtmlHeadPath(String projectRoot, String pageName) {
+        return getSettingsPath(projectRoot) + File.separator + pageName + "_" + FILE_HTML_HEAD;
+    }
+
+    // --- Future Path Resolvers for Advance Projects ---
+
+    public static String getReactPath(String projectRoot) {
+        return projectRoot + File.separator + DIR_REACT;
+    }
+
+    public static String getAngularPath(String projectRoot) {
+        return projectRoot + File.separator + DIR_ANGULAR;
+    }
+
+    public static String getReactSrcPath(String reactRoot) {
+        return reactRoot + File.separator + SUB_REACT_SRC;
+    }
+
+    public static String getAngularAppPath(String angularRoot) {
+        return angularRoot + File.separator + SUB_ANGULAR_APP;
+    }
+
+    // --- Physical Creation Logic (Centralized Builder) ---
+
+    /**
+     * Physically creates the folder structure for a simple web project.
+     * This ensures consistency between Create, Backup, and Restore.
+     */
+    public static void createSimpleProjectStructure(String projectRoot) {
+        mkdir(projectRoot);
+        mkdir(getHtmlPath(projectRoot));
+        mkdir(getCssPath(projectRoot));
+        mkdir(getSettingsPath(projectRoot));
+
+        String assets = getAssetsPath(projectRoot);
+        mkdir(assets);
+        mkdir(assets + File.separator + SUB_IMAGES);
+        mkdir(assets + File.separator + SUB_FONTS);
+        mkdir(assets + File.separator + SUB_ICONS);
+        mkdir(assets + File.separator + SUB_SOUNDS);
+    }
+
+    /**
+     * Initializes a new web page with default settings files.
+     * Creates: [page]_extendcssblocks.json, [page]_htmltags.json, [page]_htmlhead.json
+     */
+    public static void initializePageSettings(String projectRoot, String pageName) {
+        saveFile(getPageExtendBlocksPath(projectRoot, pageName), "[]");
+        saveFile(getPageHtmlTagsPath(projectRoot, pageName), "[]");
+        saveFile(getPageHtmlHeadPath(projectRoot, pageName), "{}");
+    }
+
+    /**
+     * Creates the initial HTML and CSS files for a new project/page.
+     */
+    public static void createInitialWebFiles(String projectRoot, String pageName) {
+        String htmlFile = getHtmlPath(projectRoot) + File.separator + pageName + ".html";
+        String cssFile = getCssPath(projectRoot) + File.separator + pageName + ".css";
+
+        // Initial HTML content boilerplate
+        String htmlContent = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                "    <title>" + pageName + "</title>\n" +
+                "    <link rel=\"stylesheet\" href=\"../css/" + pageName + ".css\">\n" +
+                "</head>\n<body>\n\n</body>\n</html>";
+
+        // Initial CSS content placeholder
+        String cssContent = "/* CSS for " + pageName + " */\nbody {\n    margin: 0;\n    padding: 0;\n}";
+
+        saveFile(htmlFile, htmlContent);
+        saveFile(cssFile, cssContent);
+    }
+
+    /**
+     * Helper to create a directory if it doesn't exist.
+     */
+    private static void mkdir(String path) {
+        File f = new File(path);
+        if (!f.exists()) {
+            f.mkdirs();
+        }
+    }
+
+    /**
+     * Helper to write a simple string to a file.
+     */
+    private static void saveFile(String path, String content) {
+        try (java.io.FileWriter writer = new java.io.FileWriter(path)) {
+            writer.write(content);
+        } catch (java.io.IOException e) {
+            android.util.Log.e("LakiFiles", "Error writing file: " + path, e);
+        }
     }
 }

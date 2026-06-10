@@ -1,0 +1,53 @@
+DOCUMENTATION: UNIFIED WEB IDE FILE SYSTEM & LOGIC PERSISTENCE
+==========================================================
+
+1. ROOT DIRECTORY STRUCTURE
+---------------------------
+The global root folder is hardcoded as: /.lakiwebsites/
+It contains two main sub-roots:
+- /simple/ : Standard Web projects (Current focus).
+- /advance/ : Framework-based projects (React, Angular - Future support).
+
+2. PROJECT FOLDER CONVENTION
+----------------------------
+Every project is isolated in its own folder named: [ProjectName]_[sc_id]
+Example: MyFirstWebsite_601
+
+This ensures that projects with the same name but different IDs never conflict,
+solving the "Ghost Folder" bug.
+
+3. INTERNAL FOLDER STRUCTURE (SIMPLE PROJECTS)
+----------------------------------------------
+Inside each project folder, the following structure is strictly enforced:
+- /html/     : Contains all .html files (including main.html).
+- /css/      : Contains all .css files (including main.css).
+- /assets/   : Resource storage with subfolders: /images, /fonts, /icons, /sounds.
+- /settings/ : Backend JSON logic and configuration files.
+
+4. LOGIC PERSISTENCE (SHORT-KEY TREE FORMAT)
+--------------------------------------------
+To eliminate data bloat and memory bugs, CSS Logic blocks are saved in:
+/settings/[pagename]_extendcssblocks.json
+
+The format uses "Short-Keys" to reduce file size by 90%:
+- "o"  : OpCode (The logic command name).
+- "p"  : Parameters (User input values).
+- "pt" : Parameter Types (Metadata for the values).
+- "s1" : Substack 1 (Nested blocks inside brackets { }).
+- "n"  : Next Block (The block attached below).
+
+This structure is RECURSIVE. The logic tree in JSON matches the visual tree in the Editor.
+
+5. RESTORATION & SYNC LOGIC
+---------------------------
+- ID Re-Inflation: When a project is loaded or restored, brand new internal IDs are
+  generated. This makes the logic files "Project Independent."
+- Variable Sync: The loader automatically scans blocks for strings starting with "--"
+  to populate the CSS Variable sidebar.
+- Metadata First: Restore logic registers the project in the database BEFORE unzipping,
+  ensuring all paths are resolved correctly.
+
+6. CENTRALIZED REGISTRY
+-----------------------
+All structure rules are governed by: laki.webide.core.LakiFiles.java
+No other file should hardcode paths. Call LakiFiles methods instead.

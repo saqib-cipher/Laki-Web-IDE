@@ -425,16 +425,16 @@ public class rs extends qA implements View.OnClickListener, MoreblockImporterDia
         Intent intent;
         if (laki.webide.events.ExtCSS.isMatch(targetId)) {
             intent = new Intent(requireActivity(), laki.webide.core.LogicEditorActivity.class);
-            intent.putExtra("id", "Css");
-            intent.putExtra("event", "Css");
+            intent.putExtra("id", laki.webide.events.ExtCSS.EVENT_ID);
+            intent.putExtra("event", laki.webide.events.ExtCSS.LISTENER_TYPE);
             intent.putExtra("event_text", "External CSS");
-            intent.putExtra("filename", currentActivity != null ? currentActivity.getJavaName() : "idk");
         } else {
             intent = new Intent(requireActivity(), laki.webide.core.LogicEditorActivity.class);
             intent.putExtra("id", targetId);
             intent.putExtra("event", eventId);
             intent.putExtra("event_text", description);
         }
+        intent.putExtra("filename", currentActivity != null ? currentActivity.fileName : "idk");
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         intent.putExtra("sc_id", sc_id);
         intent.putExtra("project_file", currentActivity);

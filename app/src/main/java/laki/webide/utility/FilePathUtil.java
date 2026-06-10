@@ -4,7 +4,7 @@ import android.os.Environment;
 import java.io.File;
 import a.a.a.lC;
 import a.a.a.yB;
-import a.a.a.wq;
+import laki.webide.core.LakiFiles;
 import java.util.HashMap;
 
 public class FilePathUtil {
@@ -20,7 +20,7 @@ public class FilePathUtil {
             projectName = yB.c(metadata, "my_ws_name");
         }
         
-        String path = wq.f(projectName, sc_id);
+        String path = LakiFiles.getProjectRoot(projectName, sc_id, false);
         rootCache.put(sc_id, path);
         return path;
     }

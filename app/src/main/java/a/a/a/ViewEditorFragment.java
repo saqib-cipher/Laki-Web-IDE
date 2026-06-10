@@ -27,6 +27,7 @@ import com.besome.sketch.editor.view.palette.PaletteWidget;
 
 import java.util.ArrayList;
 
+import laki.webide.core.LakiFiles;
 import mod.hey.studios.util.Helper;
 import laki.webide.R;
 import laki.webide.WidgetShowCased;
@@ -297,6 +298,9 @@ public class ViewEditorFragment extends qA {
                 }
             }
             invalidateOptionsMenu();
+            if (requireActivity() instanceof DesignActivity designActivity) {
+                WebProjectSyncManager.syncCurrentFile(designActivity.getProjectWorkspace(), sc_id, projectFileBean);
+            }
         }
     }
 
@@ -305,8 +309,26 @@ public class ViewEditorFragment extends qA {
         if (projectFileBean != null) {
             ProjectWorkspace workspace = new ProjectWorkspace(requireContext(), sc_id);
             if (workspace.isSimpleProject) {
-                ArrayList<ViewBean> viewBeans = HtmlParser.parse(requireContext(), sc_id, projectFileBean.getXmlName());
-                if (!viewBeans.isEmpty()) {
+                ArrayList<ViewBean> viewBeans = null;
+                // Try to load from [PageName]_htmltags.json first
+                String tagsPath = LakiFiles.getPageHtmlTagsPath(workspace.projectMyscPath, projectFileBean.fileName);
+                if (laki.webide.utility.FileUtil.isExistFile(tagsPath)) {
+                    try {
+                        String json = laki.webide.utility.FileUtil.readFile(tagsPath);
+                        if (json != null && !json.isEmpty() && !json.equals("[]")) {
+                            viewBeans = new com.google.gson.Gson().fromJson(json, new com.google.gson.reflect.TypeToken<ArrayList<ViewBean>>(){}.getType());
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                // Fallback to HtmlParser if JSON is missing or empty
+                if (viewBeans == null || viewBeans.isEmpty()) {
+                    viewBeans = HtmlParser.parse(requireContext(), sc_id, projectFileBean.getXmlName());
+                }
+
+                if (viewBeans != null && !viewBeans.isEmpty()) {
                     jC.a(sc_id).c.put(projectFileBean.getXmlName(), viewBeans);
                 }
             }
@@ -373,6 +395,9 @@ public class ViewEditorFragment extends qA {
                 }
             }
             invalidateOptionsMenu();
+            if (requireActivity() instanceof DesignActivity designActivity) {
+                WebProjectSyncManager.syncCurrentFile(designActivity.getProjectWorkspace(), sc_id, projectFileBean);
+            }
         }
     }
 
@@ -410,6 +435,9 @@ public class ViewEditorFragment extends qA {
                 }
             }
             invalidateOptionsMenu();
+            if (requireActivity() instanceof DesignActivity designActivity) {
+                WebProjectSyncManager.syncCurrentFile(designActivity.getProjectWorkspace(), sc_id, projectFileBean);
+            }
         }
     }
 

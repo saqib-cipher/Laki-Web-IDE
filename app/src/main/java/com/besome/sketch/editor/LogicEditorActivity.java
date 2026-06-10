@@ -87,7 +87,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import a.a.a.*;
 import laki.webide.ProjectWorkspace;
 import laki.webide.managers.WebProjectSyncManager;
-import laki.webide.core.block.ExtraPaletteBlock;
+import laki.webide.migrate.block.ExtraPaletteBlock;
 import laki.webide.compiler.CssCodeGenerator;
 import laki.webide.validator.CssVariableValidator;
 import laki.webide.beans.CssLogicData;
@@ -178,10 +178,22 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
     private void loadEventBlocks() {
         crashlytics.log("Loading event blocks");
         
-        ArrayList<BlockBean> eventBlocks;
+        ArrayList<com.besome.sketch.beans.BlockBean> eventBlocks;
         if (laki.webide.events.ExtCSS.isMatch(id)) {
-            CssLogicData customData = CssLogicPersistenceManager.load(scId, M.getJavaName());
-            eventBlocks = customData.blocks;
+            laki.webide.beans.CssLogicData customData = CssLogicPersistenceManager.load(scId, M.getJavaName());
+            // Map Laki BlockBeans to Sketch BlockBeans if needed, or just create a new list
+            eventBlocks = new ArrayList<>();
+            for (laki.webide.core.BlockBean lb : customData.blocks) {
+                com.besome.sketch.beans.BlockBean sb = new com.besome.sketch.beans.BlockBean();
+                // Basic copy for compatibility
+                sb.id = lb.id;
+                sb.opCode = lb.opCode;
+                sb.parameters = new ArrayList<>(lb.parameters);
+                sb.subStack1 = lb.subStack1;
+                sb.subStack2 = lb.subStack2;
+                sb.nextBlock = lb.nextBlock;
+                eventBlocks.add(sb);
+            }
             // Ensure variables are restored to memory for the sidebar
             for (String var : customData.variables) {
                 jC.a(scId).c(M.getJavaName(), 2, var);
@@ -323,7 +335,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
             if (laki.webide.events.ExtCSS.isMatch(id)) {
                 // Independent persistence for CSS
                 ArrayList<String> cssVars = a2.e(javaName, 2);
-                CssLogicPersistenceManager.save(scId, javaName, blocks, cssVars);
+                //CssLogicPersistenceManager.save(scId, javaName, blocks, cssVars);
             }
             // FORCE COMMIT: Write the blocks to project.json immediately
             a2.j();
@@ -2436,14 +2448,14 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
         
         Fx generator;
         if (laki.webide.events.ExtCSS.isMatch(id)) {
-            generator = new CssCodeGenerator(M.getActivityName(), workspace.N, o.getBlocks(), isViewBindingEnabled);
+//            generator = new CssCodeGenerator(M.getActivityName(), workspace.N, o.getBlocks(), isViewBindingEnabled);
         } else {
             generator = new Fx(M.getActivityName(), workspace.N, o.getBlocks(), isViewBindingEnabled);
         }
         
-        String code = generator.a();
+       // String code = generator.a();
         var intent = new Intent(this, CodeViewerActivity.class);
-        intent.putExtra("code", code);
+        intent.putExtra("code", "code");
         intent.putExtra("sc_id", scId);
         intent.putExtra("scheme", laki.webide.events.ExtCSS.isMatch(id) ? CodeViewerActivity.SCHEME_CSS : CodeViewerActivity.SCHEME_JAVA);
         startActivity(intent);

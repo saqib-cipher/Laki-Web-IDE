@@ -1,9 +1,7 @@
 package laki.webide.util.library;
 
 import java.util.ArrayList;
-import java.util.Optional;
 import a.a.a.Jp;
-import mod.jbk.build.BuiltInLibraries;
 
 /**
  * A class to keep track of a project's built-in libraries.

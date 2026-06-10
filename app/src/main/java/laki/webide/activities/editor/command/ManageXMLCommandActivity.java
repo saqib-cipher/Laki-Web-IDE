@@ -34,10 +34,10 @@ import a.a.a.Jx;
 import a.a.a.hC;
 import a.a.a.jC;
 import a.a.a.mB;
-import a.a.a.wq;
 import laki.webide.ProjectWorkspace;
 import io.github.rosemoe.sora.widget.CodeEditor;
 import io.github.rosemoe.sora.widget.component.Magnifier;
+import laki.webide.core.LakiFiles;
 import mod.hey.studios.project.ProjectSettings;
 import mod.hey.studios.util.Helper;
 import mod.hilal.saif.blocks.CommandBlock;
@@ -65,7 +65,7 @@ public class ManageXMLCommandActivity extends BaseAppCompatActivity {
     private ArrayList<String> xmlFiles;
 
     public static void fetchXMLCommand(Context context, String sc_id) {
-        var path = wq.b(sc_id) + "/command";
+        var path = LakiFiles.getSystemDataPath(sc_id) + "/command";
         if (FileUtil.isExistFile(path)) {
             return;
         }
@@ -111,7 +111,7 @@ public class ManageXMLCommandActivity extends BaseAppCompatActivity {
         } else {
             sc_id = savedInstanceState.getString("sc_id");
         }
-        commandPath = wq.b(sc_id) + "/command";
+        commandPath = LakiFiles.getSystemDataPath(sc_id) + "/command";
         hC projectFile = jC.b(sc_id);
         xmlFiles = new ArrayList<>(projectFile.e());
         xmlFiles.addAll(

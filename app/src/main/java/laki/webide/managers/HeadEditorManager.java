@@ -8,16 +8,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import a.a.a.wq;
 import a.a.a.lC;
 import a.a.a.yB;
 import com.besome.sketch.beans.ProjectFileBean;
 import laki.webide.activities.editor.HeadEditorActivity;
+import laki.webide.core.LakiFiles;
 import laki.webide.utility.FileUtil;
 
+/**
+ * Manages HTML Head configurations using the unified LakiFiles system.
+ */
 public class HeadEditorManager {
-
-    private static final String FILE_NAME = "head_structured.json";
 
     public static class HeadData {
         public String charset = "UTF-8";
@@ -30,7 +31,7 @@ public class HeadEditorManager {
     public static class TagPair {
         public String key = "";
         public String value = "";
-        public TagPair() {} // Required for GSON
+        public TagPair() {} 
         public TagPair(String k, String v) { this.key = k; this.value = v; }
     }
 
@@ -46,10 +47,10 @@ public class HeadEditorManager {
         if (metadata == null) return "";
         
         String projectName = yB.c(metadata, "my_ws_name");
-        if (projectName == null || projectName.isEmpty()) return "";
+        String projectRoot = LakiFiles.getProjectRoot(projectName, sc_id, false);
+        String path = LakiFiles.getPageHtmlHeadPath(projectRoot, projectFile.getXmlName());
         
-        String settingsFilePath = wq.f(projectName) + File.separator + "settings" + File.separator + projectFile.getXmlName() + "_" + FILE_NAME;
-        HeadData data = load(settingsFilePath);
+        HeadData data = load(path);
         
         StringBuilder sb = new StringBuilder();
         if (data.charset != null && !data.charset.isEmpty()) sb.append("    <meta charset=\"").append(data.charset).append("\" />\n");
@@ -82,28 +83,34 @@ public class HeadEditorManager {
     }
 
     public static void initializeDefaults(String sc_id, ProjectFileBean projectFile) {
-        String projectPath = wq.f(yB.c(lC.b(sc_id), "my_ws_name"));
-        String path = projectPath + File.separator + "settings" + File.separator + projectFile.getXmlName() + "_" + FILE_NAME;
+        HashMap<String, Object> metadata = lC.b(sc_id);
+        if (metadata == null) return;
+        
+        String projectName = yB.c(metadata, "my_ws_name");
+        String projectRoot = LakiFiles.getProjectRoot(projectName, sc_id, false);
+        String path = LakiFiles.getPageHtmlHeadPath(projectRoot, projectFile.getXmlName());
+        
         if (!FileUtil.isExistFile(path)) {
             HeadData d = new HeadData();
-            d.title = projectFile.getXmlName().replace(".html", "");
-            d.links.add(new TagPair("stylesheet", "css/global.css"));
-            d.links.add(new TagPair("stylesheet", "css/" + d.title + ".css"));
+            String title = projectFile.getXmlName();
+            if (title.endsWith(".html")) title = title.replace(".html", "");
+            d.title = title;
+            d.links.add(new TagPair("stylesheet", "../css/global.css"));
+            d.links.add(new TagPair("stylesheet", "../css/" + d.title + ".css"));
             save(path, d);
         }
     }
 
     private static HeadData load(String path) {
         try {
-            HeadData data = new Gson().fromJson(FileUtil.readFile(path), HeadData.class);
-            return data != null ? data : new HeadData();
-        } catch (Exception e) {
-            return new HeadData();
-        }
+            if (FileUtil.isExistFile(path)) {
+                return new Gson().fromJson(FileUtil.readFile(path), HeadData.class);
+            }
+        } catch (Exception ignored) {}
+        return new HeadData();
     }
 
     private static void save(String path, HeadData data) {
-        FileUtil.makeDir(new File(path).getParent());
         FileUtil.writeFile(path, new Gson().toJson(data));
     }
 }

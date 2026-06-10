@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import laki.webide.R;
 import laki.webide.databinding.ManageViewListItemBinding;
 
+import laki.webide.core.LakiFiles;
+
 public class Fw extends qA {
 
     private static final int REQUEST_CODE_PRESET_ACTIVITY = 276;
@@ -39,7 +41,7 @@ public class Fw extends qA {
     private ArrayList<ProjectFileBean> activitiesFiles;
 
     public final String a(int beanType, String xmlName) {
-        String baseName = wq.b(beanType);
+        String baseName = LakiFiles.b(beanType);
         StringBuilder nameBuilder = new StringBuilder();
         nameBuilder.append(baseName);
         int[] nameCounters = m;

@@ -29,6 +29,7 @@ import java.util.Locale;
 import mod.jbk.util.AudioMetadata;
 import mod.jbk.util.SoundPlayingAdapter;
 import laki.webide.R;
+import laki.webide.core.LakiFiles;
 import laki.webide.databinding.FrManageSoundListBinding;
 import laki.webide.databinding.ManageSoundBinding;
 import laki.webide.databinding.ManageSoundListItemBinding;
@@ -91,7 +92,7 @@ public class Yv extends qA {
                 ArrayList<ProjectResourceBean> arrayList = new ArrayList<>();
                 for (ProjectResourceBean next : sounds) {
                     if (next.isSelected) {
-                        arrayList.add(new ProjectResourceBean(ProjectResourceBean.PROJECT_RES_TYPE_FILE, next.resName, wq.a() + File.separator + "sound" + File.separator + "data" + File.separator + next.resFullName));
+                        arrayList.add(new ProjectResourceBean(ProjectResourceBean.PROJECT_RES_TYPE_FILE, next.resName, LakiFiles.a() + File.separator + "sound" + File.separator + "data" + File.separator + next.resFullName));
                     }
                 }
                 if (!arrayList.isEmpty()) {
@@ -170,7 +171,7 @@ public class Yv extends qA {
 
         @Override
         public Path getAudio(int position) {
-            return Paths.get(wq.a(), "sound", "data", sounds.get(position).resFullName);
+            return Paths.get(LakiFiles.a(), "sound", "data", sounds.get(position).resFullName);
         }
 
         @Override

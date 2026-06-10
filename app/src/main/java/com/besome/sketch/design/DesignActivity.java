@@ -41,6 +41,7 @@ import com.besome.sketch.tools.CompileLogActivity;
 
 import a.a.a.*;
 import laki.webide.compiler.HtmlGenerator;
+import laki.webide.core.LakiFiles;
 import mod.hey.studios.util.Helper;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -387,7 +388,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
             if (projectFile != null) {
                 k();
                 saveProject();
-                String htmlPath = q.projectMyscPath + projectFile.getXmlName().replace(".xml", ".html");
+                String htmlPath = LakiFiles.getHtmlPath(q.projectMyscPath) + File.separator + projectFile.getXmlName().replace(".xml", ".html");
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", new File(htmlPath));
                 intent.setDataAndType(uri, "text/html");
@@ -544,7 +545,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
 
         HashMap<String, Object> projectInfo = lC.b(sc_id);
         getSupportActionBar().setTitle(yB.c(projectInfo, "my_ws_name"));
-        q = new ProjectWorkspace(getApplicationContext(), wq.d(sc_id), projectInfo);
+        q = new ProjectWorkspace(getApplicationContext(), LakiFiles.d(sc_id), projectInfo);
 
         try {
             ProjectLoader projectLoader = new ProjectLoader(this, savedInstanceState);

@@ -88,6 +88,7 @@ public class MyProjectSettingActivity extends BaseAppCompatActivity implements V
         super.onCreate(savedInstanceState);
         binding = MyprojectSettingBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        applyEdgeToEdge(binding.getRoot());
 
         binding.toolbar.setNavigationOnClickListener(arg0 -> onBackPressed());
 
@@ -528,8 +529,11 @@ public class MyProjectSettingActivity extends BaseAppCompatActivity implements V
                     data.put(themeColorKeys[i], projectThemeColors[i]);
                 }
                 lC.a(sc_id, data);
-                wq.a(getApplicationContext(), sc_id);
-                new oB().b(wq.b(sc_id));
+                
+                // Initialize the new professional Web Project structure
+                String projectName = Helper.getText(binding.etProjectName);
+                WebProjectManager.createWebProject(sc_id, projectName);
+
                 ProjectSettings projectSettings = new ProjectSettings(sc_id);
                 projectSettings.setValue(ProjectSettings.SETTING_NEW_XML_COMMAND, ProjectSettings.SETTING_GENERIC_VALUE_TRUE);
                 projectSettings.setValue(ProjectSettings.SETTING_ENABLE_VIEWBINDING, ProjectSettings.SETTING_GENERIC_VALUE_TRUE);

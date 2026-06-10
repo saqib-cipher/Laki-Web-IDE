@@ -3,7 +3,6 @@ package laki.webide.core;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.Parcelable.Creator;
-//import com.besome.sketch.lib.base.BaseBean;
 import java.util.ArrayList;
 
 public class BlockBean extends BaseBean implements Parcelable {

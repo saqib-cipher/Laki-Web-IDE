@@ -32,7 +32,10 @@ public class PaletteSelector extends LinearLayout implements OnClickListener {
         addCategoryItem(5, "Border", 0xFF795548);
         addCategoryItem(6, "Background", 0xFF9C27B0);
         addCategoryItem(7, "Flex", 0xFF00BCD4);
-        addCategoryItem(8, "Other", 0xFF607D8B);
+        addCategoryItem(8, "Grid", 0xFF3F51B5);
+        addCategoryItem(9, "Animation", 0xFFFFC107);
+        addCategoryItem(10, "Responsive", 0xFF009688);
+        addCategoryItem(11, "Other", 0xFF607D8B);
     }
     /** CATEGORY_COLORS.put("VARIABLE", 0xFFFF9800);   //1 Orange (Standard Variable color)
      CATEGORY_COLORS.put("SELECTOR", 0xFFE91E63);   //2 Pink
@@ -43,7 +46,6 @@ public class PaletteSelector extends LinearLayout implements OnClickListener {
      CATEGORY_COLORS.put("BACKGROUND", 0xFF9C27B0); //7 Purple
      CATEGORY_COLORS.put("FLEX", 0xFF00BCD4);       //8 Cyan
      CATEGORY_COLORS.put("OTHER", 0xFF607D8B);      //9 Blue Gray
-     }
      * */
 
     private void addCategoryItem(int i, String str, int i2) {

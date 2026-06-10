@@ -102,7 +102,10 @@ public class HtmlHierarchyManager {
     }
 
     public ArrayList<ViewBean> getResults() {
-        return allBeans;
+        ArrayList<ViewBean> results = new ArrayList<>();
+        results.add(rootMarker);
+        results.addAll(allBeans);
+        return results;
     }
     
     public void reset() {

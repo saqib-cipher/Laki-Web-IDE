@@ -2,8 +2,8 @@ package laki.webide.managers;
 
 import android.content.Context;
 import com.besome.sketch.beans.ProjectFileBean;
-
 import a.a.a.jC;
+import laki.webide.core.LakiFiles;
 
 /**
  * Unified Controller for Web Project operations.
@@ -24,25 +24,40 @@ public class WebProjectManager {
     }
 
     /**
-     * Initializes a new web project with the default index/main page.
+     * Initializes a new web project with the default index/main page using LakiFiles.
      */
     public static void createWebProject(String sc_id, String projectName) {
-        // The first activity in Sketchware is always main.xml (index for us)
-        ProjectFileBean mainPage = new ProjectFileBean(ProjectFileBean.PROJECT_FILE_TYPE_ACTIVITY, "main", 0, 0, 1);
-        WebProjectEditorManager.onFileAdded(sc_id, mainPage);
+        // 1. Resolve the professional project root: simple/[ProjectName]_[sc_id]
+        String projectRoot = LakiFiles.getProjectRoot(projectName, sc_id, false);
+        
+        // 2. Physically create the folders: html/, css/, assets/, settings/
+        LakiFiles.createSimpleProjectStructure(projectRoot);
+        
+        // 3. Initialize the first page: main
+        String firstPageName = "main";
+        LakiFiles.initializePageSettings(projectRoot, firstPageName);
+        LakiFiles.createInitialWebFiles(projectRoot, firstPageName);
+        
+        // 4. Register the file in Sketchware's virtual system to make it visible in the Editor
+        ProjectFileBean mainPage = new ProjectFileBean(ProjectFileBean.PROJECT_FILE_TYPE_ACTIVITY, firstPageName, 0, 0, 1);
+        // We skip WebProjectEditorManager here because we've already done the physical work above.
     }
 
     /**
-     * Initializes a new web project or page with standard boilerplates.
+     * Initializes a new web page with standard boilerplates using LakiFiles.
      */
-    public static void initializeNewPage(String sc_id, ProjectFileBean projectFile) {
-        WebProjectEditorManager.onFileAdded(sc_id, projectFile);
+    public static void initializeNewPage(String sc_id, String projectName, ProjectFileBean projectFile) {
+        String projectRoot = LakiFiles.getProjectRoot(projectName, sc_id, false);
+        String pageName = projectFile.fileName;
+        
+        LakiFiles.initializePageSettings(projectRoot, pageName);
+        LakiFiles.createInitialWebFiles(projectRoot, pageName);
     }
 
     /**
      * Safely determines if the current context is a web project.
      */
     public static boolean isWebProject(String fileName) {
-        return fileName != null && fileName.endsWith(".html");
+        return fileName != null && (fileName.endsWith(".html") || fileName.endsWith(".css"));
     }
 }

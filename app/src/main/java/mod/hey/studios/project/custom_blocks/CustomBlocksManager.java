@@ -19,7 +19,7 @@ import a.a.a.eC;
 import a.a.a.hC;
 import a.a.a.jC;
 import a.a.a.kq;
-import laki.webide.core.block.ExtraBlockFile;
+import laki.webide.migrate.block.ExtraBlockFile;
 import mod.hey.studios.editor.manage.block.ExtraBlockInfo;
 import mod.hey.studios.editor.manage.block.v2.BlockLoader;
 import laki.webide.utility.FileUtil;

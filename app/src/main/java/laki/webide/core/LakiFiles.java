@@ -170,57 +170,48 @@ public class LakiFiles {
         return getAbsolutePathOf(s);
     }
 
+    public static String getTagName(com.besome.sketch.beans.ViewBean bean) {
+        String tag = bean.parentAttributes.get("html_tag");
+        if (tag != null && !tag.isEmpty()) {
+            return tag.toLowerCase();
+        }
+        if (bean.convert != null && !bean.convert.isEmpty()) {
+            return bean.convert.toLowerCase();
+        }
+        return b(bean.type);
+    }
+
     public static String b(int type) {
         return switch (type) {
-            case 0 -> "linear";
-            case 1 -> "relativelayout";
-            case 2 -> "hscroll";
-            case 3 -> "button";
-            case 4 -> "textview";
-            case 5 -> "edittext";
-            case 6 -> "imageview";
-            case 7 -> "webview";
-            case 8 -> "progressbar";
-            case 9 -> "listview";
-            case 10 -> "spinner";
-            case 11 -> "checkbox";
-            case 12 -> "vscroll";
-            case 13 -> "switch";
-            case 14 -> "seekbar";
-            case 15 -> "calendarview";
-            case 16 -> "fab";
-            case 17 -> "adview";
-            case 18 -> "mapview";
-            case 19 -> "radiobutton";
-            case 20 -> "ratingbar";
-            case 21 -> "videoview";
-            case 22 -> "searchview";
-            case 23 -> "autocomplete";
-            case 24 -> "multiautocomplete";
-            case 25 -> "gridview";
-            case 26 -> "analogclock";
-            case 27 -> "datepicker";
-            case 28 -> "timepicker";
-            case 29 -> "digitalclock";
-            case 30 -> "tablayout";
-            case 31 -> "viewpager";
-            case 32 -> "bottomnavigation";
-            case 33 -> "badgeview";
-            case 34 -> "patternlockview";
-            case 35 -> "wavesidebar";
-            case 36 -> "cardview";
-            case 37 -> "collapsingtoolbar";
-            case 38 -> "textinputlayout";
-            case 39 -> "swiperefreshlayout";
-            case 40 -> "radiogroup";
-            case 41 -> "materialbutton";
-            case 42 -> "signinbutton";
-            case 43 -> "circleimageview";
-            case 44 -> "lottie";
-            case 45 -> "youtube";
-            case 46 -> "otpview";
-            case 47 -> "codeview";
-            case 48 -> "recyclerview";
+            case 1, 101 -> "div";
+            case 2, 102 -> "header";
+            case 3, 103 -> "footer";
+            case 4, 104 -> "section";
+            case 5, 105 -> "nav";
+            case 6, 106 -> "p";
+            case 7, 107 -> "span";
+            case 8, 108 -> "h1";
+            case 9, 109 -> "h2";
+            case 10, 110 -> "h3";
+            case 11, 111 -> "h4";
+            case 12, 112 -> "h5";
+            case 13, 113 -> "h6";
+            case 14, 114 -> "a";
+            case 15, 115 -> "img";
+            case 16, 116 -> "ul";
+            case 17, 117 -> "ol";
+            case 18, 118 -> "li";
+            case 19, 119 -> "br";
+            case 20, 120 -> "hr";
+            case 21, 121 -> "form";
+            case 22, 122 -> "input";
+            case 23, 123 -> "button";
+            case 24, 124 -> "label";
+            case 25, 125 -> "select";
+            case 26, 126 -> "option";
+            case 27, 127 -> "textarea";
+            case 28, 128 -> "iframe";
+            case 29, 129 -> "main";
             default -> "widget";
         };
     }

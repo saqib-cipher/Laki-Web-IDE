@@ -46,10 +46,6 @@ public class XmlBuilder {
         return str.toString();
     }
 
-    public void addNamespaceDeclaration(int position, String namespace, String attr, String value) {
-        attributes.add(position, new AttributeBuilder(namespace, attr, value));
-    }
-
     public void addChildNode(XmlBuilder xmlBuilder) {
         xmlBuilder.b(indentationLevel + 1);
         childNodes.add(xmlBuilder);

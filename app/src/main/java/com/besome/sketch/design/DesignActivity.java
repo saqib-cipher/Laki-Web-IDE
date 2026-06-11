@@ -53,22 +53,17 @@ import com.topjohnwu.superuser.Shell;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import laki.webide.ProjectWorkspace;
 import dev.chrisbanes.insetter.Insetter;
 import mod.agus.jcoderz.editor.manage.permission.ManagePermissionActivity;
-import mod.agus.jcoderz.editor.manage.resource.ManageResourceActivity;
 import mod.hey.studios.activity.managers.assets.ManageAssetsActivity;
 import mod.hey.studios.activity.managers.java.ManageJavaActivity;
 import mod.hey.studios.project.custom_blocks.CustomBlocksDialog;
 import mod.hey.studios.util.SystemLogPrinter;
-import mod.hilal.saif.activities.android_manifest.AndroidManifestInjection;
 import mod.hilal.saif.activities.tools.ConfigActivity;
 import mod.jbk.diagnostic.CompileErrorSaver;
 import mod.jbk.util.LogUtil;
@@ -76,7 +71,6 @@ import mod.khaled.logcat.LogReaderActivity;
 import laki.webide.R;
 import laki.webide.managers.WebProjectSyncManager;
 import laki.webide.activities.appcompat.ManageAppCompatActivity;
-import laki.webide.activities.editor.command.ManageXMLCommandActivity;
 import laki.webide.activities.editor.view.CodeViewerActivity;
 import laki.webide.activities.editor.view.ViewCodeEditorActivity;
 import laki.webide.activities.resourceseditor.ResourcesEditorActivity;
@@ -89,7 +83,6 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     public static String sc_id;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
-    private ImageView xmlLayoutOrientation;
     private boolean B;
     private int currentTabNumber;
     private CustomViewPager viewPager;
@@ -224,14 +217,6 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
 
     private void refreshViewTabAdapter() {
         if (viewTabAdapter != null && projectFile != null) {
-            int orientation = projectFile.orientation;
-            if (orientation == ProjectFileBean.ORIENTATION_PORTRAIT) {
-                xmlLayoutOrientation.setImageResource(R.drawable.ic_screen_portrait_grey600_24dp);
-            } else if (orientation == ProjectFileBean.ORIENTATION_LANDSCAPE) {
-                xmlLayoutOrientation.setImageResource(R.drawable.ic_screen_landscape_grey600_24dp);
-            } else {
-                xmlLayoutOrientation.setImageResource(R.drawable.ic_screen_rotation_grey600_24dp);
-            }
             viewTabAdapter.initialize(projectFile);
         }
     }
@@ -429,7 +414,6 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
         });
         bottomPopupMenu.setOnDismissListener(menu -> btnOptions.setChecked(false));
 
-        xmlLayoutOrientation = findViewById(R.id.img_orientation);
         viewPager = findViewById(R.id.viewpager);
         viewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager()));
         viewPager.setOffscreenPageLimit(3);
@@ -453,24 +437,30 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
                     componentTabAdapter.unselectAll();
                 }
                 if (position == 0) {
-                    bottomMenu.findItem(7).setVisible(true);
+                    MenuItem item7 = bottomMenu.findItem(7);
+                    if (item7 != null) {
+                        item7.setVisible(true);
+                    }
                     if (viewTabAdapter != null) {
                         viewTabAdapter.showHidePropertyView(true);
-                        xmlLayoutOrientation.setImageResource(R.drawable.ic_mtrl_screen);
                     }
                 } else if (position == 1) {
-                    bottomMenu.findItem(7).setVisible(false);
+                    MenuItem item7 = bottomMenu.findItem(7);
+                    if (item7 != null) {
+                        item7.setVisible(false);
+                    }
                     if (viewTabAdapter != null) {
-                        xmlLayoutOrientation.setImageResource(R.drawable.ic_mtrl_code);
                         viewTabAdapter.showHidePropertyView(false);
                         if (eventTabAdapter != null) {
                             eventTabAdapter.refreshEvents();
                         }
                     }
                 } else {
-                    bottomMenu.findItem(7).setVisible(false);
+                    MenuItem item7 = bottomMenu.findItem(7);
+                    if (item7 != null) {
+                        item7.setVisible(false);
+                    }
                     if (viewTabAdapter != null) {
-                        xmlLayoutOrientation.setImageResource(R.drawable.ic_mtrl_code);
                         viewTabAdapter.showHidePropertyView(false);
                         if (componentTabAdapter != null) {
                             componentTabAdapter.refreshData();
@@ -490,9 +480,18 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     private void updateBottomMenu() {
         if (bottomMenu != null) {
             handler.post(() -> {
-                bottomMenu.findItem(2).setVisible(q != null && FileUtil.isExistFile(q.projectMyscPath));
-                bottomMenu.findItem(4).setVisible(false);
-                bottomMenu.findItem(6).setVisible(false);
+                MenuItem item2 = bottomMenu.findItem(2);
+                if (item2 != null) {
+                    item2.setVisible(q != null && FileUtil.isExistFile(q.projectMyscPath));
+                }
+                MenuItem item4 = bottomMenu.findItem(4);
+                if (item4 != null) {
+                    item4.setVisible(false);
+                }
+                MenuItem item6 = bottomMenu.findItem(6);
+                if (item6 != null) {
+                    item6.setVisible(false);
+                }
             });
         }
     }
@@ -754,7 +753,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
             
             // Sanitize view beans before generating HTML
             ArrayList<ViewBean> cleanBeans = laki.webide.utility.SketchwareUtil.sanitizeViewBeans(viewBeans);
-            var htmlGenerator = new HtmlGenerator(filename, a.a.a.eC.a(cleanBeans), headCode);
+            var htmlGenerator = new HtmlGenerator(filename, SketchwareUtil.cloneViewBeans(cleanBeans), headCode);
             String content = htmlGenerator.generate();
 
             runOnUiThread(() -> {
@@ -812,13 +811,6 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     }
 
     /**
-     * Opens {@link ManageResourceActivity}.
-     */
-    void toResourceManager() {
-        launchActivity(ManageResourceActivity.class, openResourcesManager);
-    }
-
-    /**
      * Opens {@link ResourcesEditorActivity}.
      */
     void toResourceEditor() {
@@ -865,13 +857,6 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
      */
     void toSourceCodeViewer() {
         launchActivity(SrcViewerActivity.class, null, new Pair<>("current", Helper.getText(fileName)));
-    }
-
-    /**
-     * Opens {@link ManageXMLCommandActivity}.
-     */
-    void toXMLCommandManager() {
-        launchActivity(ManageXMLCommandActivity.class, null);
     }
 
     @SafeVarargs

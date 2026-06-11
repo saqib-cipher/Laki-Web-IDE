@@ -9,9 +9,12 @@ import laki.webide.R;
 public class IconHtmlText extends IconBase {
     private final String htmlTag;
 
-    public IconHtmlText(Context context, String tag) {
+    private final int type;
+
+    public IconHtmlText(Context context, String tag, int type) {
         super(context);
         this.htmlTag = tag;
+        this.type = type;
         initialize();
     }
 
@@ -24,7 +27,7 @@ public class IconHtmlText extends IconBase {
     @Override
     public ViewBean getBean() {
         ViewBean viewBean = new ViewBean();
-        viewBean.type = ViewBean.VIEW_TYPE_WIDGET_TEXTVIEW; // 4
+        viewBean.type = type;
         LayoutBean layoutBean = viewBean.layout;
         layoutBean.paddingLeft = 8;
         layoutBean.paddingTop = 8;
@@ -36,7 +39,7 @@ public class IconHtmlText extends IconBase {
         
         // Tells the generator what tag to use
         viewBean.parentAttributes.put("html_tag", htmlTag);
-        viewBean.convert = ""; // Clear CSS addon initially
+        viewBean.convert = htmlTag;
         
         return viewBean;
     }

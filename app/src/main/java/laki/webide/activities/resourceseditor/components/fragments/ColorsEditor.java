@@ -75,13 +75,7 @@ public class ColorsEditor extends Fragment {
         isNightVariant = activity.variant.contains("night");
 
         ArrayList<ColorModel> defaultColors = new ArrayList<>();
-
-        if ((activity.variant.isEmpty() || hasUnsavedChanges) && !FileUtil.isExistFile(contentPath)) {
-            String generatedContent = activity.projectWorkspace.getXMLColor();
-            colorsEditorManager.parseColorsXML(defaultColors, generatedContent);
-        } else {
-            colorsEditorManager.parseColorsXML(defaultColors, FileUtil.readFileIfExist(contentPath));
-        }
+        colorsEditorManager.parseColorsXML(defaultColors, FileUtil.readFileIfExist(contentPath));
         notesMap = new HashMap<>(colorsEditorManager.notesMap);
 
         if (isSkippingMode) {

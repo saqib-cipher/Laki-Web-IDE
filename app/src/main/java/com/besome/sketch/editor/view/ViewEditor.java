@@ -422,8 +422,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
                     ViewBean bean = icon.getBean();
                     bean.id = generateWidgetId(bean);
                     if (b.endsWith(".html")) {
-                        String baseFileName = b.replace(".html", "").replace(".xml", "").toLowerCase();
-                        bean.classNames = baseFileName + "_" + bean.id;
+                        bean.classNames = "c" + bean.id;
                     }
                     viewPane.updateViewBeanProperties(bean, (int) motionEvent.getRawX(), (int) motionEvent.getRawY());
                     jC.a(a).a(b, bean);
@@ -595,26 +594,43 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
 
     public void b(ArrayList<ViewBean> arrayList, boolean z) {
         if (b.endsWith(".html")) {
+            String pageName = b.replace(".html", "").replace(".xml", "").toLowerCase();
             webTagCounts.clear();
             for (ViewBean bean : arrayList) {
                 if (bean.id.contains("_")) {
-                    String afterUnderscore = bean.id.substring(bean.id.lastIndexOf("_") + 1);
-                    int digitStart = -1;
-                    for (int i = afterUnderscore.length() - 1; i >= 0; i--) {
-                        if (!Character.isDigit(afterUnderscore.charAt(i))) {
-                            digitStart = i + 1;
-                            break;
-                        }
+                    int lastUnderscoreIndex = bean.id.lastIndexOf("_");
+                    String tagWithPage = bean.id.substring(0, lastUnderscoreIndex);
+                    String countStr = bean.id.substring(lastUnderscoreIndex + 1);
+                    
+                    String tagNameParsed;
+                    if (tagWithPage.startsWith(pageName)) {
+                        tagNameParsed = tagWithPage.substring(pageName.length());
+                    } else {
+                        tagNameParsed = tagWithPage;
                     }
-                    if (digitStart != -1 && digitStart < afterUnderscore.length()) {
-                        String tagNameParsed = afterUnderscore.substring(0, digitStart);
-                        try {
-                            int count = Integer.parseInt(afterUnderscore.substring(digitStart));
-                            int currentMax = webTagCounts.getOrDefault(tagNameParsed, 0);
-                            if (count > currentMax) {
-                                webTagCounts.put(tagNameParsed, count);
+                    
+                    try {
+                        int count = Integer.parseInt(countStr);
+                        int currentMax = webTagCounts.getOrDefault(tagNameParsed, 0);
+                        if (count > currentMax) {
+                            webTagCounts.put(tagNameParsed, count);
+                        }
+                    } catch (NumberFormatException ignored) {
+                        // Fallback parsing
+                        int digitStart = -1;
+                        for (int i = countStr.length() - 1; i >= 0; i--) {
+                            if (!Character.isDigit(countStr.charAt(i))) {
+                                digitStart = i + 1;
+                                break;
                             }
-                        } catch (NumberFormatException ignored) {}
+                        }
+                        if (digitStart != -1 && digitStart < countStr.length()) {
+                            try {
+                                int c = Integer.parseInt(countStr.substring(digitStart));
+                                int m = webTagCounts.getOrDefault(tagNameParsed, 0);
+                                if (c > m) webTagCounts.put(tagNameParsed, c);
+                            } catch (NumberFormatException ignored2) {}
+                        }
                     }
                 }
             }
@@ -661,52 +677,6 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
         if (isViewAnIconBase(currentTouchedView)) {
             boolean isAppCompatEnabled = jC.c(a).c().isEnabled();
             if (currentTouchedView instanceof uy collectionWidget) {
-                var collectionData = collectionWidget.getData();
-                boolean isAdViewUsed = false;
-                for (ViewBean view : collectionData) {
-                    if (view.type == ViewBean.VIEW_TYPE_WIDGET_ADVIEW) {
-                        isAdViewUsed = true;
-                        break;
-                    }
-                }
-                if (isAdViewUsed && !draggingListener.isAdmobEnabled()) {
-                    bB.b(getContext(), getString(R.string.design_library_guide_setup_first), bB.TOAST_NORMAL).show();
-                    return;
-                }
-
-                boolean isMapViewUsed = false;
-                for (ViewBean view : collectionData) {
-                    if (view.type == ViewBean.VIEW_TYPE_WIDGET_MAPVIEW) {
-                        isMapViewUsed = true;
-                        break;
-                    }
-                }
-                if (isMapViewUsed && !draggingListener.isGoogleMapEnabled()) {
-                    bB.b(getContext(), getString(R.string.design_library_guide_setup_first), bB.TOAST_NORMAL).show();
-                    return;
-                }
-                boolean isAppCompatViewUsed = false;
-                for (ViewBean view : collectionData) {
-                    switch (view.type) {
-                        case ViewBeans.VIEW_TYPE_WIDGET_MATERIALBUTTON,
-                             ViewBeans.VIEW_TYPE_WIDGET_RECYCLERVIEW,
-                             ViewBeans.VIEW_TYPE_LAYOUT_BOTTOMNAVIGATIONVIEW,
-                             ViewBeans.VIEW_TYPE_LAYOUT_TABLAYOUT,
-                             ViewBeans.VIEW_TYPE_LAYOUT_VIEWPAGER,
-                             ViewBeans.VIEW_TYPE_LAYOUT_COLLAPSINGTOOLBARLAYOUT,
-                             ViewBeans.VIEW_TYPE_LAYOUT_TEXTINPUTLAYOUT,
-                             ViewBeans.VIEW_TYPE_LAYOUT_SWIPEREFRESHLAYOUT,
-                             ViewBeans.VIEW_TYPE_LAYOUT_CARDVIEW -> isAppCompatViewUsed = true;
-                    }
-                    if (isAppCompatViewUsed) {
-                        break;
-                    }
-                }
-
-                if (isAppCompatViewUsed && !isAppCompatEnabled) {
-                    bB.b(getContext(), getString(R.string.design_library_guide_setup_first), bB.TOAST_NORMAL).show();
-                    return;
-                }
             } else if (currentTouchedView instanceof IconAdView && !draggingListener.isAdmobEnabled()) {
                 bB.b(getContext(), getString(R.string.design_library_guide_setup_first), bB.TOAST_NORMAL).show();
                 return;
@@ -1023,7 +993,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
         
         String finalId;
         if (isWeb) {
-            finalId = pageName + "_" + tagName + count;
+            finalId = pageName + tagName + "_" + count;
         } else {
             finalId = tagName + count;
         }
@@ -1044,7 +1014,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
             count++;
             if (isWeb) {
                 webTagCounts.put(tagName, count);
-                finalId = pageName + "_" + tagName + count;
+                finalId = pageName + tagName + "_" + count;
             } else {
                 countItems[type] = count;
                 finalId = tagName + count;
@@ -1090,7 +1060,7 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
     }
 
     public void addFab(ViewBean viewBean) {
-        viewPane.addFab(viewBean).setOnTouchListener(this);
+
     }
 
     public void a(ItemView syVar, boolean z) {

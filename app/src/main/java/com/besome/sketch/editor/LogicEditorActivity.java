@@ -962,39 +962,6 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
                                             eC.g(xmlName, ViewBean.VIEW_TYPE_WIDGET_IMAGEVIEW, parameter);
                                             break;
 
-                                        case "seekbar":
-                                            eC.g(xmlName, ViewBean.VIEW_TYPE_WIDGET_SEEKBAR, parameter);
-                                            break;
-
-                                        case "calendarview":
-                                            eC.g(xmlName, ViewBean.VIEW_TYPE_WIDGET_CALENDARVIEW, parameter);
-                                            break;
-
-                                        case "adview":
-                                            eC.g(xmlName, ViewBean.VIEW_TYPE_WIDGET_ADVIEW, parameter);
-                                            break;
-
-                                        case "listview":
-                                            eC.g(xmlName, ViewBean.VIEW_TYPE_WIDGET_LISTVIEW, parameter);
-                                            break;
-
-                                        case "spinner":
-                                            eC.g(xmlName, ViewBean.VIEW_TYPE_WIDGET_SPINNER, parameter);
-                                            break;
-
-
-                                        case "calendar":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_CALENDAR, parameter);
-                                            break;
-
-                                        case "timer":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_TIMERTASK, parameter);
-                                            break;
-
-                                        case "locationmanager":
-                                            eC.d(javaName, ComponentBean.COMPONENT_TYPE_LOCATION_MANAGER, parameter);
-                                            break;
-
                                         case "resource_bg":
                                         case "resource":
                                             for (String str : jC.d(scId).m()) {

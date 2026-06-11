@@ -49,8 +49,6 @@ public class DesignDrawer extends LinearLayout {
             designActivity.toFontManager();
         } else if (id == R.id.item_java_manager) {
             designActivity.toJavaManager();
-        } else if (id == R.id.item_resource_manager) {
-            designActivity.toResourceManager();
         } else if (id == R.id.item_resource_editor) {
             designActivity.toResourceEditor();
         } else if (id == R.id.item_assets_manager) {
@@ -69,8 +67,6 @@ public class DesignDrawer extends LinearLayout {
             SketchwareUtil.toast("Disabled in Web IDE");
         } else if (id == R.id.item_show_src) {
             designActivity.toSourceCodeViewer();
-        } else if (id == R.id.item_xml_command_manager) {
-            designActivity.toXMLCommandManager();
         } else if (id == R.id.item_logcat_reader) {
             designActivity.toLogReader();
         } else if (id == R.id.item_collection_manager) {

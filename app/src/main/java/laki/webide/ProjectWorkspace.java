@@ -114,10 +114,6 @@ public class ProjectWorkspace {
     }
 
     public void a(iC projectLibraryManager, hC projectFileManager, eC projectDataManager) {
-        a(projectLibraryManager, projectFileManager, projectDataManager, ExportType.DEBUG_APP);
-    }
-
-    public void a(iC projectLibraryManager, hC projectFileManager, eC projectDataManager, ExportType exportingType) {
         N = new jq();
         N.packageName = "web.ide.project";
         N.projectName = applicationName;
@@ -130,7 +126,7 @@ public class ProjectWorkspace {
             String xmlName = layout.getXmlName();
             String headCode = laki.webide.managers.HeadEditorManager.getGeneratedHtml(sc_id, layout);
             ArrayList<ViewBean> cleanBeans = laki.webide.utility.SketchwareUtil.sanitizeViewBeans(projectDataManager.d(xmlName));
-            HtmlGenerator htmlGen = new HtmlGenerator(xmlName, eC.a(cleanBeans), headCode);
+            HtmlGenerator htmlGen = new HtmlGenerator(xmlName, laki.webide.utility.SketchwareUtil.cloneViewBeans(cleanBeans), headCode);
             String outputCode = htmlGen.generate();
             srcCodeBeans.add(new SrcCodeBean(xmlName.replace(".xml", ".html"), CommandBlock.applyCommands(xmlName, outputCode)));
         }
@@ -149,7 +145,7 @@ public class ProjectWorkspace {
             }
             String headCode = laki.webide.managers.HeadEditorManager.getGeneratedHtml(sc_id, (fileBean != null ? fileBean : new ProjectFileBean(0, filename)));
             ArrayList<ViewBean> cleanBeans = laki.webide.utility.SketchwareUtil.sanitizeViewBeans(projectDataManager.d(filename));
-            HtmlGenerator htmlGen = new HtmlGenerator(filename, eC.a(cleanBeans), headCode);
+            HtmlGenerator htmlGen = new HtmlGenerator(filename, laki.webide.utility.SketchwareUtil.cloneViewBeans(cleanBeans), headCode);
             return CommandBlock.applyCommands(filename, htmlGen.generate());
         } else if (filename.endsWith(".css")) {
             String baseName = filename.replace(".css", "");
@@ -186,21 +182,5 @@ public class ProjectWorkspace {
         for (SrcCodeBean bean : srcCodeBeans) {
             a(bean.srcFileName, bean.source);
         }
-    }
-
-    public void a(Context context, String str) {}
-    public void aa(String iconPath) {}
-    public void f() {}
-    public void e() {}
-    public String getXMLString() { return ""; }
-    public String getXMLColor() { return ""; }
-    public String getXMLStyle() { return ""; }
-
-    public enum ExportType {
-        AAB,
-        SIGN_APP,
-        DEBUG_APP,
-        ANDROID_STUDIO,
-        SOURCE_CODE_VIEWING
     }
 }

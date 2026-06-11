@@ -219,30 +219,7 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                         Helper.getText(tvName),
                         Float.parseFloat(value.isEmpty() ? "0" : value),
                         0f, 10f, 1f, true);
-                case "property_lines" -> {
-                    float currentVal = Float.parseFloat(value.isEmpty() ? "0" : value);
-                    float maxRange = Math.max(20f, currentVal);
-                    float minRange = Math.min(0f, currentVal);
-                    showHybridSliderDialog(
-                            Helper.getText(tvName),
-                            currentVal,
-                            minRange, maxRange, 1f, true);
-                }
-                case "property_max" -> showHybridSliderDialog(
-                        Helper.getText(tvName),
-                        Float.parseFloat(value.isEmpty() ? "100" : value),
-                        1f, 1000f, 1f, true);
-                case "property_progress" -> {
-                    float maxValue = bean != null ? bean.max : 100f;
-                    showHybridSliderDialog(
-                            Helper.getText(tvName),
-                            Float.parseFloat(value.isEmpty() ? "0" : value),
-                            0f, maxValue, 1f, true);
-                }
-                case "property_divider_height" -> showHybridSliderDialog(
-                        Helper.getText(tvName),
-                        Float.parseFloat(value.isEmpty() ? "1" : value),
-                        0f, 50f, 1f, true);
+
                 case "property_convert", "property_inject" -> {
                     if (isWeb) showTextInputDialog(9999, true);
                     else if (key.equals("property_convert")) showAutoCompleteDialog();
@@ -330,14 +307,6 @@ public class PropertyInputItem extends RelativeLayout implements View.OnClickLis
                             } else {
                                 binding.tiInput.setError("Value must be 0 or greater");
                             }
-                        }
-                    } else if (key.equals("property_progress") && bean != null) {
-                        float maxLimit = bean.max;
-                        if (inputValue >= 0 && inputValue <= maxLimit) {
-                            binding.slider.setValue(inputValue);
-                            binding.tiInput.setError(null);
-                        } else {
-                            binding.tiInput.setError(String.format("Value must be between 0 and %.0f", maxLimit));
                         }
                     } else {
                         if (inputValue >= minValue && inputValue <= maxValue) {

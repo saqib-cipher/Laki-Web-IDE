@@ -227,41 +227,6 @@ public class CommandBlock {
         return firstLine;
     }
 
-    public static String CBForXml(String c) {
-        String OC = c;
-        String RC = OC;
-        String SID = "/*AXAVajPNTpbJjsz-NGVTp08YDzfI-04kA7ZsuCl4GHqTQQiuWL45sV6Vf4gwK";
-        String EID = "Ui5_PNTJb21WO6OuGwQ3psk3su1LIvyXo_OAol-kVQBC5jtN_DcPLaRCJ0yXp*/";
-        try {
-            //commands list
-            ArrayList<HashMap<String, Object>> Cs = new ArrayList<>();
-            //get command blocks from java code and add them to the list
-            getCBs(Cs, RC, SID, EID);
-            //remove commands lines from java file
-            RC = rCCs(RC, SID, EID);
-            //write temporary file
-            WTF(Cs);
-            return RC;
-        } catch (Exception e) {
-            writeLog(e.toString());
-            return rCCs(c, SID, EID);
-        }
-    }
-
-    // Write Temporary File
-    private static void WTF(ArrayList<HashMap<String, Object>> list) {
-        String path = FileUtil.getExternalStorageDir().concat("/.lakiwebsites/temp/commands");
-        ArrayList<HashMap<String, Object>> data = new ArrayList<>();
-        try {
-            if (FileUtil.isExistFile(path) && !FileUtil.readFile(path).isEmpty() && !FileUtil.readFile(path).equals("[]")) {
-                data = new Gson().fromJson(FileUtil.readFile(path), Helper.TYPE_MAP_LIST);
-            }
-        } catch (Exception ignored) {
-        }
-        data.addAll(list);
-        FileUtil.writeFile(path, new Gson().toJson(data));
-    }
-
     public static void x() {
         String path = FileUtil.getExternalStorageDir().concat("/.lakiwebsites/temp/commands");
         if (FileUtil.isExistFile(path)) {
@@ -281,8 +246,6 @@ public class CommandBlock {
             getCBs(Cs, RC, SID, EID);
             //remove commands lines from java file
             RC = rCCs(RC, SID, EID);
-            //command blocks for xml
-            RC = CBForXml(RC);
             //apply commands
             RC = aCs(Cs, RC);
             return RC;

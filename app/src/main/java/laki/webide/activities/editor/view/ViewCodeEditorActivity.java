@@ -27,13 +27,11 @@ import laki.webide.R;
 import laki.webide.activities.preview.LayoutPreviewActivity;
 import laki.webide.databinding.ViewCodeEditorBinding;
 import laki.webide.managers.inject.InjectRootLayoutManager;
-import laki.webide.tools.ViewBeanParser;
 import laki.webide.compiler.HtmlParser;
 import laki.webide.ProjectWorkspace;
 import java.util.ArrayList;
 import laki.webide.utility.EditorUtils;
 import laki.webide.utility.SketchwareUtil;
-import laki.webide.utility.relativelayout.CircularDependencyDetector;
 
 public class ViewCodeEditorActivity extends BaseAppCompatActivity {
     private ViewCodeEditorBinding binding;
@@ -219,27 +217,8 @@ public class ViewCodeEditorActivity extends BaseAppCompatActivity {
                 String editedContent = editor.getText().toString();
                 String filename = getIntent().getStringExtra("title");
                 
-                if (filename.endsWith(".html")) {
-                    // For Web projects, we use HtmlParser and skip circular dependency checks
-                    HtmlParser.parseHtml(editedContent, sc_id, this); 
-                } else {
-                    // Parse content to validate circular dependencies
-                    var parser = new ViewBeanParser(editedContent);
-                    parser.setSkipRoot(true);
-
-                    var parsedLayout = parser.parse();
-                    for (ViewBean viewBean : parsedLayout) {
-                        CircularDependencyDetector detector = new CircularDependencyDetector(parsedLayout, viewBean);
-                        for (String attr : viewBean.parentAttributes.keySet()) {
-                            String targetId = viewBean.parentAttributes.get(attr);
-                            if (!detector.isLegalAttribute(targetId, attr)) {
-                                SketchwareUtil.toastError("Circular dependency found in \"" + viewBean.name + "\"\n" +
-                                        "Please resolve the issue before saving");
-                                return;
-                            }
-                        }
-                    }
-                }
+                // For Web projects, we use HtmlParser and skip circular dependency checks
+                HtmlParser.parseHtml(editedContent, sc_id, this); 
 
                 // Update content only after validation
                 content = editedContent;
@@ -264,18 +243,10 @@ public class ViewCodeEditorActivity extends BaseAppCompatActivity {
         String filename = getIntent().getStringExtra("title");
         try {
             ArrayList<ViewBean> parsedLayout;
-            if (filename.endsWith(".html")) {
-                parsedLayout = HtmlParser.parseHtml(content, sc_id, this);
-                // For Web projects, we also persist the HTML directly to disk
-                var workspace = new ProjectWorkspace(this, sc_id);
-                workspace.a(filename, content);
-            } else {
-                var parser = new ViewBeanParser(content);
-                parser.setSkipRoot(true);
-                parsedLayout = parser.parse();
-                var root = parser.getRootAttributes();
-                rootLayoutManager.set(filename, InjectRootLayoutManager.toRoot(root));
-            }
+            parsedLayout = HtmlParser.parseHtml(content, sc_id, this);
+            // For Web projects, we also persist the HTML directly to disk
+            var workspace = new ProjectWorkspace(this, sc_id);
+            workspace.a(filename, content);
 
             HistoryViewBean bean = new HistoryViewBean();
             bean.actionOverride(parsedLayout, jC.a(sc_id).d(filename));

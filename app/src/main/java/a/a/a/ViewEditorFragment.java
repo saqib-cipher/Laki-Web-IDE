@@ -23,9 +23,7 @@ import com.besome.sketch.editor.PropertyActivity;
 import com.besome.sketch.editor.view.DraggingListener;
 import com.besome.sketch.editor.view.ViewEditor;
 import com.besome.sketch.editor.view.ViewProperty;
-import com.besome.sketch.editor.view.palette.PaletteWidget;
 
-import com.besome.sketch.beans.ViewBean;
 import java.util.ArrayList;
 
 import laki.webide.core.LakiFiles;
@@ -187,7 +185,7 @@ public class ViewEditorFragment extends qA {
 
     public void a(ArrayList<ViewBean> viewBeans) {
         viewEditor.h();
-        viewEditor.a(eC.a(viewBeans));
+        viewEditor.a(SketchwareUtil.cloneViewBeans(viewBeans));
     }
 
     public void a(boolean var1) {
@@ -403,7 +401,7 @@ public class ViewEditorFragment extends qA {
     }
 
     public void n() {
-        ArrayList<ViewBean> viewBeanArrayList = eC.a(jC.a(sc_id).d(projectFileBean.getXmlName()));
+        ArrayList<ViewBean> viewBeanArrayList = SketchwareUtil.cloneViewBeans(jC.a(sc_id).d(projectFileBean.getXmlName()));
         ViewBean viewBean;
         if (projectFileBean.hasActivityOption(ProjectFileBean.OPTION_ACTIVITY_FAB)) {
             viewBean = jC.a(sc_id).h(projectFileBean.getXmlName());

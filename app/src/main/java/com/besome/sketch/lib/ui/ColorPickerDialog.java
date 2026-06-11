@@ -23,6 +23,7 @@ import com.besome.sketch.editor.manage.library.material3.Material3LibraryManager
 import com.besome.sketch.editor.view.ColorGroupItem;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -74,7 +75,7 @@ public class ColorPickerDialog extends PopupWindow {
         binding = ColorPickerBinding.inflate(activity.getLayoutInflater());
         sc_id = scId;
         projectWorkspace = new ProjectWorkspace(activity, sc_id);
-        projectWorkspace.a(jC.c(sc_id), jC.b(sc_id), jC.a(sc_id), ProjectWorkspace.ExportType.SOURCE_CODE_VIEWING);
+        projectWorkspace.a(jC.c(sc_id), jC.b(sc_id), jC.a(sc_id));
         material3LibraryManager = new Material3LibraryManager(scId);
         colorsEditorManager = new ColorsEditorManager();
         hasMaterialColors = true;
@@ -568,7 +569,8 @@ public class ColorPickerDialog extends PopupWindow {
         ArrayList<ColorModel> colorList = new ArrayList<>();
         ArrayList<ColorModel> colorNightList = new ArrayList<>();
 
-        colorsEditorManager.parseColorsXML(colorList, projectWorkspace.getXMLColor());
+        String colorsPath = projectWorkspace.resDirectoryPath + File.separator + "values" + File.separator + "colors.xml";
+        colorsEditorManager.parseColorsXML(colorList, FileUtil.readFileIfExist(colorsPath));
         colorsEditorManager.parseColorsXML(colorNightList, FileUtil.readFileIfExist(fileNightPath));
 
         HashMap<String, String> nightColorsMap = new HashMap<>();

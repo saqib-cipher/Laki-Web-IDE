@@ -24,14 +24,7 @@ public class ViewBeanFactory {
 
     public static int getConsideredTypeViewByName(String name, int def) {
         return switch (name) {
-            //Add more here
-            case "MaterialSwitch" -> ViewBean.VIEW_TYPE_WIDGET_SWITCH;
-            case "MaterialCardView", "CardView" -> ViewBeans.VIEW_TYPE_LAYOUT_CARDVIEW;
-            case "TextInputEditText" -> ViewBean.VIEW_TYPE_WIDGET_EDITTEXT;
-            //idk should I use ImageView(ViewBean.VIEW_TYPE_WIDGET_IMAGEVIEW) or Button(ViewBean.VIEW_TYPE_WIDGET_BUTTON)?
-            case "ImageButton" -> ViewBean.VIEW_TYPE_WIDGET_IMAGEVIEW;
-            case "NestedScrollView" -> ViewBean.VIEW_TYPE_LAYOUT_VSCROLLVIEW;
-            default -> def;
+           default -> def;
         };
     }
 
@@ -137,11 +130,6 @@ public class ViewBeanFactory {
             var reference = parseReferName(attrName, ":");
             if (!AttributeConstants.BUILT_IN_ATTRIBUTES.contains(reference)) {
                 // This attribute wasn't included in built-in attributes intentionally
-                if (attrName.equals("style")
-                        && bean.type == ViewBean.VIEW_TYPE_WIDGET_PROGRESSBAR) {
-                    // Skip this since only progressbar have this attribute in ViewBean
-                    continue;
-                }
                 // Skip and handle relative parent attributes separately
                 if (isRelativeAttr(attrName)) {
                     bean.parentAttributes.put(attrName, parseReferName(attrValue, "/"));
@@ -255,9 +243,7 @@ public class ViewBeanFactory {
         }
 
         switch (bean.type) {
-            case ViewBean.VIEW_TYPE_WIDGET_CHECKBOX,
-                 ViewBean.VIEW_TYPE_WIDGET_SWITCH,
-                 ViewBeans.VIEW_TYPE_WIDGET_RADIOBUTTON -> {
+            case ViewBeans.VIEW_TYPE_WIDGET_RADIOBUTTON -> {
                 var checked = attributes.getOrDefault("android:checked", null);
                 if (checked != null) {
                     if (!checked.startsWith("@bool/")) {
@@ -265,107 +251,6 @@ public class ViewBeanFactory {
                     } else {
                         injectAttributes.put("android:checked", checked);
                     }
-                }
-            }
-            case ViewBean.VIEW_TYPE_WIDGET_SEEKBAR, ViewBean.VIEW_TYPE_WIDGET_PROGRESSBAR -> {
-                var progress = attributes.getOrDefault("android:progress", null);
-                if (progress != null) {
-                    try {
-                        bean.progress = Integer.parseInt(progress);
-                    } catch (Exception e) {
-                        injectAttributes.put("android:progress", progress);
-                    }
-                }
-
-                var max = attributes.getOrDefault("android:max", null);
-                if (max != null) {
-                    try {
-                        var maxValue = Integer.parseInt(max);
-                        if (maxValue != ViewBean.DEFAULT_MAX) {
-                            bean.max = maxValue;
-                        }
-                    } catch (Exception e) {
-                        injectAttributes.put("android:max", max);
-                    }
-                }
-                if (bean.type == ViewBean.VIEW_TYPE_WIDGET_PROGRESSBAR) {
-                    var style = attributes.getOrDefault("style", null);
-                    if (style != null) {
-                        if (style.equals(ViewBean.PROGRESSBAR_STYLE_HORIZONTAL)) {
-                            bean.progressStyle = ViewBean.PROGRESSBAR_STYLE_HORIZONTAL;
-                        } else if (style.equals(ViewBean.PROGRESSBAR_STYLE_CIRCLE)) {
-                            bean.progressStyle = ViewBean.PROGRESSBAR_STYLE_CIRCLE;
-                        } else {
-                            injectAttributes.put("style", ViewBean.PROGRESSBAR_STYLE_HORIZONTAL);
-                        }
-                    }
-
-                    var indeterminate = attributes.getOrDefault("android:indeterminate", null);
-                    if (indeterminate != null) {
-                        if (!indeterminate.startsWith("@bool/")) {
-                            bean.indeterminate = indeterminate;
-                        } else {
-                            injectAttributes.put("android:indeterminate", indeterminate);
-                        }
-                    }
-                }
-            }
-            case ViewBean.VIEW_TYPE_WIDGET_CALENDARVIEW -> {
-                var firstDayOfWeek = attributes.getOrDefault("android:firstDayOfWeek", null);
-                if (firstDayOfWeek != null) {
-                    try {
-                        var firstDayOfWeekValue = Integer.parseInt(firstDayOfWeek);
-                        if (firstDayOfWeekValue != 1) {
-                            bean.firstDayOfWeek = firstDayOfWeekValue;
-                        }
-                    } catch (Exception e) {
-                        injectAttributes.put("android:firstDayOfWeek", firstDayOfWeek);
-                    }
-                }
-            }
-            case ViewBean.VIEW_TYPE_WIDGET_SPINNER -> {
-                var spinnerMode = attributes.getOrDefault("android:spinnerMode", null);
-                if (spinnerMode != null) {
-                    if (spinnerMode.equals("dialog")) {
-                        bean.spinnerMode = ViewBean.SPINNER_MODE_DIALOG;
-                    } else if (spinnerMode.equals("dropdown")) {
-                        bean.spinnerMode = ViewBean.SPINNER_MODE_DROPDOWN;
-                    } else {
-                        injectAttributes.put("android:spinnerMode", spinnerMode);
-                    }
-                }
-            }
-            case ViewBean.VIEW_TYPE_WIDGET_LISTVIEW -> {
-                var dividerHeight =
-                        getDimen("android:dividerHeight", attributes, injectAttributes);
-                if (dividerHeight > 1) {
-                    bean.dividerHeight = dividerHeight;
-                }
-
-                var choiceMode = attributes.getOrDefault("android:choiceMode", null);
-                if (choiceMode != null) {
-                    var value =
-                            switch (choiceMode) {
-                                case "none" -> ViewBean.CHOICE_MODE_NONE;
-                                case "singleChoice" -> ViewBean.CHOICE_MODE_SINGLE;
-                                case "multipleChoice" -> ViewBean.CHOICE_MODE_MULTI;
-                                default -> -1;
-                            };
-                    if (value > -1) {
-                        bean.choiceMode = value;
-                    } else {
-                        injectAttributes.put("android:choiceMode", choiceMode);
-                    }
-                }
-            }
-            case ViewBean.VIEW_TYPE_WIDGET_ADVIEW -> {
-                var adSize = attributes.getOrDefault("app:adSize", null);
-                bean.adSize = Objects.requireNonNullElse(adSize, "SMART_BANNER");
-                var adUnitId = attributes.getOrDefault("app:adUnitId", null);
-                //noinspection StatementWithEmptyBody
-                if (adUnitId != null) {
-                    // This can probably be ignored since it's auto-generated
-                    // bean.adUnitId = "debug : " + adUnitId;
                 }
             }
         }

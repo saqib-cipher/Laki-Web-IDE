@@ -42,6 +42,7 @@ import a.a.a.wq;
 import a.a.a.xw;
 import laki.webide.R;
 import laki.webide.managers.WebProjectEditorManager;
+import laki.webide.utility.SketchwareUtil;
 
 public class ManageViewActivity extends BaseAppCompatActivity implements OnClickListener, ViewPager.OnPageChangeListener {
     private static final int TAB_COUNT = 2;
@@ -112,7 +113,7 @@ public class ManageViewActivity extends BaseAppCompatActivity implements OnClick
 
     public final void a(ProjectFileBean var1, ArrayList<ViewBean> var2) {
         jC.a(sc_id);
-        for (ViewBean viewBean : eC.a(var2)) {
+        for (ViewBean viewBean : SketchwareUtil.cloneViewBeans(var2)) {
             viewBean.id = a(viewBean.type, var1.getXmlName());
             jC.a(sc_id).a(var1.getXmlName(), viewBean);
             if (viewBean.type == ViewBean.VIEW_TYPE_WIDGET_BUTTON && var1.fileType == ProjectFileBean.PROJECT_FILE_TYPE_ACTIVITY) {
@@ -221,7 +222,6 @@ public class ManageViewActivity extends BaseAppCompatActivity implements OnClick
             a(false);
         } else {
             k();
-
             try {
                 new Handler().postDelayed(() -> new a(this).execute(), 500L);
             } catch (Exception e) {

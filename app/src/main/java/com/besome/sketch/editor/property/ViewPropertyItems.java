@@ -65,7 +65,7 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
     }
 
     private void a(ViewBean bean) {
-        if (getOrientation() == LinearLayout.VERTICAL) {
+        if (getOrientation() == LinearLayout.VERTICAL && bean.supportsLayout()) {
             a(getContext().getString(R.string.property_header_layout));
         }
 
@@ -94,7 +94,6 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
                 a("property_padding", layoutBean.paddingLeft, layoutBean.paddingTop, layoutBean.paddingRight, layoutBean.paddingBottom);
             }
             case "property_orientation" -> c(property, bean.layout.orientation);
-            case "property_weight_sum" -> b(property, String.valueOf(bean.layout.weightSum));
             case "property_gravity" -> b(property, bean.layout.gravity);
             case "property_layout_gravity" -> b(property, bean.layout.layoutGravity);
             case "property_weight" -> b(property, String.valueOf(bean.layout.weight));
@@ -104,12 +103,8 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             case "property_text_color" -> r(property, bean.text.resTextColor, bean.text.textColor);
             case "property_hint" -> b(property, bean.text.hint);
             case "property_hint_color" -> r(property, bean.text.resHintColor, bean.text.hintColor);
-            case "property_single_line" -> e(property, bean.text.singleLine);
-            case "property_lines" -> b(property, String.valueOf(bean.text.line));
             case "property_input_type" -> c(property, bean.text.inputType);
-            case "property_ime_option" -> c(property, bean.text.imeOption);
             case "property_image" -> b(property, bean.image.resName, true);
-            case "property_scale_type" -> d(property, bean.image.scaleType);
             case "property_background_resource" ->
                     b(property, bean.layout.backgroundResource, false);
             case "property_background_color" ->
@@ -121,16 +116,8 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             case "property_translation_y" -> b(property, String.valueOf(bean.translationY));
             case "property_scale_x" -> b(property, String.valueOf(bean.scaleX));
             case "property_scale_y" -> b(property, String.valueOf(bean.scaleY));
-            case "property_spinner_mode" -> c(property, bean.spinnerMode);
-            case "property_divider_height" -> d(property, bean.dividerHeight);
-            case "property_custom_view_listview" -> a(property, bean.customView);
+           case "property_custom_view_listview" -> a(property, bean.customView);
             case "property_checked" -> e(property, bean.checked);
-            case "property_max" -> b(property, String.valueOf(bean.max));
-            case "property_progress" -> b(property, String.valueOf(bean.progress));
-            case "property_first_day_of_week" -> c(property, bean.firstDayOfWeek);
-            case "property_ad_size" -> d(property, bean.adSize);
-            case "property_progressbar_style" -> c(property, bean.progressStyle);
-            case "property_indeterminate" -> d(property, bean.indeterminate);
             case "property_inject" -> b(property, bean.inject);
             case "property_class_name" -> b(property, bean.classNames);
             default -> {
@@ -442,12 +429,10 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
     }
 
     public void d(ViewBean bean) {
-        if (getOrientation() == LinearLayout.VERTICAL) {
+        if (getOrientation() == LinearLayout.VERTICAL && bean.supportsLayout()) {
             a(getContext().getString(R.string.property_header_layout));
         }
 
-        Gx classInfo = bean.getClassInfo();
-        Gx parentClassInfo = bean.getParentClassInfo();
         boolean isWeb = isWeb();
         
         a(bean, "property_layout_width");
@@ -458,11 +443,9 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
         a(bean, "property_padding");
         a(bean, "property_margin");
         
-        if (classInfo.a("LinearLayout")) {
+        if (bean.supportsLayout()) {
             a(bean, "property_orientation");
-            if (!isWeb) {
-                a(bean, "property_weight_sum");
-            } else {
+            if (isWeb) {
                 String tag = bean.convert != null ? bean.convert.toLowerCase() : "";
                 if (tag.equals("form")) {
                     a(bean, "html_attr_action");
@@ -472,19 +455,13 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             a(bean, "property_gravity");
         }
 
-        if (classInfo.a("TextView")) {
+        if (bean.supportsText()) {
             a(bean, "property_gravity");
         }
 
-        if (parentClassInfo != null) {
-            if (parentClassInfo.a("LinearLayout")) {
-                a(bean, "property_layout_gravity");
-                if (!isWeb) a(bean, "property_weight");
-            }
-
-            if (parentClassInfo.a("ScrollView") || parentClassInfo.a("HorizontalScrollView")) {
-                a(bean, "property_layout_gravity");
-            }
+        if (bean.parentType != -1) {
+            a(bean, "property_layout_gravity");
+            a(bean, "property_weight");
         }
     }
 
@@ -607,7 +584,6 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
 
     public void f(ViewBean bean) {
         if (!bean.id.equals("_fab")) {
-            Gx classInfo = bean.getClassInfo();
             boolean isWeb = isWeb();
             String tag = bean.convert != null ? bean.convert.toLowerCase() : "";
             
@@ -667,86 +643,19 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
 
             a(bean, "property_convert");
             
-            if (!isWeb) {
-                if (classInfo.b("Spinner")) {
-                    a(bean, "property_spinner_mode");
-                }
-
-                if (classInfo.b("ListView")) {
-                    a(bean, "property_divider_height");
-                    a(bean, "property_custom_view_listview");
-                }
-
-                if (classInfo.b("GridView")) {
-                    a(bean, "property_custom_view_listview");
-                }
-
-                if (classInfo.b("RecyclerView")) {
-                    a(bean, "property_custom_view_listview");
-                }
-
-                if (classInfo.b("ViewPager")) {
-                    a(bean, "property_custom_view_listview");
-                }
-
-                if (classInfo.b("Spinner")) {
-                    a(bean, "property_custom_view_listview");
-                }
-            } else {
-                // Web specific list containers
-                if (classInfo.b("ListView") || classInfo.b("GridView")) {
+            if (isWeb) {
+                if (bean.type == ViewBean.VIEW_TYPE_HTML_UL || bean.type == ViewBean.VIEW_TYPE_HTML_OL || 
+                    bean.type == ViewBean.VIEW_TYPE_HTML_SELECT) {
                      a(bean, "property_custom_view_listview");
-                }
-            }
-
-            if (classInfo.b("AutoCompleteTextView")) {
-                a(bean, "property_hint");
-                a(bean, "property_hint_color");
-            }
-
-            if (classInfo.b("MultiAutoCompleteTextView")) {
-                a(bean, "property_hint");
-                a(bean, "property_hint_color");
-            }
-
-            if (!isWeb && classInfo.b("WaveSideBar")) {
-                b("property_text_size", String.valueOf(bean.text.textSize));
-                a(bean, "property_text_color");
-            }
-
-            if (classInfo.a("CompoundButton") && getOrientation() == LinearLayout.VERTICAL) {
-                a(bean, "property_checked");
-            }
-
-            if (!isWeb) {
-                if (classInfo.b("SeekBar")) {
-                    a(bean, "property_max");
-                    a(bean, "property_progress");
-                }
-
-                if (classInfo.b("CalendarView")) {
-                    a(bean, "property_first_day_of_week");
-                }
-
-                if (classInfo.b("AdView")) {
-                    a(bean, "property_ad_size");
-                }
-
-                if (classInfo.b("ProgressBar")) {
-                    a(bean, "property_max");
-                    a(bean, "property_progress");
-                    a(bean, "property_progressbar_style");
-                    a(bean, "property_indeterminate");
                 }
             }
         }
     }
 
     public void g(ViewBean bean) {
-        Gx classInfo = bean.getClassInfo();
         boolean isWeb = isWeb();
         
-        if (classInfo.a("TextView")) {
+        if (bean.supportsText()) {
             if (getOrientation() == LinearLayout.VERTICAL) {
                 a(getContext().getString(R.string.property_header_text));
             }
@@ -762,69 +671,38 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             a(bean, "property_text_size");
             a(bean, "property_text_style");
             a(bean, "property_text_color");
-            if (classInfo.b("EditText")) {
+            if (bean.supportsInput()) {
                 a(bean, "property_hint");
                 a(bean, "property_hint_color");
-                if (getOrientation() == LinearLayout.VERTICAL) {
-                    if (!isWeb) a(bean, "property_single_line");
-                }
-
-                if (!isWeb) {
-                    a(bean, "property_lines");
-                }
-                
                 a(bean, "property_input_type");
-                
-                if (!isWeb) {
-                    a(bean, "property_ime_option");
-                }
-            }
-
-            if (classInfo.b("TextView")) {
-                if (getOrientation() == LinearLayout.VERTICAL) {
-                    if (!isWeb) a(bean, "property_single_line");
-                }
-
-                if (!isWeb) a(bean, "property_lines");
             }
         }
     }
 
     public void h(ViewBean bean) {
-        Gx classInfo = bean.getClassInfo();
         boolean isWeb = isWeb();
         
         if (getOrientation() == LinearLayout.VERTICAL) {
-            if (classInfo.a("ImageView")) {
+            if (bean.supportsImage()) {
                 a(getContext().getString(R.string.property_header_image), this);
                 a(bean, "property_image");
                 if (isWeb) {
                     a(bean, "html_attr_alt");
                 }
-                if (!isWeb) a(bean, "property_scale_type");
             } else {
                 a(getContext().getString(R.string.property_header_image));
             }
-        } else if (classInfo.a("ImageView")) {
+        } else if (bean.supportsImage()) {
             a(bean, "property_image");
-            if (!isWeb) a(bean, "property_scale_type");
-        }
-
-        if (bean.type != ViewBean.VIEW_TYPE_WIDGET_MAPVIEW) {
-            a(bean, "property_background_resource");
-            a(bean, "property_background_color");
         }
 
         if (getOrientation() == LinearLayout.VERTICAL
-                && !classInfo.b("LinearLayout")
-                && !classInfo.b("ScrollView")
-                && !classInfo.b("HorizontalScrollView")
-                && !classInfo.b("ListView")
-                && !classInfo.b("FloatingActionButton")) {
+                && bean.supportsLayout()
+                && !isWeb) {
             a(bean, "property_enabled");
         }
 
-        if (!isWeb) a(bean, "property_rotate");
+        a(bean, "property_rotate");
         a(bean, "property_alpha");
         a(bean, "property_translation_x");
         a(bean, "property_translation_y");
@@ -854,8 +732,6 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
                     case "property_text_size" -> bean.text.textSize = Integer.parseInt(inputItem.getValue());
                     case "property_weight" ->
                             bean.layout.weight = Integer.parseInt(inputItem.getValue());
-                    case "property_weight_sum" ->
-                            bean.layout.weightSum = Integer.parseInt(inputItem.getValue());
                     case "property_rotate" ->
                             bean.image.rotate = Integer.parseInt(inputItem.getValue());
                     case "property_alpha" -> bean.alpha = Float.parseFloat(inputItem.getValue());
@@ -865,12 +741,7 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
                             bean.translationY = Float.parseFloat(inputItem.getValue());
                     case "property_scale_x" -> bean.scaleX = Float.parseFloat(inputItem.getValue());
                     case "property_scale_y" -> bean.scaleY = Float.parseFloat(inputItem.getValue());
-                    case "property_lines" ->
-                            bean.text.line = Integer.parseInt(inputItem.getValue());
-                    case "property_max" -> bean.max = Integer.parseInt(inputItem.getValue());
-                    case "property_progress" ->
-                            bean.progress = Integer.parseInt(inputItem.getValue());
-                    default -> {
+                   default -> {
                         if (inputItem.getKey().startsWith("html_attr_")) {
                             String attrName = inputItem.getKey().replace("html_attr_", "");
                             bean.parentAttributes.put(attrName, inputItem.getValue());
@@ -889,32 +760,20 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
                             bean.layout.orientation = selectorItem.getValue();
                     case "property_text_style" -> bean.text.textType = selectorItem.getValue();
                     case "property_input_type" -> bean.text.inputType = selectorItem.getValue();
-                    case "property_ime_option" -> bean.text.imeOption = selectorItem.getValue();
-                    case "property_spinner_mode" -> bean.spinnerMode = selectorItem.getValue();
-                    case "property_first_day_of_week" ->
-                            bean.firstDayOfWeek = selectorItem.getValue();
-                    case "property_text_size" -> bean.text.textSize = selectorItem.getValue();
-                }
+                  }
             } else if (view instanceof PropertyStringSelectorItem stringSelectorItem) {
                 switch (stringSelectorItem.getKey()) {
                     case "property_scale_type" ->
                             bean.image.scaleType = stringSelectorItem.getValue();
-                    case "property_ad_size" -> bean.adSize = stringSelectorItem.getValue();
-                    case "property_indeterminate" ->
-                            bean.indeterminate = stringSelectorItem.getValue();
                 }
             } else if (view instanceof PropertyStringPairSelectorItem stringPairSelectorItem) {
-                if (stringPairSelectorItem.getKey().equals("property_progressbar_style")) {
-                    bean.progressStyle = stringPairSelectorItem.getValue();
-                }
+
             } else if (view instanceof PropertyCustomViewItem listview_item) {
                 if (listview_item.getKey().equals("property_custom_view_listview")) {
                     bean.customView = listview_item.getValue();
                 }
             } else if (view instanceof PropertySwitchSingleLineItem switchSingleLineItem) {
                 switch (switchSingleLineItem.getKey()) {
-                    case "property_single_line" ->
-                            bean.text.singleLine = switchSingleLineItem.getValue() ? 1 : 0;
                     case "property_enabled" ->
                             bean.enabled = switchSingleLineItem.getValue() ? 1 : 0;
                     case "property_clickable" ->
@@ -963,11 +822,7 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
                 } else if (image_item.getKey().equals("property_background_resource")) {
                     bean.layout.backgroundResource = image_item.getValue();
                 }
-            } else if (view instanceof PropertySizeItem sizeItem) {
-                if (sizeItem.getKey().equals("property_divider_height")) {
-                    bean.dividerHeight = sizeItem.getValue();
-                }
-            } else if (view instanceof PropertyAttributesItem item) {
+            }  else if (view instanceof PropertyAttributesItem item) {
                 if (item.getKey().equals("property_parent_attr")) {
                     bean.parentAttributes = item.getValue();
                 }
@@ -992,18 +847,20 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
                 HashMap<String, ArrayList<BlockBean>> beanMap = jC.a(sc_id).b(e.getJavaName());
 
                 for (String events : oq.getEventsForClass(bean.getClassInfo())) {
-                    StringBuilder eventBodyBuilder = new StringBuilder();
-                    eventBodyBuilder.append(bean.preId);
-                    eventBodyBuilder.append("_");
-                    eventBodyBuilder.append(events);
-                    String body = eventBodyBuilder.toString();
-                    if (beanMap.containsKey(body)) {
-                        eventBodyBuilder = new StringBuilder();
-                        eventBodyBuilder.append(bean.id);
+                    if (events.equals("onClick") || events.equals("onLongClick") || events.equals("onTextChanged")) {
+                        StringBuilder eventBodyBuilder = new StringBuilder();
+                        eventBodyBuilder.append(bean.preId);
                         eventBodyBuilder.append("_");
                         eventBodyBuilder.append(events);
-                        beanMap.put(eventBodyBuilder.toString(), beanMap.get(body));
-                        beanMap.remove(body);
+                        String body = eventBodyBuilder.toString();
+                        if (beanMap.containsKey(body)) {
+                            eventBodyBuilder = new StringBuilder();
+                            eventBodyBuilder.append(bean.id);
+                            eventBodyBuilder.append("_");
+                            eventBodyBuilder.append(events);
+                            beanMap.put(eventBodyBuilder.toString(), beanMap.get(body));
+                            beanMap.remove(body);
+                        }
                     }
                 }
 
@@ -1012,21 +869,10 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
                     events.add("onCreate_initializeLogic");
                 }
 
-                for (Pair<String, String> moreblocks : jC.a(sc_id).i(e.getJavaName())) {
-                    String key = moreblocks.first +
-                            "_" +
-                            "moreBlock";
-                    if (beanMap.containsKey(key)) {
-                        events.add(key);
-                    }
-                }
-
                 for (EventBean eventBean : jC.a(sc_id).g(e.getJavaName())) {
-                    if (!eventBean.eventName.equals("onBindCustomView")) {
-                        String eventKey = eventBean.getEventKey();
-                        if (beanMap.containsKey(eventKey)) {
-                            events.add(eventKey);
-                        }
+                    String eventKey = eventBean.getEventKey();
+                    if (beanMap.containsKey(eventKey)) {
+                        events.add(eventKey);
                     }
                 }
 
@@ -1083,46 +929,6 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
                                         }
                                     }
                                 }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (bean.type == ViewBean.VIEW_TYPE_WIDGET_LISTVIEW) {
-            ViewBean viewBean = jC.a(sc_id).c(e.getXmlName(), bean.preId);
-            String custom = bean.customView;
-            if (custom != null && viewBean != null) {
-                String customView = viewBean.customView;
-                if (customView != null && !customView.equals(custom)) {
-                    ArrayList<EventBean> eventBeans = jC.a(sc_id).g(e.getJavaName());
-                    int size = eventBeans.size();
-
-                    while (true) {
-                        childCount = size - 1;
-                        if (childCount < 0) {
-                            if (bean.customView.isEmpty() || bean.customView.equals("none")) {
-                                Iterator<Entry<String, ArrayList<BlockBean>>> blocks = jC.a(sc_id).b(e.getJavaName()).entrySet().iterator();
-
-                                while (blocks.hasNext()) {
-                                    for (BlockBean blockBean : blocks.next().getValue()) {
-                                        if ("listSetCustomViewData".equals(blockBean.opCode) && bean.id.equals(blockBean.parameters.get(0))) {
-                                            blockBean.parameters.set(0, "");
-                                        }
-                                    }
-                                }
-                            }
-                            break;
-                        }
-
-                        EventBean eventBean = eventBeans.get(childCount);
-                        size = childCount;
-                        if (eventBean.targetId.equals(bean.id)) {
-                            if (eventBean.eventName.equals("onBindCustomView")) {
-                                eventBeans.remove(eventBean);
-                                HashMap<String, ArrayList<BlockBean>> blocks = jC.a(sc_id).b(e.getJavaName());
-                                blocks.remove(eventBean.getEventKey());
                             }
                         }
                     }

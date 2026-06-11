@@ -76,6 +76,20 @@ public class SketchwareUtil {
         return clean;
     }
 
+    /**
+     * Safely clones a list of ViewBeans, replacing a.a.a.eC.a() which crashes on nulls.
+     */
+    public static ArrayList<ViewBean> cloneViewBeans(ArrayList<ViewBean> input) {
+        if (input == null) return new ArrayList<>();
+        ArrayList<ViewBean> clonedList = new ArrayList<>();
+        for (ViewBean bean : input) {
+            if (bean != null && bean.id != null) {
+                clonedList.add(bean.clone());
+            }
+        }
+        return clonedList;
+    }
+
     public static boolean isConnected() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();

@@ -71,13 +71,7 @@ public class StylesEditor extends Fragment {
         boolean isMergeAndReplace = updateMode == 2;
 
         ArrayList<StyleModel> defaultStyles;
-
-        if ((activity.variant.isEmpty() || hasUnsavedChanges) && !FileUtil.isExistFile(filePath)) {
-            String generatedContent = activity.projectWorkspace.getXMLStyle();
-            defaultStyles = stylesEditorManager.parseStylesFile(generatedContent);
-        } else {
-            defaultStyles = stylesEditorManager.parseStylesFile(FileUtil.readFileIfExist(filePath));
-        }
+        defaultStyles = stylesEditorManager.parseStylesFile(FileUtil.readFileIfExist(filePath));
 
         if (isSkippingMode) {
             HashSet<String> existingStyleNames = new HashSet<>();

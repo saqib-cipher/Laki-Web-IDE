@@ -17,29 +17,21 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.widget.CalendarView;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.content.res.AppCompatResources;
-import androidx.appcompat.widget.AppCompatImageView;
 
-import com.besome.sketch.beans.ImageBean;
 import com.besome.sketch.beans.LayoutBean;
 import com.besome.sketch.beans.ProjectResourceBean;
 import com.besome.sketch.beans.ViewBean;
-import com.besome.sketch.design.DesignActivity;
 import com.besome.sketch.editor.manage.library.material3.Material3LibraryManager;
 import com.besome.sketch.editor.view.item.*;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import java.io.File;
 import java.util.ArrayList;
@@ -53,19 +45,6 @@ import a.a.a.wB;
 import laki.webide.core.LakiFiles;
 import a.a.a.yB;
 import a.a.a.zB;
-import mod.agus.jcoderz.beans.ViewBeans;
-import mod.agus.jcoderz.editor.view.item.ItemAnalogClock;
-import mod.agus.jcoderz.editor.view.item.ItemAutoCompleteTextView;
-import mod.agus.jcoderz.editor.view.item.ItemDatePicker;
-import mod.agus.jcoderz.editor.view.item.ItemDigitalClock;
-import mod.agus.jcoderz.editor.view.item.ItemGridView;
-import mod.agus.jcoderz.editor.view.item.ItemMultiAutoCompleteTextView;
-import mod.agus.jcoderz.editor.view.item.ItemRadioButton;
-import mod.agus.jcoderz.editor.view.item.ItemRatingBar;
-import mod.agus.jcoderz.editor.view.item.ItemTimePicker;
-import mod.agus.jcoderz.editor.view.item.ItemVideoView;
-import mod.bobur.VectorDrawableLoader;
-import mod.hey.studios.util.ProjectFile;
 import laki.webide.R;
 import laki.webide.activities.resourceseditor.components.utils.ColorsEditorManager;
 import laki.webide.activities.resourceseditor.components.utils.StringsEditorManager;
@@ -92,7 +71,7 @@ public class ViewPane extends RelativeLayout {
     private String sc_id;
     private SvgUtils svgUtils;
     private ColorsEditorManager colorsEditorManager;
-    private int defaultTextColor = 0; // need to save the original color before changes, cause using getDefaultColor() returns the current text color
+    private int defaultTextColor = 0;
     private int defaultHintColor = 0;
     private Material3LibraryManager material3LibraryManager;
 
@@ -202,7 +181,6 @@ public class ViewPane extends RelativeLayout {
         } else {
             setBackground(AppCompatResources.getDrawable(context, R.drawable.bg_view_pane));
         }
-        //addRootLayout();
         initTextView();
     }
 
@@ -230,47 +208,45 @@ public class ViewPane extends RelativeLayout {
 
     public View createItemView(ViewBean viewBean) {
         View item = switch (viewBean.type) {
-            case ViewBean.VIEW_TYPE_LAYOUT_LINEAR,
-                 ViewBeans.VIEW_TYPE_LAYOUT_COLLAPSINGTOOLBARLAYOUT,
-                 ViewBeans.VIEW_TYPE_LAYOUT_TEXTINPUTLAYOUT,
-                 ViewBeans.VIEW_TYPE_LAYOUT_SWIPEREFRESHLAYOUT,
-                 ViewBeans.VIEW_TYPE_LAYOUT_RADIOGROUP -> new ItemLinearLayout(context);
-            case ViewBean.VIEW_TYPE_LAYOUT_RELATIVE -> new ItemRelativeLayout(context);
-            case ViewBeans.VIEW_TYPE_LAYOUT_CARDVIEW -> new ItemCardView(context);
-            case ViewBean.VIEW_TYPE_LAYOUT_HSCROLLVIEW -> new ItemHorizontalScrollView(context);
-            case ViewBean.VIEW_TYPE_WIDGET_BUTTON -> new ItemButton(context);
-            case ViewBean.VIEW_TYPE_WIDGET_TEXTVIEW -> new ItemTextView(context);
-            case ViewBean.VIEW_TYPE_WIDGET_EDITTEXT -> new ItemEditText(context);
-            case ViewBean.VIEW_TYPE_WIDGET_IMAGEVIEW -> new ItemImageView(context);
-            case ViewBean.VIEW_TYPE_WIDGET_WEBVIEW -> new ItemWebView(context);
-            case ViewBean.VIEW_TYPE_WIDGET_PROGRESSBAR -> new ItemProgressBar(context);
-            case ViewBean.VIEW_TYPE_WIDGET_LISTVIEW -> new ItemListView(context);
-            case ViewBean.VIEW_TYPE_WIDGET_SPINNER -> new ItemSpinner(context);
-            case ViewBean.VIEW_TYPE_WIDGET_CHECKBOX -> new ItemCheckBox(context);
-            case ViewBean.VIEW_TYPE_LAYOUT_VSCROLLVIEW -> new ItemVerticalScrollView(context);
-            case ViewBean.VIEW_TYPE_WIDGET_SWITCH -> new ItemSwitch(context);
-            case ViewBean.VIEW_TYPE_WIDGET_SEEKBAR -> new ItemSeekBar(context);
-            case ViewBean.VIEW_TYPE_WIDGET_CALENDARVIEW -> new ItemCalendarView(context);
-            case ViewBean.VIEW_TYPE_WIDGET_ADVIEW -> new ItemAdView(context);
-            case ViewBean.VIEW_TYPE_WIDGET_MAPVIEW -> new ItemMapView(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_RADIOBUTTON -> new ItemRadioButton(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_RATINGBAR -> new ItemRatingBar(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_VIDEOVIEW -> new ItemVideoView(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_SEARCHVIEW -> new ItemSearchView(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_AUTOCOMPLETETEXTVIEW ->
-                    new ItemAutoCompleteTextView(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_MULTIAUTOCOMPLETETEXTVIEW ->
-                    new ItemMultiAutoCompleteTextView(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_GRIDVIEW -> new ItemGridView(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_ANALOGCLOCK -> new ItemAnalogClock(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_DATEPICKER -> new ItemDatePicker(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_TIMEPICKER -> new ItemTimePicker(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_DIGITALCLOCK -> new ItemDigitalClock(context);
-            case ViewBeans.VIEW_TYPE_LAYOUT_TABLAYOUT -> new ItemTabLayout(context);
-            case ViewBeans.VIEW_TYPE_LAYOUT_BOTTOMNAVIGATIONVIEW ->
-                    new ItemBottomNavigationView(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_SIGNINBUTTON -> new ItemSignInButton(context);
-            case ViewBeans.VIEW_TYPE_WIDGET_RECYCLERVIEW -> new ItemRecyclerView(context);
+            case ViewBean.VIEW_TYPE_HTML_DIV,
+                 ViewBean.VIEW_TYPE_HTML_HEADER,
+                 ViewBean.VIEW_TYPE_HTML_FOOTER,
+                 ViewBean.VIEW_TYPE_HTML_SECTION,
+                 ViewBean.VIEW_TYPE_HTML_NAV,
+                 ViewBean.VIEW_TYPE_HTML_MAIN,
+                 ViewBean.VIEW_TYPE_HTML_UL,
+                 ViewBean.VIEW_TYPE_HTML_OL,
+                 ViewBean.VIEW_TYPE_HTML_LI,
+                 ViewBean.VIEW_TYPE_HTML_HR,
+                 ViewBean.VIEW_TYPE_HTML_FORM,
+                 ViewBean.VIEW_TYPE_HTML_SELECT,
+                 ViewBean.VIEW_TYPE_HTML_IFRAME,
+                 ViewBean.VIEW_TYPE_LAYOUT_LINEAR -> new ItemLinearLayout(context);
+
+            case ViewBean.VIEW_TYPE_HTML_P,
+                 ViewBean.VIEW_TYPE_HTML_SPAN,
+                 ViewBean.VIEW_TYPE_HTML_H1,
+                 ViewBean.VIEW_TYPE_HTML_H2,
+                 ViewBean.VIEW_TYPE_HTML_H3,
+                 ViewBean.VIEW_TYPE_HTML_H4,
+                 ViewBean.VIEW_TYPE_HTML_H5,
+                 ViewBean.VIEW_TYPE_HTML_H6,
+                 ViewBean.VIEW_TYPE_HTML_A,
+                 ViewBean.VIEW_TYPE_HTML_BR,
+                 ViewBean.VIEW_TYPE_HTML_LABEL,
+                 ViewBean.VIEW_TYPE_HTML_OPTION,
+                 ViewBean.VIEW_TYPE_WIDGET_TEXTVIEW -> new ItemTextView(context);
+
+            case ViewBean.VIEW_TYPE_HTML_IMG,
+                 ViewBean.VIEW_TYPE_WIDGET_IMAGEVIEW -> new ItemImageView(context);
+
+            case ViewBean.VIEW_TYPE_HTML_INPUT,
+                 ViewBean.VIEW_TYPE_HTML_TEXTAREA,
+                 ViewBean.VIEW_TYPE_WIDGET_EDITTEXT -> new ItemEditText(context);
+
+            case ViewBean.VIEW_TYPE_HTML_BUTTON,
+                 ViewBean.VIEW_TYPE_WIDGET_BUTTON -> new ItemButton(context);
+
             default -> getUnknownItemView(viewBean);
         };
         item.setId(++b);
@@ -306,8 +282,6 @@ public class ViewPane extends RelativeLayout {
     }
 
     private void updateItemView(View view, ViewBean viewBean) {
-        ImageBean imageBean;
-        String str;
         var injectHandler = new InjectAttributeHandler(viewBean);
         if (viewBean.id.charAt(0) == '_') {
             LayoutParams layoutParams = new LayoutParams(
@@ -340,61 +314,7 @@ public class ViewPane extends RelativeLayout {
                 layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
             }
             view.setLayoutParams(layoutParams);
-            if (viewBean.getClassInfo().b("FloatingActionButton") && (imageBean = viewBean.image) != null && (str = imageBean.resName) != null && !str.isEmpty()) {
-                try {
-                    crashlytics.log("ViewPane: trying to set image to FAB");
-                    FloatingActionButton fab = (FloatingActionButton) view;
-                    if (resourcesManager.h(viewBean.image.resName) == ProjectResourceBean.PROJECT_RES_TYPE_RESOURCE) {
-                        int resourceId = getContext().getResources().getIdentifier(viewBean.image.resName, "drawable", getContext().getPackageName());
-                        if (resourceId != 0) {
-                            fab.setImageResource(resourceId);
-                        }
-                    } else if (viewBean.image.resName.equals("default_image")) {
-                        fab.setImageResource(R.drawable.default_image);
-                    } else {
-                        String imagePath = resourcesManager.f(viewBean.image.resName);
-                        File imageFile = new File(imagePath);
-
-                        if (imageFile.exists()) {
-                            int scaleFactor = Math.round(getResources().getDisplayMetrics().density / 2.0f);
-
-                            if (imagePath.endsWith(".xml")) {
-                                crashlytics.log("ViewPane: loading scaled XML/SVG image");
-                                FilePathUtil fpu = new FilePathUtil();
-                                svgUtils.loadScaledSvgIntoImageView(new AppCompatImageView(getContext()) {
-                                    @Override
-                                    public void setImageBitmap(Bitmap bitmap) {
-                                        fab.setImageBitmap(bitmap);
-                                    }
-                                }, fpu.getSvgFullPath(sc_id, viewBean.image.resName), scaleFactor);
-                            } else {
-                                Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
-                                if (bitmap != null) {
-                                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(
-                                            bitmap,
-                                            bitmap.getWidth() * scaleFactor,
-                                            bitmap.getHeight() * scaleFactor,
-                                            true
-                                    );
-                                    fab.setImageBitmap(scaledBitmap);
-                                }
-                            }
-                        } else {
-                            crashlytics.log("ViewPane: converting XML to SVG for FAB");
-                            VectorDrawableLoader vectorDrawableLoader = new VectorDrawableLoader();
-                            ImageView tempImageView = new AppCompatImageView(getContext()) {
-                                @Override
-                                public void setImageDrawable(android.graphics.drawable.Drawable drawable) {
-                                    fab.setImageDrawable(drawable);
-                                }
-                            };
-                            vectorDrawableLoader.setImageVectorFromFile(tempImageView, vectorDrawableLoader.getVectorFullPath(DesignActivity.sc_id, viewBean.image.resName));
-                        }
-                    }
-                } catch (Exception exception) {
-                    crashlytics.recordException(exception);
-                }
-            }
+            
             view.setRotation(viewBean.image.rotate);
             view.setAlpha(viewBean.alpha);
             view.setTranslationX(wB.a(getContext(), viewBean.translationX));
@@ -440,7 +360,6 @@ public class ViewPane extends RelativeLayout {
         if (classInfo.a("LinearLayout")) {
             LinearLayout linearLayout = (LinearLayout) view;
             linearLayout.setOrientation(viewBean.layout.orientation);
-            linearLayout.setWeightSum(viewBean.layout.weightSum);
             if (view instanceof ItemLinearLayout) {
                 ((ItemLinearLayout) view).setLayoutGravity(viewBean.layout.gravity);
             }
@@ -483,91 +402,16 @@ public class ViewPane extends RelativeLayout {
                             Bitmap decodeFile3 = BitmapFactory.decodeFile(imagelocation);
                             ((ImageView) view).setImageBitmap(Bitmap.createScaledBitmap(decodeFile3, decodeFile3.getWidth() * round3, decodeFile3.getHeight() * round3, true));
                         }
-                    } else {
-                        VectorDrawableLoader vectorDrawableLoader = new VectorDrawableLoader();
-                        vectorDrawableLoader.setImageVectorFromFile((ImageView) view, vectorDrawableLoader.getVectorFullPath(DesignActivity.sc_id, viewBean.image.resName));
                     }
                 } catch (Exception unused2) {
                     crashlytics.recordException(unused2);
-                    FileUtil.deleteFile(new VectorDrawableLoader().getVectorFullPath(DesignActivity.sc_id, viewBean.image.resName));
                     viewBean.image.resName = "default_image";
                     ((ImageView) view).setImageResource(R.drawable.default_image);
                 }
             }
             ((ImageView) view).setScaleType(ImageView.ScaleType.valueOf(viewBean.image.scaleType));
         }
-        if (classInfo.a("CompoundButton")) {
-            ((CompoundButton) view).setChecked(viewBean.checked != 0);
-        }
-        if (classInfo.b("SeekBar")) {
-            SeekBar seekBar = (SeekBar) view;
-            seekBar.setProgress(viewBean.progress);
-            seekBar.setMax(viewBean.max);
-        }
-        if (classInfo.b("ProgressBar")) {
-            ((ItemProgressBar) view).setProgressBarStyle(viewBean.progressStyle);
-        }
-        if (classInfo.b("CalendarView")) {
-            ((CalendarView) view).setFirstDayOfWeek(viewBean.firstDayOfWeek);
-        }
-        if (classInfo.b("AdView")) {
-            ((ItemAdView) view).setAdSize(viewBean.adSize);
-        }
-        if (classInfo.b("CardView")) {
-            var cardView = (ItemCardView) view;
-            cardView.setContentPadding(
-                    viewBean.layout.paddingLeft,
-                    viewBean.layout.paddingTop,
-                    viewBean.layout.paddingRight,
-                    viewBean.layout.paddingBottom);
-            updateCardView(cardView, injectHandler);
-        }
-        if (classInfo.b("TabLayout")) {
-            updateTabLayout((ItemTabLayout) view, injectHandler);
-        }
-        if (classInfo.b("SignInButton")) {
-            ItemSignInButton button = (ItemSignInButton) view;
-            boolean hasButtonSize = false;
-            boolean hasColorScheme = false;
-            for (String line : viewBean.inject.split("\n")) {
-                if (line.contains("buttonSize")) {
-                    String buttonSize = extractAttrValue(line, "app:buttonSize");
-                    if (!buttonSize.startsWith("@")) {
-                        hasButtonSize = true;
-                        switch (buttonSize) {
-                            case "icon_only":
-                                button.setSize(ItemSignInButton.ButtonSize.ICON_ONLY);
-                                break;
-                            case "wide":
-                                button.setSize(ItemSignInButton.ButtonSize.WIDE);
-                                break;
-                            case "standard":
-                            default:
-                                button.setSize(ItemSignInButton.ButtonSize.STANDARD);
-                                break;
-                        }
-                    }
-                }
-                if (line.contains("colorScheme")) {
-                    String colorScheme = extractAttrValue(line, "app:colorScheme");
-                    if (!colorScheme.startsWith("@")) {
-                        hasColorScheme = true;
-                        switch (colorScheme) {
-                            case "dark":
-                                button.setColorScheme(ItemSignInButton.ColorScheme.DARK);
-                                break;
-                            case "auto":
-                            case "light":
-                            default:
-                                button.setColorScheme(ItemSignInButton.ColorScheme.LIGHT);
-                                break;
-                        }
-                    }
-                }
-                if (!hasButtonSize) button.setSize(ItemSignInButton.ButtonSize.STANDARD);
-                if (!hasColorScheme) button.setColorScheme(ItemSignInButton.ColorScheme.LIGHT);
-            }
-        }
+        
         var elevation = injectHandler.getAttributeValueOf("elevation");
         if (!elevation.isEmpty()) {
             view.setElevation(PropertiesUtil.resolveSize(elevation, 0));
@@ -577,10 +421,8 @@ public class ViewPane extends RelativeLayout {
             String listitem = injectHandler.getAttributeValueOf("listitem");
             String itemCount = injectHandler.getAttributeValueOf("itemCount");
             if (!TextUtils.isEmpty(listitem)) {
-                //lmao use simple_list_item_1 for now
                 listItem.setListItem(android.R.layout.simple_list_item_1);
             }
-            crashlytics.log("ViewPane: setting item count to EditorListItem");
             if (!TextUtils.isEmpty(itemCount)) {
                 if (TextUtils.isEmpty(listitem)) {
                     try {
@@ -634,14 +476,6 @@ public class ViewPane extends RelativeLayout {
                 viewBean.preParentType = viewBean.parentType;
                 viewBean.parentType = ViewBean.VIEW_TYPE_LAYOUT_HSCROLLVIEW;
                 viewBean.layout.width = ViewGroup.LayoutParams.WRAP_CONTENT;
-            } else if (view instanceof ItemCardView) {
-                viewBean.preIndex = viewBean.index;
-                viewBean.index = viewInfo.index();
-                viewBean.preParent = viewBean.parent;
-                viewBean.parent = view.getTag().toString();
-                viewBean.preParentType = viewBean.parentType;
-                viewBean.parentType = ViewBeans.VIEW_TYPE_LAYOUT_CARDVIEW;
-                viewBean.layout.width = ViewGroup.LayoutParams.MATCH_PARENT;
             } else if (view instanceof ItemRelativeLayout) {
                 viewBean.preIndex = viewBean.index;
                 viewBean.index = viewInfo.index();
@@ -662,35 +496,6 @@ public class ViewPane extends RelativeLayout {
             }
             viewBean.index = -1;
         }
-    }
-
-    public View addFab(ViewBean viewBean) {
-        View findViewWithTag = findViewWithTag("_fab");
-        if (findViewWithTag != null) {
-            return findViewWithTag;
-        }
-        ItemFloatingActionButton itemFloatingActionButton = new ItemFloatingActionButton(context);
-        itemFloatingActionButton.setTag("_fab");
-        itemFloatingActionButton.setLayoutParams(new LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
-        itemFloatingActionButton.setMainColor(ProjectFile.getColor(sc_id, ProjectFile.COLOR_ACCENT));
-        itemFloatingActionButton.setFixed(true);
-        if (viewBean == null) {
-            ViewBean viewBean2 = new ViewBean("_fab", ViewBean.VIEW_TYPE_WIDGET_FAB);
-            LayoutBean layoutBean = viewBean2.layout;
-            layoutBean.marginLeft = 16;
-            layoutBean.marginTop = 16;
-            layoutBean.marginRight = 16;
-            layoutBean.marginBottom = 16;
-            layoutBean.layoutGravity = Gravity.RIGHT | Gravity.BOTTOM;
-            itemFloatingActionButton.setBean(viewBean2);
-        } else {
-            itemFloatingActionButton.setBean(viewBean);
-        }
-        addView(itemFloatingActionButton);
-        updateItemView(itemFloatingActionButton, itemFloatingActionButton.getBean());
-        return itemFloatingActionButton;
     }
 
     public void resetView(boolean shouldClearViewInfo) {
@@ -863,8 +668,6 @@ public class ViewPane extends RelativeLayout {
                     a(view, (ViewGroup) child);
                 } else if (child instanceof ItemVerticalScrollView) {
                     a(view, (ViewGroup) child);
-                } else if (child instanceof ItemCardView) {
-                    a(view, (ViewGroup) child);
                 } else if (child instanceof ItemRelativeLayout relativeLayout) {
                     addDroppableForViewGroup(view, relativeLayout);
                 }
@@ -894,8 +697,6 @@ public class ViewPane extends RelativeLayout {
                     a(viewBean, (ViewGroup) childAt);
                 } else if (childAt instanceof ItemVerticalScrollView) {
                     a(viewBean, (ViewGroup) childAt);
-                } else if (childAt instanceof ItemCardView) {
-                    a(viewBean, (ViewGroup) childAt);
                 } else if (childAt instanceof ItemRelativeLayout relativeLayout) {
                     addDroppableForViewGroup(viewBean, relativeLayout);
                 }
@@ -915,8 +716,6 @@ public class ViewPane extends RelativeLayout {
                 } else if (childAt instanceof ItemHorizontalScrollView) {
                     a(viewBean, (ViewGroup) childAt);
                 } else if (childAt instanceof ItemVerticalScrollView) {
-                    a(viewBean, (ViewGroup) childAt);
-                } else if (childAt instanceof ItemCardView) {
                     a(viewBean, (ViewGroup) childAt);
                 } else if (childAt instanceof ItemRelativeLayout relativeLayout) {
                     addDroppableForViewGroup(viewBean, relativeLayout);
@@ -944,36 +743,19 @@ public class ViewPane extends RelativeLayout {
         ViewBean bean = ((ItemView) view).getBean();
         if (rootLayout != null) {
             ViewGroup viewGroup = rootLayout.findViewWithTag(bean.parent);
-            viewGroup.addView(view, bean.index);
-            if (bean.parentType == ViewBean.VIEW_TYPE_LAYOUT_RELATIVE) {
-                updateRelativeParentViews(view, new InjectAttributeHandler(bean));
-            }
-            if (viewGroup instanceof ScrollContainer scrollContainer) {
-                scrollContainer.reindexChildren();
-            }
-        }
-    }
-
-    private int getActualParentType(View view, int defaultValue) {
-        var parent = (ViewGroup) view.getParent();
-        if (parent != null) {
-            if (parent instanceof ItemLinearLayout) {
-                return ViewBean.VIEW_TYPE_LAYOUT_LINEAR;
-            } else if (parent instanceof ItemRelativeLayout) {
-                return ViewBean.VIEW_TYPE_LAYOUT_RELATIVE;
-            } else if (parent instanceof ItemCardView) {
-                return ViewBeans.VIEW_TYPE_LAYOUT_CARDVIEW;
-            } else if (parent instanceof ItemHorizontalScrollView) {
-                return ViewBean.VIEW_TYPE_LAYOUT_HSCROLLVIEW;
-            } else if (parent instanceof ItemVerticalScrollView) {
-                return ViewBean.VIEW_TYPE_LAYOUT_VSCROLLVIEW;
+            if (viewGroup != null) {
+                viewGroup.addView(view, bean.index);
+                if (bean.parentType == ViewBean.VIEW_TYPE_LAYOUT_RELATIVE) {
+                    updateRelativeParentViews(view, new InjectAttributeHandler(bean));
+                }
+                if (viewGroup instanceof ScrollContainer scrollContainer) {
+                    scrollContainer.reindexChildren();
+                }
             }
         }
-        return defaultValue;
     }
 
     private void updateLayout(View view, ViewBean viewBean) {
-        crashlytics.log("ViewPane: Updating layout");
         LayoutBean layoutBean = viewBean.layout;
         int width = layoutBean.width;
         int height = layoutBean.height;
@@ -1003,7 +785,6 @@ public class ViewPane extends RelativeLayout {
             if (layoutGravity != LayoutBean.GRAVITY_NONE) {
                 layoutParams2.gravity = layoutGravity;
             }
-            layoutParams2.weight = viewBean.layout.weight;
             view.setLayoutParams(layoutParams2);
         } else if (viewBean.parentType == ViewBean.VIEW_TYPE_LAYOUT_RELATIVE) {
             RelativeLayout.LayoutParams layoutParams2 = new RelativeLayout.LayoutParams(width, height);
@@ -1244,8 +1025,6 @@ public class ViewPane extends RelativeLayout {
             textView.setTextColor(PropertiesUtil.parseColor(colorsEditorManager.getColorValue(context, viewBean.text.resTextColor, 3, material3LibraryManager.canUseNightVariantColors())));
         }
         textView.setTextSize(viewBean.text.textSize);
-        textView.setLines(viewBean.text.line);
-        textView.setSingleLine(viewBean.text.singleLine != 0);
     }
 
     public String getXmlString(String key) {
@@ -1286,57 +1065,6 @@ public class ViewPane extends RelativeLayout {
         } else {
             editText.setHintTextColor(PropertiesUtil.parseColor(colorsEditorManager.getColorValue(context, viewBean.text.resHintColor, 3, material3LibraryManager.canUseNightVariantColors())));
         }
-    }
-
-    private void updateCardView(ItemCardView cardView, InjectAttributeHandler handler) {
-        var bean = handler.getBean();
-        String cardBackgroundColor = handler.getAttributeValueOf("cardBackgroundColor");
-        String cardElevation = handler.getAttributeValueOf("cardElevation");
-        String cardCornerRadius = handler.getAttributeValueOf("cardCornerRadius");
-        String compatPadding = handler.getAttributeValueOf("cardUseCompatPadding");
-        String strokeColor = handler.getAttributeValueOf("strokeColor");
-        String strokeWidth = handler.getAttributeValueOf("strokeWidth");
-
-        if (cardBackgroundColor.isEmpty()) {
-            if (bean.layout.backgroundResColor == null) {
-                cardView.setCardBackgroundColor(bean.layout.backgroundColor);
-            } else {
-                cardView.setCardBackgroundColor(PropertiesUtil.parseColor(colorsEditorManager.getColorValue(context, bean.layout.backgroundResColor, 3, material3LibraryManager.canUseNightVariantColors())));
-            }
-        } else {
-            cardView.setCardBackgroundColor(PropertiesUtil.parseColor(colorsEditorManager.getColorValue(context, cardBackgroundColor, 3, material3LibraryManager.canUseNightVariantColors())));
-        }
-
-        cardView.setCardElevation(PropertiesUtil.resolveSize(cardElevation, 4));
-        cardView.setRadius(PropertiesUtil.resolveSize(cardCornerRadius, 8));
-        cardView.setUseCompatPadding(Boolean.parseBoolean(TextUtils.isEmpty(compatPadding) ? "false" : compatPadding));
-        cardView.setStrokeWidth(PropertiesUtil.resolveSize(strokeWidth, 0));
-        cardView.setStrokeColor(PropertiesUtil.isHexColor(strokeColor) ? PropertiesUtil.parseColor(strokeColor) : Color.WHITE);
-    }
-
-    private void updateTabLayout(ItemTabLayout tabLayout, InjectAttributeHandler handler) {
-        String gravity = handler.getAttributeValueOf("tabGravity");
-        String mode = handler.getAttributeValueOf("tabMode");
-        String indicatorHeight = handler.getAttributeValueOf("tabIndicatorHeight");
-        String indicatorColor = handler.getAttributeValueOf("tabIndicatorColor");
-        String textColor = handler.getAttributeValueOf("tabTextColor");
-        String selectedTextColor = handler.getAttributeValueOf("tabSelectedTextColor");
-
-        tabLayout.setTabGravity(switch (gravity) {
-            case "center" -> TabLayout.GRAVITY_CENTER;
-            case "start" -> TabLayout.GRAVITY_START;
-            default -> TabLayout.GRAVITY_FILL;
-        });
-        tabLayout.setTabMode(switch (mode) {
-            case "auto" -> TabLayout.MODE_AUTO;
-            case "scrollable" -> TabLayout.MODE_SCROLLABLE;
-            default -> TabLayout.MODE_FIXED;
-        });
-        tabLayout.setSelectedTabIndicatorHeight(PropertiesUtil.resolveSize(indicatorHeight, 3));
-        tabLayout.setSelectedTabIndicatorColor(PropertiesUtil.isHexColor(indicatorColor) ? PropertiesUtil.parseColor(indicatorColor) : 0xffffc107);
-        int tabTextColor = PropertiesUtil.isHexColor(textColor) ? PropertiesUtil.parseColor(textColor) : 0xff57beee;
-        int tabSelectedTextColor = PropertiesUtil.isHexColor(selectedTextColor) ? PropertiesUtil.parseColor(selectedTextColor) : Color.WHITE;
-        tabLayout.setTabTextColors(tabTextColor, tabSelectedTextColor);
     }
 
     private String extractAttrValue(String line, String attribute) {

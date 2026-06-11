@@ -69,12 +69,7 @@ public class StringsEditor extends Fragment {
         stringsEditorManager.isDefaultVariant = activity.variant.isEmpty();
 
         ArrayList<HashMap<String, Object>> defaultStrings = new ArrayList<>();
-        if ((activity.variant.isEmpty() || hasUnsavedChanges) && !FileUtil.isExistFile(filePath)) {
-            String generatedContent = activity.projectWorkspace.getXMLString();
-            stringsEditorManager.convertXmlStringsToListMap(generatedContent, defaultStrings);
-        } else {
-            stringsEditorManager.convertXmlStringsToListMap(FileUtil.readFileIfExist(filePath), defaultStrings);
-        }
+        stringsEditorManager.convertXmlStringsToListMap(FileUtil.readFileIfExist(filePath), defaultStrings);
         notesMap = new HashMap<>(stringsEditorManager.notesMap);
 
         if (isSkippingMode) {

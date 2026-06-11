@@ -5,6 +5,7 @@ import com.besome.sketch.beans.AdTestDeviceBean;
 import com.besome.sketch.beans.ProjectLibraryBean;
 import java.util.ArrayList;
 import java.util.HashMap;
+import mod.agus.jcoderz.handle.component.ConstVarComponent;
 
 public class jq {
     public static final int PERMISSION_CALL_PHONE = 1;
@@ -47,6 +48,7 @@ public class jq {
     public boolean u = false;
     public String mapApiKey = "";
     public HashMap<String, a> w = new HashMap<>();
+    public ConstVarComponent x = new ConstVarComponent();
 
     public boolean hasPermissions() {
         return q == 0;

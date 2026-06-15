@@ -1055,7 +1055,10 @@ public class ViewEditor extends RelativeLayout implements View.OnClickListener, 
             return;
         }
         for (ViewBean view : arrayList) {
-            createAndAddView(view);
+            // Filter out root containers to avoid double adding
+            if (view.parent != null && !view.parent.isEmpty() && !view.parent.equals("root")) {
+                createAndAddView(view);
+            }
         }
     }
 

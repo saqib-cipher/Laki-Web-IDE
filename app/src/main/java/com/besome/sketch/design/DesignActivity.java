@@ -102,14 +102,14 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     private final ActivityResultLauncher<Intent> openCollectionManager = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (result.getResultCode() == RESULT_OK) {
             if (viewTabAdapter != null) {
-                viewTabAdapter.j();
+                // viewTabAdapter.j();
             }
         }
     });
     private final ActivityResultLauncher<Intent> openResourcesManager = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (result.getResultCode() == RESULT_OK) {
             if (viewTabAdapter != null && viewPager.getCurrentItem() == 0) {
-                viewTabAdapter.i();
+                // viewTabAdapter.i();
                 refreshViewTabAdapter();
             }
         }
@@ -117,7 +117,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     private final ActivityResultLauncher<Intent> openViewCodeEditor = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (result.getResultCode() == RESULT_OK) {
             if (viewTabAdapter != null) {
-                viewTabAdapter.i();
+                // viewTabAdapter.i();
             }
         }
     });
@@ -139,7 +139,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
         if (result.getResultCode() == RESULT_OK) {
             refresh();
             if (viewTabAdapter != null) {
-                viewTabAdapter.n();
+                // viewTabAdapter.n();
             }
         }
     });
@@ -297,8 +297,8 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     public void onBackPressed() {
         if (drawer.isDrawerOpen(GravityCompat.END)) {
             drawer.closeDrawer(GravityCompat.END);
-        } else if (viewTabAdapter.isPropertyViewVisible()) {
-            hideViewPropertyView();
+        /* } else if (viewTabAdapter.isPropertyViewVisible()) {
+            hideViewPropertyView(); */
         } else {
             if (currentTabNumber > 0) {
                 currentTabNumber--;
@@ -313,7 +313,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
     }
 
     public void hideViewPropertyView() {
-        viewTabAdapter.a(false);
+        // viewTabAdapter.a(false);
     }
 
     private void saveChangesAndCloseProject() {
@@ -441,16 +441,16 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
                     if (item7 != null) {
                         item7.setVisible(true);
                     }
-                    if (viewTabAdapter != null) {
+                    /* if (viewTabAdapter != null) {
                         viewTabAdapter.showHidePropertyView(true);
-                    }
+                    } */
                 } else if (position == 1) {
                     MenuItem item7 = bottomMenu.findItem(7);
                     if (item7 != null) {
                         item7.setVisible(false);
                     }
                     if (viewTabAdapter != null) {
-                        viewTabAdapter.showHidePropertyView(false);
+                        // viewTabAdapter.showHidePropertyView(false);
                         if (eventTabAdapter != null) {
                             eventTabAdapter.refreshEvents();
                         }
@@ -461,7 +461,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
                         item7.setVisible(false);
                     }
                     if (viewTabAdapter != null) {
-                        viewTabAdapter.showHidePropertyView(false);
+                     //   viewTabAdapter.showHidePropertyView(false);
                         if (componentTabAdapter != null) {
                             componentTabAdapter.refreshData();
                         }

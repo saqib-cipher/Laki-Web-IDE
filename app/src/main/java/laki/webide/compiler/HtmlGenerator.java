@@ -37,25 +37,22 @@ public class HtmlGenerator {
 
         ViewBean htmlBean = null;
         ViewBean bodyBean = null;
+        List<ViewBean> otherRoots = new ArrayList<>();
+        
         for (ViewBean root : roots) {
             String tag = determineTag(root).toLowerCase();
-            if (tag.equals("html")) {
-                if (htmlBean == null) htmlBean = root;
-            } else if (tag.equals("body")) {
-                if (bodyBean == null) bodyBean = root;
-            }
-        }
-
-        List<ViewBean> contentRoots = new ArrayList<>();
-        for (ViewBean root : roots) {
-            if (root != htmlBean && root != bodyBean) {
-                contentRoots.add(root);
+            if (tag.equals("html") && htmlBean == null) {
+                htmlBean = root;
+            } else if (tag.equals("body") && bodyBean == null) {
+                bodyBean = root;
+            } else {
+                otherRoots.add(root);
             }
         }
 
         XmlBuilder htmlNode;
         if (htmlBean != null) {
-            htmlNode = generateNode(htmlBean, contentRoots);
+            htmlNode = generateNode(htmlBean, otherRoots);
         } else {
             htmlNode = new XmlBuilder("html");
             XmlBuilder headNode = new XmlBuilder("head");
@@ -67,7 +64,6 @@ public class HtmlGenerator {
                 headContent.append("    <title>").append(fileName).append("</title>\n");
             }
             
-            // Safe Fix: Always link the corresponding CSS file for this page
             String cssName = fileName.replace(".html", "") + ".css";
             headContent.append("    <link rel=\"stylesheet\" href=\"css/").append(cssName).append("\">\n");
             
@@ -76,10 +72,10 @@ public class HtmlGenerator {
             
             XmlBuilder bodyNode;
             if (bodyBean != null) {
-                bodyNode = generateNode(bodyBean, contentRoots);
+                bodyNode = generateNode(bodyBean, otherRoots);
             } else {
                 bodyNode = new XmlBuilder("body");
-                for (ViewBean content : contentRoots) {
+                for (ViewBean content : otherRoots) {
                     bodyNode.addChildNode(generateNode(content, null));
                 }
             }
@@ -92,6 +88,11 @@ public class HtmlGenerator {
     private String determineTag(ViewBean bean) {
         String tag = bean.parentAttributes.get("html_tag");
         if (tag != null && !tag.isEmpty()) return tag;
+
+        if (bean.type >= 100) {
+            String name = ViewBean.getViewTypeName(bean.type);
+            if (!name.isEmpty()) return name;
+        }
 
         String className = bean.getClassInfo().getClassName();
         return switch (className) {
@@ -129,11 +130,24 @@ public class HtmlGenerator {
         // Use a set to track which styles have been written from the Addon
         // to prevent duplication when standard fields are added later.
         Set<String> writtenStyles = new HashSet<>();
-        if (bean.convert != null && !bean.convert.isEmpty()) {
-            style.append(bean.convert).append(" ");
-            for (String part : bean.convert.split(";")) {
-                String[] kv = part.split(":");
-                if (kv.length >= 1) writtenStyles.add(kv[0].trim().toLowerCase());
+        if (bean.convert != null && !bean.convert.isEmpty() && !bean.convert.trim().isEmpty()) {
+            String css = bean.convert.trim();
+            // Basic check: if it contains '{', it might be a full CSS rule, which doesn't belong in 'style' attr.
+            // We'll strip common tag names if they were accidentally added.
+            String tagName = ViewBean.getViewTypeName(bean.type).toLowerCase();
+            if (!tagName.isEmpty() && css.toLowerCase().startsWith(tagName)) {
+                css = css.substring(tagName.length()).trim();
+                if (css.startsWith("{") && css.endsWith("}")) {
+                    css = css.substring(1, css.length() - 1).trim();
+                }
+            }
+            
+            if (!css.isEmpty()) {
+                style.append(css).append(css.endsWith(";") ? " " : "; ");
+                for (String part : css.split(";")) {
+                    String[] kv = part.split(":");
+                    if (kv.length >= 1) writtenStyles.add(kv[0].trim().toLowerCase());
+                }
             }
         }
 

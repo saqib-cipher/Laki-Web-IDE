@@ -105,6 +105,10 @@ public class ViewBean extends nA implements Parcelable {
     }
 
     public boolean supportsLayout() {
+        return isLayout(type) || type >= 100;
+    }
+
+    public static boolean isLayout(int type) {
         return switch (type) {
             case VIEW_TYPE_LAYOUT_LINEAR, VIEW_TYPE_LAYOUT_RELATIVE, VIEW_TYPE_LAYOUT_HSCROLLVIEW,
                  VIEW_TYPE_LAYOUT_VSCROLLVIEW, VIEW_TYPE_HTML_DIV, VIEW_TYPE_HTML_HEADER,
@@ -112,7 +116,7 @@ public class ViewBean extends nA implements Parcelable {
                  VIEW_TYPE_HTML_MAIN, VIEW_TYPE_HTML_UL, VIEW_TYPE_HTML_OL, VIEW_TYPE_HTML_LI,
                  VIEW_TYPE_HTML_HR, VIEW_TYPE_HTML_FORM, VIEW_TYPE_HTML_SELECT,
                  VIEW_TYPE_HTML_IFRAME -> true;
-            default -> supportsText() || supportsImage() || supportsInput(); // All tags have basic layout props
+            default -> type >= 100;
         };
     }
 

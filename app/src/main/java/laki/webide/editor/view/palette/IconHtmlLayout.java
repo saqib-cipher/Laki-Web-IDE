@@ -37,7 +37,7 @@ public class IconHtmlLayout extends IconBase {
         
         // Tells the generator what tag to use
         viewBean.parentAttributes.put("html_tag", htmlTag);
-        viewBean.convert = htmlTag;
+        viewBean.convert = "";
         
         return viewBean;
     }

@@ -47,6 +47,7 @@ import laki.webide.databinding.DialogSelectorActionsBinding;
 import laki.webide.databinding.WidgetsCreatorDialogBinding;
 import laki.webide.lib.highlighter.SyntaxScheme;
 import laki.webide.utility.FileUtil;
+import laki.webide.core.ViewLogicEditor;
 import laki.webide.utility.SketchwareUtil;
 
 public class WidgetsCreatorManager {
@@ -65,7 +66,7 @@ public class WidgetsCreatorManager {
             "SwipeRefreshLayout", "TabLayout", "TextInputLayout", "TextView", "VideoView", "ViewPager", "WebView"
     );
     private final List<String> availableWidgetsTypes = new ArrayList<>();
-    private final ViewEditor viewEditor;
+    private final ViewLogicEditor viewEditor;
     private final ViewEditorFragment viewEditorFragment;
     private final Context context;
     private ArrayList<HashMap<String, Object>> widgetConfigurationsList = new ArrayList<>();
@@ -247,7 +248,7 @@ public class WidgetsCreatorManager {
                 if (!allCategories.contains(widgetClass)) {
                     allCategories.add(widgetClass);
                 }
-                viewEditorFragment.e();
+             //   viewEditorFragment.e();
                 v.dismiss();
             } catch (Exception e) {
                 SketchwareUtil.toastError("Failed: " + e.getMessage());
@@ -332,7 +333,7 @@ public class WidgetsCreatorManager {
 
         if (!widgetConfigurationsList.isEmpty()) {
             FileUtil.writeFile(widgetsJsonFilePath, getGson().toJson(widgetConfigurationsList));
-            viewEditorFragment.e();
+          //  viewEditorFragment.e();
             SketchwareUtil.toast("Imported!");
         }
     }
@@ -440,18 +441,7 @@ public class WidgetsCreatorManager {
     }
 
     public void addWidgetsByTitle(String title) {
-        for (HashMap<String, Object> map : widgetConfigurationsList) {
-            try {
-                if (Objects.requireNonNull(map.get("Class")).toString().equals(title)) {
-                    Object typeObj = map.get("type");
-                    if (typeObj instanceof Double) {
-                        map.put("type", ((Double) typeObj).intValue());
-                    }
-                    viewEditor.createCustomWidget(map);
-                }
-            } catch (Exception ignored) {
-            }
-        }
+        // Method disabled as it relies on legacy createCustomWidget in ViewEditor
     }
 
     public void addExtraClasses() {
@@ -461,7 +451,7 @@ public class WidgetsCreatorManager {
         if (!myArrayListCopy.isEmpty()) {
             try {
                 for (String item : myArrayListCopy) {
-                    viewEditor.paletteWidget.extraTitle(item, 1);
+                    // viewEditor.paletteWidget.extraTitle(item, 1); // Disabled for Block Workspace
                     addWidgetsByTitle(item);
                 }
             } catch (Exception ignored) {
@@ -513,7 +503,7 @@ public class WidgetsCreatorManager {
                 allCategories.remove(Class);
             }
             FileUtil.writeFile(widgetsJsonFilePath, getGson().toJson(widgetConfigurationsList));
-            viewEditorFragment.e();
+            //viewEditorFragment.e();
             v.dismiss();
         });
         dialog.setNegativeButton(R.string.common_word_cancel, null);

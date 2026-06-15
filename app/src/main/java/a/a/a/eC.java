@@ -67,7 +67,7 @@ public class eC {
         for(ViewBean var12 : var0) {
             if (var12 == null) continue;
             int var9 = var12.type;
-            if ((var9 == 2 || var9 == 1 || var9 == 36 || var9 == 37 || var9 == 38 || var9 == 39 || var9 == 40 || var9 == 0 || var9 == 12) && "root".equals(var12.parent)) {
+            if (ViewBean.isLayout(var9) && "root".equals(var12.parent)) {
                 var6.addAll(a(var0, var12));
             }
         }
@@ -103,7 +103,7 @@ public class eC {
         for(ViewBean var13 : var0) {
             if (var13 != null && var1.id != null && var1.id.equals(var13.parent)) {
                 int var10 = var13.type;
-                if (var10 == 0 || var10 == 2 || var10 == 1 || var10 == 36 || var10 == 37 || var10 == 38 || var10 == 39 || var10 == 40 || var10 == 12) {
+                if (ViewBean.isLayout(var10)) {
                     var7.addAll(a(var0, var13));
                 }
             }

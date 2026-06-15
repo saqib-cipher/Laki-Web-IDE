@@ -342,6 +342,9 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
             gravityItem.setValue(value);
         }
 
+        if (gravityItem.getParent() != null) {
+            ((ViewGroup) gravityItem.getParent()).removeView(gravityItem);
+        }
         addView(gravityItem);
     }
 
@@ -695,6 +698,9 @@ public class ViewPropertyItems extends LinearLayout implements Kw, View.OnClickL
         } else if (bean.supportsImage()) {
             a(bean, "property_image");
         }
+
+        a(bean, "property_background_resource");
+        a(bean, "property_background_color");
 
         if (getOrientation() == LinearLayout.VERTICAL
                 && bean.supportsLayout()

@@ -36,7 +36,7 @@ public class IconHtmlWidget extends IconBase {
         layoutBean.paddingBottom = 8;
         
         viewBean.parentAttributes.put("html_tag", htmlTag);
-        viewBean.convert = htmlTag;
+        viewBean.convert = "";
         
         return viewBean;
     }

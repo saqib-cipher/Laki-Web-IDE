@@ -264,19 +264,22 @@ public class ViewPane extends RelativeLayout {
     public void updateRootLayout(String sc_id, String fileName) {
         InjectRootLayoutManager manager = new InjectRootLayoutManager(sc_id);
         var currentBean = manager.toBean(fileName);
+        if (rootLayout != null) {
+            if (rootLayout.getParent() != null) {
+                ((ViewGroup) rootLayout.getParent()).removeView(rootLayout);
+            }
+        }
+        removeAllViews();
+
         View rootView = createItemView(currentBean);
         if (rootView instanceof ItemView sy) {
             sy.setFixed(true);
         }
-        if (rootLayout != null) {
-            removeView(rootLayout);
-        } else {
-            rootLayout = (ViewGroup) rootView;
-        }
-        if (rootLayout instanceof ItemView sy) {
-            if (!currentBean.isEqual(sy.getBean())) {
-                rootLayout = (ViewGroup) rootView;
-            }
+        
+        rootLayout = (ViewGroup) rootView;
+        
+        if (rootLayout.getParent() != null) {
+            ((ViewGroup) rootLayout.getParent()).removeView(rootLayout);
         }
         addView(rootLayout);
     }
@@ -356,35 +359,27 @@ public class ViewPane extends RelativeLayout {
                 Log.e("DEBUG", e.getMessage(), e);
             }
         }
-        Gx classInfo = viewBean.getClassInfo();
-        if (classInfo.a("LinearLayout")) {
-            LinearLayout linearLayout = (LinearLayout) view;
-            linearLayout.setOrientation(viewBean.layout.orientation);
-            if (view instanceof ItemLinearLayout) {
-                ((ItemLinearLayout) view).setLayoutGravity(viewBean.layout.gravity);
+        if (viewBean.supportsLayout()) {
+            if (view instanceof LinearLayout linearLayout) {
+                linearLayout.setOrientation(viewBean.layout.orientation);
+                if (view instanceof ItemLinearLayout) {
+                    ((ItemLinearLayout) view).setLayoutGravity(viewBean.layout.gravity);
+                }
             }
         }
         if (viewBean.parentType == ViewBean.VIEW_TYPE_LAYOUT_RELATIVE) {
             updateRelative(view, injectHandler);
         }
-        if (classInfo.a("TextView")) {
+        if (viewBean.supportsText()) {
             TextView textView = (TextView) view;
             updateTextView(textView, viewBean);
-            if (!classInfo.b("Button") && !classInfo.b("Switch")) {
-                textView.setGravity(viewBean.layout.gravity);
-            } else {
-                int gravity = viewBean.layout.gravity;
-                if (gravity == LayoutBean.GRAVITY_NONE) {
-                    textView.setGravity(Gravity.CENTER);
-                } else {
-                    textView.setGravity(gravity);
-                }
-            }
+            textView.setGravity(viewBean.layout.gravity);
         }
-        if (classInfo.a("EditText")) {
+        if (viewBean.supportsInput()) {
             updateEditText((EditText) view, viewBean);
         }
-        if (classInfo.a("ImageView")) {
+        if (viewBean.supportsImage()) {
+            ImageView imageView = (ImageView) view;
             if (resourcesManager.h(viewBean.image.resName) == ProjectResourceBean.PROJECT_RES_TYPE_RESOURCE) {
                 ((ImageView) view).setImageResource(getContext().getResources().getIdentifier(viewBean.image.resName, "drawable", getContext().getPackageName()));
             }else if ("default_image".equals(viewBean.image.resName)){
@@ -516,6 +511,9 @@ public class ViewPane extends RelativeLayout {
         } else if (this.viewInfo != viewInfo) {
             resetView(true);
             ViewGroup viewGroup = (ViewGroup) viewInfo.view();
+            if (highlightedTextView.getParent() != null) {
+                ((ViewGroup) highlightedTextView.getParent()).removeView(highlightedTextView);
+            }
             viewGroup.addView(highlightedTextView, viewInfo.index());
             if (viewGroup instanceof LinearLayout) {
                 highlightedTextView.setLayoutParams(new LinearLayout.LayoutParams(width, height));
@@ -673,8 +671,6 @@ public class ViewPane extends RelativeLayout {
                 }
                 childIndex++;
             }
-
-
         }
     }
 
@@ -744,6 +740,9 @@ public class ViewPane extends RelativeLayout {
         if (rootLayout != null) {
             ViewGroup viewGroup = rootLayout.findViewWithTag(bean.parent);
             if (viewGroup != null) {
+                if (view.getParent() != null) {
+                    ((ViewGroup) view.getParent()).removeView(view);
+                }
                 viewGroup.addView(view, bean.index);
                 if (bean.parentType == ViewBean.VIEW_TYPE_LAYOUT_RELATIVE) {
                     updateRelativeParentViews(view, new InjectAttributeHandler(bean));
@@ -776,33 +775,33 @@ public class ViewPane extends RelativeLayout {
         } else {
             view.setBackgroundColor(PropertiesUtil.parseColor(colorsEditorManager.getColorValue(context, viewBean.layout.backgroundResColor, 3, material3LibraryManager.canUseNightVariantColors())));
         }
-        if (viewBean.parentType == ViewBean.VIEW_TYPE_LAYOUT_LINEAR) {
-            LinearLayout.LayoutParams layoutParams2 = new LinearLayout.LayoutParams(width, height);
-            layoutParams2.setMargins(leftMargin, topMargin, rightMargin, bottomMargin);
-            LayoutBean layoutBean3 = viewBean.layout;
-            view.setPadding(layoutBean3.paddingLeft, layoutBean3.paddingTop, layoutBean3.paddingRight, layoutBean3.paddingBottom);
+
+        ViewGroup.LayoutParams params;
+        if (viewBean.parent != null && viewBean.parent.equals("root")) {
+            params = new RelativeLayout.LayoutParams(width, height);
+            ((RelativeLayout.LayoutParams) params).setMargins(leftMargin, topMargin, rightMargin, bottomMargin);
+        } else if (ViewBean.isLayout(viewBean.parentType)) {
+            params = new LinearLayout.LayoutParams(width, height);
+            ((LinearLayout.LayoutParams) params).setMargins(leftMargin, topMargin, rightMargin, bottomMargin);
+            ((LinearLayout.LayoutParams) params).weight = viewBean.layout.weight;
             int layoutGravity = viewBean.layout.layoutGravity;
             if (layoutGravity != LayoutBean.GRAVITY_NONE) {
-                layoutParams2.gravity = layoutGravity;
+                ((LinearLayout.LayoutParams) params).gravity = layoutGravity;
             }
-            view.setLayoutParams(layoutParams2);
         } else if (viewBean.parentType == ViewBean.VIEW_TYPE_LAYOUT_RELATIVE) {
-            RelativeLayout.LayoutParams layoutParams2 = new RelativeLayout.LayoutParams(width, height);
-            layoutParams2.setMargins(leftMargin, topMargin, rightMargin, bottomMargin);
-            LayoutBean layoutBean3 = viewBean.layout;
-            view.setPadding(layoutBean3.paddingLeft, layoutBean3.paddingTop, layoutBean3.paddingRight, layoutBean3.paddingBottom);
-            view.setLayoutParams(layoutParams2);
+            params = new RelativeLayout.LayoutParams(width, height);
+            ((RelativeLayout.LayoutParams) params).setMargins(leftMargin, topMargin, rightMargin, bottomMargin);
         } else {
-            FrameLayout.LayoutParams layoutParams3 = new FrameLayout.LayoutParams(width, height);
-            layoutParams3.setMargins(leftMargin, topMargin, rightMargin, bottomMargin);
-            LayoutBean layoutBean4 = viewBean.layout;
-            view.setPadding(layoutBean4.paddingLeft, layoutBean4.paddingTop, layoutBean4.paddingRight, layoutBean4.paddingBottom);
+            params = new FrameLayout.LayoutParams(width, height);
+            ((FrameLayout.LayoutParams) params).setMargins(leftMargin, topMargin, rightMargin, bottomMargin);
             int layoutGravity = viewBean.layout.layoutGravity;
             if (layoutGravity != LayoutBean.GRAVITY_NONE) {
-                layoutParams3.gravity = layoutGravity;
+                ((FrameLayout.LayoutParams) params).gravity = layoutGravity;
             }
-            view.setLayoutParams(layoutParams3);
         }
+        
+        view.setPadding(viewBean.layout.paddingLeft, viewBean.layout.paddingTop, viewBean.layout.paddingRight, viewBean.layout.paddingBottom);
+        view.setLayoutParams(params);
     }
 
     private void updateRelativeParentViews(View view, InjectAttributeHandler handler) {

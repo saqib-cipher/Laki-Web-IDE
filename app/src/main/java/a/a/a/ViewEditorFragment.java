@@ -1,510 +1,326 @@
 package a.a.a;
 
 import android.animation.ObjectAnimator;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Vibrator;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewConfiguration;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 
-import com.besome.sketch.beans.HistoryViewBean;
 import com.besome.sketch.beans.ProjectFileBean;
 import com.besome.sketch.beans.ViewBean;
-import com.besome.sketch.design.DesignActivity;
-import com.besome.sketch.editor.LogicEditorActivity;
-import com.besome.sketch.editor.PropertyActivity;
-import com.besome.sketch.editor.view.DraggingListener;
-import com.besome.sketch.editor.view.ViewEditor;
 import com.besome.sketch.editor.view.ViewProperty;
 
 import java.util.ArrayList;
 
-import laki.webide.core.LakiFiles;
-import mod.hey.studios.util.Helper;
 import laki.webide.R;
-import laki.webide.WidgetShowCased;
-import laki.webide.utility.SketchwareUtil;
-import laki.webide.widgets.WidgetsCreatorManager;
-import laki.webide.managers.WebProjectSyncManager;
-import laki.webide.compiler.HtmlParser;
-import laki.webide.ProjectWorkspace;
+import laki.webide.core.Block;
+import laki.webide.core.BlockBase;
+import laki.webide.core.BlockPane;
+import laki.webide.core.ViewDummy;
+import laki.webide.core.ViewLogicEditor;
+import laki.webide.core.html.HtmlBlocks;
+import laki.webide.core.html.HtmlSidebar;
+import laki.webide.core.LayoutUtil;
 
-public class ViewEditorFragment extends qA {
+public class ViewEditorFragment extends qA implements View.OnClickListener, View.OnTouchListener {
 
-    public ViewEditor viewEditor;
-    private ProjectFileBean projectFileBean;
-    private boolean isFabEnabled = false;
-    private ViewProperty viewProperty;
-    private ObjectAnimator showPropertyViewAnimator;
-    private ObjectAnimator hidePropertyViewAnimator;
-    private boolean isPropertyViewVisible;
-    private boolean isDragging = false;
+    private boolean bActiveIconDelete = false;
+    private boolean bShowIconDelete = false;
+    private View currentTouchedView = null;
+    private ViewDummy dummy;
+    public ViewLogicEditor viewEditor;
+    private final Handler handler = new Handler();
+    private ImageView iconDelete;
+    private boolean isDragged = false;
+    private Runnable longPressed = new Runnable() {
+        @Override
+        public void run() {
+            dragStart();
+        }
+    };
+    private int minDist = 0;
+    private int originalArgIndex;
+    private int originalInsertOption;
+    private Block originalParent;
+    private HtmlSidebar htmlSidebar;
+    private BlockPane pane;
+    private int[] posDummy = new int[2];
+    private float posInitX = 0.0f;
+    private float posInitY = 0.0f;
+    private int[] posOriginal = new int[2];
+    private boolean useVibrate;
+    private Vibrator vibrator;
+
+    public int BLOCK_DRAG_X = 0;
+    public int BLOCK_DRAG_Y = -30;
+
     private String sc_id;
-
-    private WidgetsCreatorManager widgetsCreatorManager;
+    private ProjectFileBean projectFileBean;
+    private ViewProperty viewProperty;
 
     public ViewEditorFragment() {
     }
 
     private void initialize(ViewGroup viewGroup) {
         setHasOptionsMenu(true);
-        viewEditor = viewGroup.findViewById(R.id.view_editor);
-        viewEditor.setScreenType(getResources().getConfiguration().orientation);
-        widgetsCreatorManager = new WidgetsCreatorManager(this);
-        viewEditor.widgetsCreatorManager = widgetsCreatorManager;
-        viewProperty = requireActivity().findViewById(R.id.view_property);
-        viewProperty.setOnPropertyListener(new Iw() {
-            @Override
-            public void a() {
-                viewEditor.setFavoriteData(Rp.h().f());
-            }
+        this.viewEditor = viewGroup.findViewById(R.id.editor);
+        this.pane = this.viewEditor.getBlockPane();
+        this.htmlSidebar = viewGroup.findViewById(R.id.html_sidebar);
+        this.dummy = viewGroup.findViewById(R.id.dummy);
+        this.iconDelete = viewGroup.findViewById(R.id.icon_delete);
+        
+        this.minDist = ViewConfiguration.get(requireContext()).getScaledTouchSlop();
+        this.vibrator = (Vibrator) requireContext().getSystemService(Context.VIBRATOR_SERVICE);
+        this.useVibrate = true; 
+        this.BLOCK_DRAG_X = (int) LayoutUtil.getDip(requireContext(), 30.0f);
+        this.BLOCK_DRAG_Y = (int) LayoutUtil.getDip(requireContext(), (float) this.BLOCK_DRAG_Y);
+        
+        this.viewProperty = requireActivity().findViewById(R.id.view_property);
 
-            @Override
-            public void a(String s, ViewBean viewBean) {
-                openPropertyActivity(viewBean);
-            }
-        });
-        viewProperty.setOnPropertyValueChangedListener(viewBean -> {
-            a(viewBean.id);
-            viewProperty.e();
-            invalidateOptionsMenu();
-            if (requireActivity() instanceof DesignActivity designActivity) {
-                WebProjectSyncManager.syncCurrentFile(designActivity.getProjectWorkspace(), sc_id, projectFileBean);
-            }
-        });
-        viewProperty.setOnPropertyDeleted(viewBean -> {
-            viewEditor.deleteWidget(viewBean);
-            if (requireActivity() instanceof DesignActivity designActivity) {
-                designActivity.hideViewPropertyView();
-                WebProjectSyncManager.syncCurrentFile(designActivity.getProjectWorkspace(), sc_id, projectFileBean);
-            }
-            SketchwareUtil.toast(Helper.getResString(R.string.common_word_deleted));
-        });
-        viewProperty.setOnEventClickListener(eventBean -> toLogicEditorActivity(eventBean.targetId, eventBean.eventName, eventBean.eventName));
-        viewProperty.setOnPropertyTargetChangeListener(viewEditor::updateSelection);
-        viewEditor.setOnWidgetSelectedListener(new cy() {
-            @Override
-            public void a() {
-                n();
-                viewProperty.e();
-            }
+        // Load HTML blocks into the new sidebar directly
+        this.htmlSidebar.setBlockTouchListener(this);
+        this.htmlSidebar.populate(HtmlBlocks.getAllHtmlBlocks());
 
-            @Override
-            public void a(String viewId) {
-                n();
-                viewProperty.a(viewId);
+        // Setup Root block for HTML
+        this.pane.setupRoot("When Page Load", "onPageLoad", this);
+        
+        // Fix: Force redraw and size calculation for the orange root block
+        this.handler.postDelayed(() -> {
+            if (this.pane.getRoot() != null) {
+                this.pane.getRoot().fixLayout();
+                this.pane.calculateWidthHeight();
             }
+        }, 100);
+    }
 
-            @Override
-            public void a(boolean var1, String viewId) {
-                if (!viewId.isEmpty()) {
-                    a();
-                    viewProperty.a(viewId);
-                    viewProperty.e();
+    private void dragStart() {
+        if (this.currentTouchedView != null) {
+            this.viewEditor.setScrollEnabled(false);
+            if (this.htmlSidebar != null) {
+                this.htmlSidebar.setScrollEnabled(false);
+            }
+            if (this.useVibrate && this.vibrator != null) {
+                this.vibrator.vibrate(100);
+            }
+            this.isDragged = true;
+            if (((Block) this.currentTouchedView).getBlockType() == 0) {
+                getOriginalState((Block) this.currentTouchedView);
+                showIconDelete(true);
+                this.dummy.makeDummyWithBlock((Block) this.currentTouchedView);
+                this.pane.setVisibleBlock((Block) this.currentTouchedView, 8);
+                this.pane.removeRelation((Block) this.currentTouchedView);
+            } else {
+                this.dummy.makeDummyWithBlock((Block) this.currentTouchedView);
+            }
+            this.pane.prepareToDrag((Block) this.currentTouchedView);
+            this.dummy.moveDummy(this.currentTouchedView, this.posInitX, this.posInitY, this.posInitX, this.posInitY, (float) BLOCK_DRAG_X, (float) BLOCK_DRAG_Y);
+            this.dummy.getDummyPosition(this.posDummy);
+            if (this.viewEditor.hitTest((float) this.posDummy[0], (float) this.posDummy[1])) {
+                this.dummy.setAllow(true);
+                this.pane.updateFeedbackFor((Block) this.currentTouchedView, this.posDummy[0], this.posDummy[1]);
+                return;
+            }
+            this.dummy.setAllow(false);
+            this.pane.hideFeedbackShape();
+        }
+    }
+
+    private void getOriginalState(Block block) {
+        this.originalParent = null;
+        this.originalArgIndex = -1;
+        this.originalInsertOption = 0;
+        this.posOriginal = new int[2];
+        block.getLocationOnScreen(this.posOriginal);
+        if (block.parentBlock != null) {
+            this.originalParent = block.parentBlock;
+        }
+        if (this.originalParent != null) {
+            if (this.originalParent.nextBlock == ((Integer) block.getTag()).intValue()) {
+                this.originalInsertOption = 0;
+            } else if (this.originalParent.subStack1 == ((Integer) block.getTag()).intValue()) {
+                this.originalInsertOption = 2;
+            } else if (this.originalParent.subStack2 == ((Integer) block.getTag()).intValue()) {
+                this.originalInsertOption = 3;
+            } else if (this.originalParent.args.contains(block)) {
+                this.originalInsertOption = 5;
+                this.originalArgIndex = this.originalParent.args.indexOf(block);
+            }
+        }
+    }
+
+    private boolean hitTestIconDelete(float f, float f2) {
+        if (iconDelete == null) return false;
+        int[] pos = new int[2];
+        iconDelete.getLocationOnScreen(pos);
+        return f >= (float) pos[0] && f <= (float) (pos[0] + iconDelete.getWidth()) && f2 >= (float) pos[1] && f2 <= (float) (pos[1] + iconDelete.getHeight());
+    }
+
+    private void showIconDelete(boolean z) {
+        if (this.bShowIconDelete != z) {
+            this.bShowIconDelete = z;
+            if (z) {
+                this.iconDelete.animate().translationY(0.0f).setDuration(300).setInterpolator(new DecelerateInterpolator()).start();
+            } else {
+                this.iconDelete.animate().translationY(LayoutUtil.getDip(requireContext(), 66.0f)).setDuration(200).setInterpolator(new DecelerateInterpolator()).start();
+            }
+        }
+    }
+
+    private void activeIconDelete(boolean z) {
+        if (iconDelete != null) {
+            iconDelete.setAlpha(z ? 1.0f : 0.5f);
+            this.bActiveIconDelete = z;
+        }
+    }
+
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        int action = motionEvent.getAction();
+        if (action == MotionEvent.ACTION_DOWN) {
+            view.getParent().requestDisallowInterceptTouchEvent(true);
+            this.isDragged = false;
+            this.handler.postDelayed(this.longPressed, (long) (ViewConfiguration.getLongPressTimeout() / 2));
+            this.posInitX = motionEvent.getX();
+            this.posInitY = motionEvent.getY();
+            this.currentTouchedView = view;
+            return true;
+        } else if (action == MotionEvent.ACTION_MOVE) {
+            if (this.isDragged) {
+                this.handler.removeCallbacks(this.longPressed);
+                this.dummy.moveDummy(view, motionEvent.getX(), motionEvent.getY(), this.posInitX, this.posInitY, (float) BLOCK_DRAG_X, (float) BLOCK_DRAG_Y);
+                
+                if (hitTestIconDelete(motionEvent.getRawX(), motionEvent.getRawY())) {
+                    this.dummy.setAllow(true);
+                    activeIconDelete(true);
+                    return true;
                 }
+                activeIconDelete(false);
+                
+                this.dummy.getDummyPosition(this.posDummy);
+                
+                // Pure Copy from Activity: Use posDummy directly
+                if (this.viewEditor.hitTest((float) this.posDummy[0], (float) this.posDummy[1])) {
+                    this.dummy.setAllow(true);
+                    this.pane.updateFeedbackFor((Block) view, this.posDummy[0], this.posDummy[1]);
+                } else {
+                    this.dummy.setAllow(false);
+                    this.pane.hideFeedbackShape();
+                }
+                return true;
+            } else if (Math.abs(this.posInitX - motionEvent.getX()) < ((float) this.minDist) && Math.abs(this.posInitY - motionEvent.getY()) < ((float) this.minDist)) {
+                return false;
+            } else {
+                this.currentTouchedView = null;
+                this.handler.removeCallbacks(this.longPressed);
+                return false;
+            }
+        } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            this.currentTouchedView = null;
+            this.handler.removeCallbacks(this.longPressed);
+            if (this.isDragged) {
+                this.viewEditor.setScrollEnabled(true);
+                if (this.htmlSidebar != null) {
+                    this.htmlSidebar.setScrollEnabled(true);
+                }
+                this.dummy.setDummyVisibility(View.GONE);
+                if (this.dummy.getAllow()) {
+                    if (this.bActiveIconDelete) {
+                        activeIconDelete(false);
+                        this.pane.removeBlock((Block) view);
+                    } else if (view instanceof Block) {
+                        this.dummy.getDummyPosition(this.posDummy);
+                        
+                        // Pure Copy from Activity: Use posDummy directly
+                        if (((Block) view).getBlockType() == 1) { // Sidebar block
+                            this.pane.blockDropped((Block) view, this.posDummy[0], this.posDummy[1], false).setOnTouchListener(this);
+                        } else {
+                            this.pane.setVisibleBlock((Block) view, 0);
+                            this.pane.blockDropped((Block) view, this.posDummy[0], this.posDummy[1], true);
+                        }
+                        this.pane.draggingDone();
+                    }
+                } else if (view instanceof Block && ((Block) view).getBlockType() == 0) {
+                    this.pane.setVisibleBlock((Block) view, 0);
+                    if (this.originalParent != null) {
+                        if (this.originalInsertOption == 0) this.originalParent.nextBlock = ((Integer) view.getTag()).intValue();
+                        if (this.originalInsertOption == 2) this.originalParent.subStack1 = ((Integer) view.getTag()).intValue();
+                        if (this.originalInsertOption == 3) this.originalParent.subStack2 = ((Integer) view.getTag()).intValue();
+                        if (this.originalInsertOption == 5) this.originalParent.replaceArgWithBlock((BlockBase) this.originalParent.args.get(this.originalArgIndex), (Block) view);
+                        ((Block) view).parentBlock = this.originalParent;
+                        this.originalParent.topBlock().fixLayout();
+                    } else {
+                        ((Block) view).topBlock().fixLayout();
+                    }
+                }
+                this.dummy.setAllow(false);
+                showIconDelete(false);
+                this.isDragged = false;
+                return true;
+            }
+            if ((view instanceof Block) && ((Block) view).getBlockType() == 0) {
+                ((Block) view).actionClick(motionEvent.getX(), motionEvent.getY());
+            }
+            return false;
+        }
+        return false;
+    }
 
-                ViewEditorFragment.this.a(var1);
-            }
-        });
-        viewEditor.setOnDraggingListener(new DraggingListener() {
-            @Override
-            public boolean isAdmobEnabled() {
-                return jC.c(sc_id).b().isEnabled();
-            }
-
-            @Override
-            public void b() {
-                isDragging = true;
-                ((DesignActivity) requireActivity()).setTouchEventEnabled(false);
-            }
-
-            @Override
-            public boolean isGoogleMapEnabled() {
-                return jC.c(sc_id).e().isEnabled();
-            }
-
-            @Override
-            public void d() {
-                isDragging = false;
-                ((DesignActivity) requireActivity()).setTouchEventEnabled(true);
-            }
-        });
-        viewEditor.setOnHistoryChangeListener(() -> {
-            invalidateOptionsMenu();
-            if (requireActivity() instanceof DesignActivity designActivity) {
-                WebProjectSyncManager.syncCurrentFile(designActivity.getProjectWorkspace(), sc_id, projectFileBean);
-            }
-        });
-        viewEditor.setFavoriteData(Rp.h().f());
+    @Override
+    public void onClick(View v) {
     }
 
     public void initialize(ProjectFileBean projectFileBean) {
         this.projectFileBean = projectFileBean;
-        isFabEnabled = projectFileBean.hasActivityOption(ProjectFileBean.OPTION_ACTIVITY_FAB);
-        viewEditor.initialize(sc_id, projectFileBean);
-        viewEditor.h();
-        viewProperty.a(sc_id, this.projectFileBean);
-        e();
-        i();
-        invalidateOptionsMenu();
-    }
-
-    private void a(ViewBean viewBean) {
-        viewEditor.removeFab();
-        if (isFabEnabled) viewEditor.addFab(viewBean);
-    }
-
-    private void a(String viewId) {
-        ViewBean viewBean;
-        if (viewId.equals("_fab")) {
-            viewBean = jC.a(sc_id).h(projectFileBean.getXmlName());
-        } else {
-            viewBean = jC.a(sc_id).c(projectFileBean.getXmlName(), viewId);
+        if (viewProperty != null) {
+            viewProperty.a(sc_id, this.projectFileBean);
         }
-        c(viewBean);
-        viewProperty.e();
-    }
-
-    private void toLogicEditorActivity(String eventId, String eventName, String eventName2) {
-        Intent intent = new Intent(requireContext(), LogicEditorActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        intent.putExtra("sc_id", sc_id);
-        intent.putExtra("id", eventId);
-        intent.putExtra("event", eventName);
-        intent.putExtra("project_file", projectFileBean);
-        intent.putExtra("event_text", eventName2);
-        requireContext().startActivity(intent);
-    }
-
-    public void a(ArrayList<ViewBean> viewBeans) {
-        viewEditor.h();
-        viewEditor.a(SketchwareUtil.cloneViewBeans(viewBeans));
-    }
-
-    public void a(boolean var1) {
-        startAnimation();
-        if (!isPropertyViewVisible || !var1) {
-            cancelAnimations();
-            if (var1) {
-                showPropertyViewAnimator.start();
-            } else if (isPropertyViewVisible) {
-                hidePropertyViewAnimator.start();
-            }
-
-            isPropertyViewVisible = var1;
-        }
-    }
-
-    public void openPropertyActivity(ViewBean viewBean) {
-        Intent intent = new Intent(requireContext(), PropertyActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        intent.putExtra("sc_id", sc_id);
-        intent.putExtra("bean", viewBean);
-        intent.putExtra("project_file", projectFileBean);
-        startActivityForResult(intent, 213);
-    }
-
-    private void b(ArrayList<ViewBean> viewBeans) {
-        l();
-        a(viewBeans);
-    }
-
-    private void cancelAnimations() {
-        if (showPropertyViewAnimator.isRunning()) showPropertyViewAnimator.cancel();
-        if (hidePropertyViewAnimator.isRunning()) hidePropertyViewAnimator.cancel();
-    }
-
-    public void c(ViewBean var1) {
-        viewEditor.e(var1);
-    }
-
-    public void showHidePropertyView(boolean shouldShow) {
-        viewProperty.setVisibility(shouldShow ? View.VISIBLE : View.GONE);
-    }
-
-    public ProjectFileBean d() {
-        return projectFileBean;
-    }
-
-    public void e() {
-        WidgetShowCased.setup(viewEditor, widgetsCreatorManager);
-    }
-
-    private void startAnimation() {
-        if (showPropertyViewAnimator == null) {
-            showPropertyViewAnimator = ObjectAnimator.ofFloat(viewProperty, View.TRANSLATION_Y, 0.0F);
-            showPropertyViewAnimator.setDuration(700L);
-            showPropertyViewAnimator.setInterpolator(new DecelerateInterpolator());
-        }
-
-        if (hidePropertyViewAnimator == null) {
-            if (getActivity() == null) return;
-            hidePropertyViewAnimator = ObjectAnimator.ofFloat(viewProperty, View.TRANSLATION_Y, wB.a(requireActivity(), (float) viewProperty.getHeight()));
-            hidePropertyViewAnimator.setDuration(300L);
-            hidePropertyViewAnimator.setInterpolator(new DecelerateInterpolator());
-        }
-    }
-
-    public boolean isPropertyViewVisible() {
-        return isPropertyViewVisible;
-    }
-
-    private void onRedo() {
-        if (!isDragging) {
-            HistoryViewBean historyViewBean = cC.c(sc_id).h(projectFileBean.getXmlName());
-            if (historyViewBean != null) {
-                int actionType = historyViewBean.getActionType();
-                if (actionType == HistoryViewBean.ACTION_TYPE_ADD) {
-                    for (ViewBean viewBean : historyViewBean.getAddedData()) {
-                        jC.a(sc_id).a(projectFileBean.getXmlName(), viewBean);
-                    }
-                    viewEditor.a(viewEditor.a(historyViewBean.getAddedData(), false), false);
-                } else if (actionType == HistoryViewBean.ACTION_TYPE_UPDATE) {
-                    ViewBean prevUpdateData = historyViewBean.getPrevUpdateData();
-                    ViewBean currentUpdateData = historyViewBean.getCurrentUpdateData();
-                    if (!prevUpdateData.id.equals(currentUpdateData.id)) {
-                        currentUpdateData.preId = prevUpdateData.id;
-                    }
-
-                    if (currentUpdateData.id.equals("_fab")) {
-                        jC.a(sc_id).h(projectFileBean.getXmlName()).copy(currentUpdateData);
-                    } else {
-                        jC.a(sc_id).c(projectFileBean.getXmlName(), prevUpdateData.id).copy(currentUpdateData);
-                    }
-
-                    viewEditor.a(viewEditor.e(currentUpdateData), false);
-                } else if (actionType == HistoryViewBean.ACTION_TYPE_REMOVE) {
-                    for (ViewBean viewBean : historyViewBean.getRemovedData()) {
-                        jC.a(sc_id).a(projectFileBean, viewBean);
-                    }
-                    viewEditor.b(historyViewBean.getRemovedData(), false);
-                    viewEditor.i();
-                } else if (actionType == HistoryViewBean.ACTION_TYPE_MOVE) {
-                    ViewBean movedData = historyViewBean.getMovedData();
-                    ViewBean viewBean = jC.a(sc_id).c(projectFileBean.getXmlName(), movedData.id);
-                    viewBean.copy(movedData);
-                    viewEditor.a(viewEditor.b(viewBean, false), false);
-                } else if (actionType == HistoryViewBean.ACTION_TYPE_OVERRIDE) {
-                    jC.a(sc_id).c.put(projectFileBean.getXmlName(), historyViewBean.getAddedData());
-                    i();
-                }
-            }
-            invalidateOptionsMenu();
-            if (requireActivity() instanceof DesignActivity designActivity) {
-                WebProjectSyncManager.syncCurrentFile(designActivity.getProjectWorkspace(), sc_id, projectFileBean);
-            }
-        }
-    }
-
-    public void i() {
-        invalidateOptionsMenu();
-        if (projectFileBean != null) {
-            ProjectWorkspace workspace = new ProjectWorkspace(requireContext(), sc_id);
-            if (workspace.isSimpleProject) {
-                ArrayList<ViewBean> viewBeans = null;
-                // Try to load from [PageName]_htmltags.json first
-                String tagsPath = LakiFiles.getPageHtmlTagsPath(workspace.projectMyscPath, projectFileBean.fileName);
-                if (laki.webide.utility.FileUtil.isExistFile(tagsPath)) {
-                    try {
-                        String json = laki.webide.utility.FileUtil.readFile(tagsPath);
-                        if (json != null && !json.isEmpty() && !json.equals("[]")) {
-                            viewBeans = new com.google.gson.Gson().fromJson(json, new com.google.gson.reflect.TypeToken<ArrayList<ViewBean>>(){}.getType());
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                // Fallback to HtmlParser if JSON is missing or empty
-                if (viewBeans == null || viewBeans.isEmpty()) {
-                    viewBeans = HtmlParser.parse(requireContext(), sc_id, projectFileBean.getXmlName());
-                }
-
-                // Sanitize and store in Sketchware manager
-                ArrayList<ViewBean> cleanBeans = SketchwareUtil.sanitizeViewBeans(viewBeans);
-                jC.a(sc_id).c.put(projectFileBean.getXmlName(), cleanBeans);
-            }
-            b(jC.a(sc_id).d(projectFileBean.getXmlName()));
-            a(jC.a(sc_id).h(projectFileBean.getXmlName()));
-        }
-    }
-
-    public void j() {
-        viewEditor.setFavoriteData(Rp.h().f());
-    }
-
-    private void invalidateOptionsMenu() {
         if (getActivity() != null) {
             getActivity().invalidateOptionsMenu();
-        }
-    }
-
-    public void l() {
-        viewEditor.j();
-    }
-
-    private void onUndo() {
-        if (!isDragging) {
-            HistoryViewBean historyViewBean = cC.c(sc_id).i(projectFileBean.getXmlName());
-            if (historyViewBean != null) {
-                int actionType = historyViewBean.getActionType();
-                if (actionType == HistoryViewBean.ACTION_TYPE_ADD) {
-                    for (ViewBean view : historyViewBean.getAddedData()) {
-                        jC.a(sc_id).a(projectFileBean, view);
-                    }
-                    viewEditor.b(historyViewBean.getAddedData(), false);
-                    viewEditor.i();
-                } else if (actionType == HistoryViewBean.ACTION_TYPE_UPDATE) {
-                    ViewBean prevUpdateData = historyViewBean.getPrevUpdateData();
-                    ViewBean currentUpdateData = historyViewBean.getCurrentUpdateData();
-                    if (!prevUpdateData.id.equals(currentUpdateData.id)) {
-                        prevUpdateData.preId = currentUpdateData.id;
-                    }
-                    if (currentUpdateData.id.equals("_fab")) {
-                        jC.a(sc_id).h(projectFileBean.getXmlName()).copy(prevUpdateData);
-                    } else {
-                        jC.a(sc_id).c(projectFileBean.getXmlName(), currentUpdateData.id).copy(prevUpdateData);
-                    }
-                    viewEditor.a(viewEditor.e(prevUpdateData), false);
-                } else if (actionType == HistoryViewBean.ACTION_TYPE_REMOVE) {
-                    for (ViewBean view : historyViewBean.getRemovedData()) {
-                        jC.a(sc_id).a(projectFileBean.getXmlName(), view);
-                    }
-                    viewEditor.a(viewEditor.a(historyViewBean.getRemovedData(), false), false);
-                } else if (actionType == HistoryViewBean.ACTION_TYPE_MOVE) {
-                    ViewBean movedData = historyViewBean.getMovedData();
-                    ViewBean viewBean = jC.a(sc_id).c(projectFileBean.getXmlName(), movedData.id);
-                    viewBean.preIndex = movedData.index;
-                    viewBean.index = movedData.preIndex;
-                    viewBean.parent = movedData.preParent;
-                    viewBean.preParent = movedData.parent;
-                    viewBean.parentType = movedData.preParentType;
-                    viewBean.preParentType = movedData.parentType;
-                    viewEditor.a(viewEditor.b(viewBean, false), false);
-                } else if (actionType == HistoryViewBean.ACTION_TYPE_OVERRIDE) {
-                    jC.a(sc_id).c.put(projectFileBean.getXmlName(), historyViewBean.getRemovedData());
-                    i();
-                }
-            }
-            invalidateOptionsMenu();
-            if (requireActivity() instanceof DesignActivity designActivity) {
-                WebProjectSyncManager.syncCurrentFile(designActivity.getProjectWorkspace(), sc_id, projectFileBean);
-            }
-        }
-    }
-
-    public void n() {
-        ArrayList<ViewBean> viewBeanArrayList = SketchwareUtil.cloneViewBeans(jC.a(sc_id).d(projectFileBean.getXmlName()));
-        ViewBean viewBean;
-        if (projectFileBean.hasActivityOption(ProjectFileBean.OPTION_ACTIVITY_FAB)) {
-            viewBean = jC.a(sc_id).h(projectFileBean.getXmlName());
-        } else {
-            viewBean = null;
-        }
-        viewProperty.addActivityViews(viewBeanArrayList, viewBean);
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        invalidateOptionsMenu();
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 213) {
-            if (resultCode == -1) {
-                c(data.getParcelableExtra("bean"));
-            }
-
-            if (data != null && data.getBooleanExtra("is_edit_image", false)) {
-                for (ViewBean viewBean : jC.a(sc_id).d(projectFileBean.getXmlName())) {
-                    c(viewBean);
-                }
-                if (isFabEnabled) {
-                    c(jC.a(sc_id).h(projectFileBean.getXmlName()));
-                }
-            }
-            invalidateOptionsMenu();
-            if (requireActivity() instanceof DesignActivity designActivity) {
-                WebProjectSyncManager.syncCurrentFile(designActivity.getProjectWorkspace(), sc_id, projectFileBean);
-            }
-        }
-    }
-
-    @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfiguration) {
-        super.onConfigurationChanged(newConfiguration);
-        viewEditor.setScreenType(newConfiguration.orientation);
-        viewEditor.isLayoutChanged = true;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-        super.onCreateOptionsMenu(menu, menuInflater);
-        menuInflater.inflate(R.menu.design_view_menu, menu);
-        menu.findItem(R.id.menu_view_redo).setEnabled(false);
-        menu.findItem(R.id.menu_view_undo).setEnabled(false);
-        if (projectFileBean != null) {
-            menu.findItem(R.id.menu_view_redo).setEnabled(cC.c(sc_id).f(projectFileBean.getXmlName()));
-            menu.findItem(R.id.menu_view_undo).setEnabled(cC.c(sc_id).g(projectFileBean.getXmlName()));
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater layoutInflater, ViewGroup parent, Bundle bundle) {
         ViewGroup viewGroup = (ViewGroup) layoutInflater.inflate(R.layout.fr_graphic_editor, parent, false);
-        initialize(viewGroup);
         if (bundle != null) {
             sc_id = bundle.getString("sc_id");
         } else {
             sc_id = requireActivity().getIntent().getStringExtra("sc_id");
         }
-
+        initialize(viewGroup);
         return viewGroup;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int itemId = item.getItemId();
-        if (itemId == R.id.menu_view_redo) {
-            onRedo();
-        } else if (itemId == R.id.menu_view_undo) {
-            onUndo();
-        }
-        return true;
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        super.onCreateOptionsMenu(menu, menuInflater);
+        menuInflater.inflate(R.menu.design_view_menu, menu);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        i();
     }
 
     @Override
     public void onSaveInstanceState(Bundle newInstanceState) {
         newInstanceState.putString("sc_id", sc_id);
         super.onSaveInstanceState(newInstanceState);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (viewProperty != null) {
-            viewProperty.d();
-        }
     }
 }

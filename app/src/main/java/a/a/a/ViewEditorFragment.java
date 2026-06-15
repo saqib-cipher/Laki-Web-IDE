@@ -92,6 +92,7 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
         this.BLOCK_DRAG_Y = (int) LayoutUtil.getDip(requireContext(), (float) this.BLOCK_DRAG_Y);
         
         this.viewProperty = requireActivity().findViewById(R.id.view_property);
+        this.pane.setOnTouchListener(this);
 
         // Load HTML blocks into the new sidebar directly
         this.htmlSidebar.setBlockTouchListener(this);
@@ -111,6 +112,12 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
 
     private void dragStart() {
         if (this.currentTouchedView != null) {
+            // Prevent dragging the Root block
+            if (this.currentTouchedView == this.pane.getRoot()) {
+                this.currentTouchedView = null;
+                return;
+            }
+
             this.viewEditor.setScrollEnabled(false);
             if (this.htmlSidebar != null) {
                 this.htmlSidebar.setScrollEnabled(false);
@@ -191,6 +198,16 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
+        if (view == this.pane) {
+            if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                if (viewProperty != null) {
+                    viewProperty.setBlock(null);
+                    viewProperty.animate().translationY(LayoutUtil.getDip(requireContext(), 170.0f)).setDuration(300).start();
+                }
+            }
+            return true;
+        }
+
         int action = motionEvent.getAction();
         if (action == MotionEvent.ACTION_DOWN) {
             view.getParent().requestDisallowInterceptTouchEvent(true);
@@ -231,9 +248,10 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                 return false;
             }
         } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            View draggedView = this.currentTouchedView;
             this.currentTouchedView = null;
             this.handler.removeCallbacks(this.longPressed);
-            if (this.isDragged) {
+            if (this.isDragged && draggedView != null) {
                 this.viewEditor.setScrollEnabled(true);
                 if (this.htmlSidebar != null) {
                     this.htmlSidebar.setScrollEnabled(true);
@@ -242,31 +260,36 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                 if (this.dummy.getAllow()) {
                     if (this.bActiveIconDelete) {
                         activeIconDelete(false);
-                        this.pane.removeBlock((Block) view);
-                    } else if (view instanceof Block) {
+                        // Only remove if it's actually in the pane (workspace block)
+                        if (((Block) draggedView).getBlockType() == 0) {
+                            this.pane.removeBlock((Block) draggedView);
+                        }
+                        this.pane.draggingDone();
+                    } else if (draggedView instanceof Block) {
                         this.dummy.getDummyPosition(this.posDummy);
                         
                         // Pure Copy from Activity: Use posDummy directly
-                        if (((Block) view).getBlockType() == 1) { // Sidebar block
-                            this.pane.blockDropped((Block) view, this.posDummy[0], this.posDummy[1], false).setOnTouchListener(this);
+                        if (((Block) draggedView).getBlockType() == 1) { // Sidebar block
+                            this.pane.blockDropped((Block) draggedView, this.posDummy[0], this.posDummy[1], false).setOnTouchListener(this);
                         } else {
-                            this.pane.setVisibleBlock((Block) view, 0);
-                            this.pane.blockDropped((Block) view, this.posDummy[0], this.posDummy[1], true);
+                            this.pane.setVisibleBlock((Block) draggedView, 0);
+                            this.pane.blockDropped((Block) draggedView, this.posDummy[0], this.posDummy[1], true);
                         }
                         this.pane.draggingDone();
                     }
-                } else if (view instanceof Block && ((Block) view).getBlockType() == 0) {
-                    this.pane.setVisibleBlock((Block) view, 0);
+                } else if (draggedView instanceof Block && ((Block) draggedView).getBlockType() == 0) {
+                    this.pane.setVisibleBlock((Block) draggedView, 0);
                     if (this.originalParent != null) {
-                        if (this.originalInsertOption == 0) this.originalParent.nextBlock = ((Integer) view.getTag()).intValue();
-                        if (this.originalInsertOption == 2) this.originalParent.subStack1 = ((Integer) view.getTag()).intValue();
-                        if (this.originalInsertOption == 3) this.originalParent.subStack2 = ((Integer) view.getTag()).intValue();
-                        if (this.originalInsertOption == 5) this.originalParent.replaceArgWithBlock((BlockBase) this.originalParent.args.get(this.originalArgIndex), (Block) view);
-                        ((Block) view).parentBlock = this.originalParent;
+                        if (this.originalInsertOption == 0) this.originalParent.nextBlock = ((Integer) draggedView.getTag()).intValue();
+                        if (this.originalInsertOption == 2) this.originalParent.subStack1 = ((Integer) draggedView.getTag()).intValue();
+                        if (this.originalInsertOption == 3) this.originalParent.subStack2 = ((Integer) draggedView.getTag()).intValue();
+                        if (this.originalInsertOption == 5) this.originalParent.replaceArgWithBlock((BlockBase) this.originalParent.args.get(this.originalArgIndex), (Block) draggedView);
+                        ((Block) draggedView).parentBlock = this.originalParent;
                         this.originalParent.topBlock().fixLayout();
                     } else {
-                        ((Block) view).topBlock().fixLayout();
+                        ((Block) draggedView).topBlock().fixLayout();
                     }
+                    this.pane.draggingDone();
                 }
                 this.dummy.setAllow(false);
                 showIconDelete(false);
@@ -274,7 +297,19 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                 return true;
             }
             if ((view instanceof Block) && ((Block) view).getBlockType() == 0) {
-                ((Block) view).actionClick(motionEvent.getX(), motionEvent.getY());
+                Block block = (Block) view;
+                if (block.mOpCode != null && block.mOpCode.startsWith("html_")) {
+                    if (viewProperty != null) {
+                        viewProperty.setBlock(block);
+                        viewProperty.animate().translationY(0.0f).setDuration(300).start();
+                    }
+                } else {
+                    if (viewProperty != null) {
+                        viewProperty.setBlock(null);
+                        viewProperty.animate().translationY(LayoutUtil.getDip(requireContext(), 170.0f)).setDuration(300).start();
+                    }
+                    block.actionClick(motionEvent.getX(), motionEvent.getY());
+                }
             }
             return false;
         }

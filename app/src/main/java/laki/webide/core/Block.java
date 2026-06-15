@@ -9,6 +9,7 @@ import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import laki.webide.R;
@@ -44,6 +45,7 @@ public class Block extends BlockBase {
     public int subStack2 = -1;
     public String category = "OTHER";
     public String outputType = "";
+    public HashMap<String, String> attributes = new HashMap<>();
 
     public Block(Context context, int i, String str, String str2, String str3, Object... objArr) {
         super(context, str2, false);
@@ -57,6 +59,7 @@ public class Block extends BlockBase {
     public static Block fromBean(Context context, BlockBean bean) {
         Block block = new Block(context, Integer.valueOf(bean.id), bean.spec, bean.type, bean.opCode, new Object[]{Integer.valueOf(bean.color)});
         if (bean.category != null) block.category = bean.category;
+        if (bean.attributes != null) block.attributes = new HashMap<>(bean.attributes);
         return block;
     }
 
@@ -453,6 +456,7 @@ public class Block extends BlockBase {
         blockBean.subStack1 = this.subStack1;
         blockBean.subStack2 = this.subStack2;
         blockBean.nextBlock = this.nextBlock;
+        blockBean.attributes = new HashMap<>(this.attributes);
         return blockBean;
     }
 

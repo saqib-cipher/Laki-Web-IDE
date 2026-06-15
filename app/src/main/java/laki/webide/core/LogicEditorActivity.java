@@ -384,7 +384,15 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements OnClic
         }
     }
 
-    private void updateIconDeletePosition() { }
+    private void updateIconDeletePosition() {
+        if (this.isPaletteOpened && 1 == getResources().getConfiguration().orientation) {
+            ((RelativeLayout.LayoutParams) this.iconDelete.getLayoutParams()).bottomMargin = (int) LayoutUtil.getDip(this, 240.0f);
+            this.iconDelete.requestLayout();
+            return;
+        }
+        ((RelativeLayout.LayoutParams) this.iconDelete.getLayoutParams()).bottomMargin = 0;
+        this.iconDelete.requestLayout();
+    }
 
     public boolean checkValidForever() { return true; }
     public boolean checkValidZero() { return true; }

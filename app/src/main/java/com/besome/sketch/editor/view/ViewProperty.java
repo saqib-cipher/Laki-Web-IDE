@@ -22,6 +22,8 @@ import com.besome.sketch.beans.ViewBean;
 import com.besome.sketch.ctrls.ViewIdSpinnerItem;
 import com.besome.sketch.editor.property.ViewPropertyItems;
 import com.besome.sketch.lib.ui.CustomHorizontalScrollView;
+import laki.webide.core.Block;
+import laki.webide.core.HtmlBlockPropertyManager;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -55,6 +57,7 @@ public class ViewProperty extends LinearLayout implements Kw {
     private Jw propertyTargetChangeListener = null;
     private LinearLayout layoutPropertySeeAll;
     private ViewPropertyItems viewPropertyItems;
+    private HtmlBlockPropertyManager htmlPropertyManager;
     private SeeAllPropertiesFloatingItem seeAll;
     private View propertyLayout;
     private ViewEvents viewEvent;
@@ -306,6 +309,37 @@ public class ViewProperty extends LinearLayout implements Kw {
         viewPropertyItems = new ViewPropertyItems(getContext());
         viewPropertyItems.setOrientation(HORIZONTAL);
         propertyContents.addView(viewPropertyItems);
+
+        htmlPropertyManager = new HtmlBlockPropertyManager(getContext());
+        htmlPropertyManager.setOrientation(HORIZONTAL);
+        htmlPropertyManager.setVisibility(GONE);
+        propertyContents.addView(htmlPropertyManager);
+    }
+
+    public void setBlock(Block block) {
+        if (block == null) {
+            viewPropertyItems.setVisibility(VISIBLE);
+            htmlPropertyManager.setVisibility(GONE);
+            spnWidget.setVisibility(VISIBLE);
+
+            // Restore view-specific UI
+            imgSave.setVisibility(VISIBLE);
+            imgDelete.setVisibility(VISIBLE);
+            layoutPropertyGroup.setVisibility(VISIBLE);
+            layoutPropertySeeAll.setVisibility(VISIBLE);
+            return;
+        }
+        viewPropertyItems.setVisibility(GONE);
+        htmlPropertyManager.setVisibility(VISIBLE);
+        htmlPropertyManager.setProjectId(sc_id);
+        htmlPropertyManager.bindBlock(block);
+        
+        // Hide spinner and other view-specific UI
+        spnWidget.setVisibility(GONE);
+        imgSave.setVisibility(GONE);
+        imgDelete.setVisibility(GONE);
+        layoutPropertyGroup.setVisibility(GONE);
+        layoutPropertySeeAll.setVisibility(GONE);
     }
 
     private void selectView(ViewBean viewBean) {

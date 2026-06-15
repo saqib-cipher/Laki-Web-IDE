@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.Parcelable.Creator;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class BlockBean extends BaseBean implements Parcelable {
     public static final Creator<BlockBean> CREATOR = new Creator<BlockBean>() {
@@ -23,6 +24,7 @@ public class BlockBean extends BaseBean implements Parcelable {
     public String opCode;
     public ArrayList<String> paramTypes;
     public ArrayList<String> parameters;
+    public HashMap<String, String> attributes;
     public String spec;
     public int subStack1;
     public int subStack2;
@@ -31,6 +33,7 @@ public class BlockBean extends BaseBean implements Parcelable {
     public BlockBean() {
         this.parameters = new ArrayList();
         this.paramTypes = new ArrayList();
+        this.attributes = new HashMap<>();
         this.subStack1 = -1;
         this.subStack2 = -1;
         this.nextBlock = -1;
@@ -45,6 +48,7 @@ public class BlockBean extends BaseBean implements Parcelable {
         this.category = parcel.readString();
         this.parameters = (ArrayList) parcel.readSerializable();
         this.paramTypes = (ArrayList) parcel.readSerializable();
+        this.attributes = (HashMap) parcel.readSerializable();
         this.subStack1 = parcel.readInt();
         this.subStack2 = parcel.readInt();
         this.nextBlock = parcel.readInt();
@@ -57,6 +61,7 @@ public class BlockBean extends BaseBean implements Parcelable {
         this.opCode = str4;
         this.parameters = new ArrayList();
         this.paramTypes = new ArrayList();
+        this.attributes = new HashMap<>();
         this.subStack1 = -1;
         this.subStack2 = -1;
         this.nextBlock = -1;
@@ -75,6 +80,7 @@ public class BlockBean extends BaseBean implements Parcelable {
         this.category = blockBean.category;
         this.parameters = new ArrayList(blockBean.parameters);
         this.paramTypes = new ArrayList(blockBean.paramTypes);
+        this.attributes = new HashMap<>(blockBean.attributes);
         this.subStack1 = blockBean.subStack1;
         this.subStack2 = blockBean.subStack2;
         this.nextBlock = blockBean.nextBlock;
@@ -96,6 +102,7 @@ public class BlockBean extends BaseBean implements Parcelable {
         parcel.writeString(this.category);
         parcel.writeSerializable(this.parameters);
         parcel.writeSerializable(this.paramTypes);
+        parcel.writeSerializable(this.attributes);
         parcel.writeInt(this.subStack1);
         parcel.writeInt(this.subStack2);
         parcel.writeInt(this.nextBlock);

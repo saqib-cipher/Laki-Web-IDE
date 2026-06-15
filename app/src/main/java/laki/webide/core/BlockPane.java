@@ -30,7 +30,7 @@ public class BlockPane extends RelativeLayout {
         this.posArea = new int[INSERT_SUB1];
         this.possibleTargets = new ArrayList();
         this.nearestTarget = null;
-        this.blockId = 10;
+        this.blockId = 100;
         this.hitTarget = null;
         this.maxDepth = -1;
         init(context);
@@ -41,7 +41,7 @@ public class BlockPane extends RelativeLayout {
         this.posArea = new int[INSERT_SUB1];
         this.possibleTargets = new ArrayList();
         this.nearestTarget = null;
-        this.blockId = 10;
+        this.blockId = 100;
         this.hitTarget = null;
         this.maxDepth = -1;
         init(context);
@@ -176,12 +176,14 @@ public class BlockPane extends RelativeLayout {
     }
 
     public void addRoot(String str, String str2) {
+        removeAllViews();
         Context context = getContext();
         Object[] objArr = new Object[INSERT_ABOVE];
         objArr[INSERT_NORMAL] = Integer.valueOf(-3636432);
         this.root = new Block(context, INSERT_NORMAL, str, "h", str2, objArr);
         this.root.pane = this;
         addView(this.root);
+        addFeedbackShape();
         float dip = LayoutUtil.getDip(getContext(), 1.0f);
         this.root.setX(8.0f * dip);
         this.root.setY(dip * 8.0f);
@@ -603,6 +605,9 @@ public class BlockPane extends RelativeLayout {
     }
 
     public void removeBlock(Block block) {
+        if (block == null || block == this.root) {
+            return;
+        }
         removeRelation(block);
         Iterator it = block.getAllChildren().iterator();
         while (it.hasNext()) {

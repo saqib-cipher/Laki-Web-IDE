@@ -73,6 +73,7 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
     private String sc_id;
     private ProjectFileBean projectFileBean;
     private ViewProperty viewProperty;
+    private Block lastSelectedBlock;
 
     public ViewEditorFragment() {
     }
@@ -107,7 +108,14 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                 this.pane.getRoot().fixLayout();
                 this.pane.calculateWidthHeight();
             }
+            syncSpinner();
         }, 100);
+    }
+
+    private void syncSpinner() {
+        if (viewProperty != null && pane != null) {
+            viewProperty.updateSpinner(pane.getHtmlBlockIds());
+        }
     }
 
     private void dragStart() {
@@ -203,6 +211,7 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                 if (viewProperty != null) {
                     viewProperty.setBlock(null);
                     viewProperty.animate().translationY(LayoutUtil.getDip(requireContext(), 170.0f)).setDuration(300).start();
+                    clearSelection();
                 }
             }
             return true;
@@ -262,9 +271,17 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                         activeIconDelete(false);
                         // Only remove if it's actually in the pane (workspace block)
                         if (((Block) draggedView).getBlockType() == 0) {
+                            if (draggedView == lastSelectedBlock) {
+                                if (viewProperty != null) {
+                                    viewProperty.setBlock(null);
+                                    viewProperty.animate().translationY(LayoutUtil.getDip(requireContext(), 170.0f)).setDuration(300).start();
+                                }
+                                clearSelection();
+                            }
                             this.pane.removeBlock((Block) draggedView);
                         }
                         this.pane.draggingDone();
+                        syncSpinner();
                     } else if (draggedView instanceof Block) {
                         this.dummy.getDummyPosition(this.posDummy);
                         
@@ -276,6 +293,7 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                             this.pane.blockDropped((Block) draggedView, this.posDummy[0], this.posDummy[1], true);
                         }
                         this.pane.draggingDone();
+                        syncSpinner();
                     }
                 } else if (draggedView instanceof Block && ((Block) draggedView).getBlockType() == 0) {
                     this.pane.setVisibleBlock((Block) draggedView, 0);
@@ -300,6 +318,10 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                 Block block = (Block) view;
                 if (block.mOpCode != null && block.mOpCode.startsWith("html_")) {
                     if (viewProperty != null) {
+                        syncSpinner();
+                        clearSelection();
+                        lastSelectedBlock = block;
+                        block.setSelectionVisual(true);
                         viewProperty.setBlock(block);
                         viewProperty.animate().translationY(0.0f).setDuration(300).start();
                     }
@@ -307,6 +329,7 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                     if (viewProperty != null) {
                         viewProperty.setBlock(null);
                         viewProperty.animate().translationY(LayoutUtil.getDip(requireContext(), 170.0f)).setDuration(300).start();
+                        clearSelection();
                     }
                     block.actionClick(motionEvent.getX(), motionEvent.getY());
                 }
@@ -316,17 +339,38 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
         return false;
     }
 
+    private void clearSelection() {
+        if (lastSelectedBlock != null) {
+            lastSelectedBlock.setSelectionVisual(false);
+            lastSelectedBlock = null;
+        }
+    }
+
     @Override
     public void onClick(View v) {
     }
 
     public void initialize(ProjectFileBean projectFileBean) {
         this.projectFileBean = projectFileBean;
+        if (this.pane != null && projectFileBean != null) {
+            this.pane.setCurrentFilename(projectFileBean.fileName);
+        }
         if (viewProperty != null) {
             viewProperty.a(sc_id, this.projectFileBean);
         }
         if (getActivity() != null) {
             getActivity().invalidateOptionsMenu();
+        }
+    }
+
+    public void showHidePropertyView(boolean visible) {
+        if (viewProperty != null) {
+            if (visible && lastSelectedBlock != null) {
+                viewProperty.animate().translationY(0.0f).setDuration(300).start();
+            } else {
+                viewProperty.animate().translationY(LayoutUtil.getDip(requireContext(), 170.0f)).setDuration(300).start();
+                if (!visible) clearSelection();
+            }
         }
     }
 
@@ -351,6 +395,9 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
     @Override
     public void onResume() {
         super.onResume();
+        if (lastSelectedBlock == null && viewProperty != null) {
+            viewProperty.setTranslationY(LayoutUtil.getDip(requireContext(), 170.0f));
+        }
     }
 
     @Override

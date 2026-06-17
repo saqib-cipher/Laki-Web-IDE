@@ -238,12 +238,6 @@
             android:name="mod.hey.studios.code.SrcCodeEditor"
             android:configChanges="orientation|screenSize" />
         <activity
-            android:name="mod.hey.studios.project.proguard.ManageProguardActivity"
-            android:configChanges="orientation|screenSize" />
-        <activity
-            android:name="mod.hilal.saif.activities.android_manifest.AndroidManifestInjection"
-            android:configChanges="orientation|screenSize" />
-        <activity
             android:name="mod.hilal.saif.activities.android_manifest.AndroidManifestInjectionDetails"
             android:configChanges="orientation|screenSize"
             android:windowSoftInputMode="stateAlwaysHidden" />
@@ -290,10 +284,6 @@
 
         <activity
             android:name="laki.webide.activities.appcompat.ManageAppCompatActivity"
-            android:configChanges="orientation|screenSize" />
-
-        <activity
-            android:name="laki.webide.activities.editor.command.ManageXMLCommandActivity"
             android:configChanges="orientation|screenSize" />
 
         <activity

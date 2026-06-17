@@ -441,16 +441,16 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
                     if (item7 != null) {
                         item7.setVisible(true);
                     }
-                    /* if (viewTabAdapter != null) {
+                    if (viewTabAdapter != null) {
                         viewTabAdapter.showHidePropertyView(true);
-                    } */
+                    }
                 } else if (position == 1) {
                     MenuItem item7 = bottomMenu.findItem(7);
                     if (item7 != null) {
                         item7.setVisible(false);
                     }
                     if (viewTabAdapter != null) {
-                        // viewTabAdapter.showHidePropertyView(false);
+                        viewTabAdapter.showHidePropertyView(false);
                         if (eventTabAdapter != null) {
                             eventTabAdapter.refreshEvents();
                         }
@@ -461,7 +461,7 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
                         item7.setVisible(false);
                     }
                     if (viewTabAdapter != null) {
-                     //   viewTabAdapter.showHidePropertyView(false);
+                        viewTabAdapter.showHidePropertyView(false);
                         if (componentTabAdapter != null) {
                             componentTabAdapter.refreshData();
                         }

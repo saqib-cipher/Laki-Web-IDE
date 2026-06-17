@@ -175,6 +175,11 @@ public class ViewProperty extends LinearLayout implements Kw {
                 if (selectedBlock != null) {
                     viewPropertyItems.setOnPropertyValueChangedListener(vBean -> {
                         selectedBlock.attributes = vBean.parentAttributes;
+                        
+                        // Sync ID back to the visible hole on the block
+                        if (vBean.parentAttributes.containsKey("id")) {
+                            selectedBlock.setArgValue(0, vBean.parentAttributes.get("id"));
+                        }
                     });
                 } else {
                     viewPropertyItems.setOnPropertyValueChangedListener(vBean -> {

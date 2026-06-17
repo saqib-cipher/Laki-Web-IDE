@@ -1,17 +1,27 @@
 package laki.webide.core.panel;
 
 import android.animation.ObjectAnimator;
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.*;
 
+import com.besome.sketch.lib.ui.ColorPickerDialog;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputLayout;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import laki.webide.R;
 import laki.webide.core.LayoutUtil;
+import laki.webide.core.panel.ViewPropertyItems;
+import mod.hey.studios.util.Helper;
 
 public class ViewProperty extends LinearLayout {
 
@@ -24,6 +34,9 @@ public class ViewProperty extends LinearLayout {
     private ObjectAnimator showAllShower;
     private ObjectAnimator showAllHider;
     private boolean showAllVisible = true;
+
+    private String sc_id;
+    private laki.webide.core.Block currentBlock;
 
     public ViewProperty(Context context) {
         super(context);
@@ -77,23 +90,15 @@ public class ViewProperty extends LinearLayout {
             }
         });
 
-        // 1. Setup Spinner with dummy data
-        String[] dummyViews = {"div_1", "span_1", "h1_header", "button_submit"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, dummyViews);
-        spnWidget.setAdapter(adapter);
-
-        // 2. Setup Property Tabs (Basic, Recent, Event)
+        // Setup Tabs
         setupTabs();
 
-        // 3. Setup the items container
+        // Setup the items container
         itemsContainer = new ViewPropertyItems(context);
         propertyContents.addView(itemsContainer);
 
-        // 4. Setup "See All" (Complete Structure)
+        // Setup "See All"
         setupSeeAll();
-
-        // Add dummy values for testing
-        loadDummyProperties();
     }
 
     private void initializeSeeAllAnimations() {
@@ -109,8 +114,6 @@ public class ViewProperty extends LinearLayout {
     private void setupSeeAll() {
         LinearLayout layoutSeeAll = findViewById(R.id.layout_property_see_all);
         layoutSeeAll.setVisibility(VISIBLE);
-        
-        // We reuse the grid item layout for the "See All" button
         View seeAll = LayoutInflater.from(getContext()).inflate(R.layout.property_grid_item, layoutSeeAll, false);
         ((ImageView) seeAll.findViewById(R.id.img_icon)).setImageResource(R.drawable.color_more_96);
         ((TextView) seeAll.findViewById(R.id.tv_title)).setText("See All");
@@ -127,16 +130,13 @@ public class ViewProperty extends LinearLayout {
             title.setText(getContext().getString(labels[i]));
             tab.setTag(i);
             tab.setOnClickListener(v -> {
-                // Select animation logic (Original Sketchware style)
                 for (int j = 0; j < layoutPropertyGroup.getChildCount(); j++) {
                     View child = layoutPropertyGroup.getChildAt(j);
                     boolean isSelected = (child == v);
                     child.setSelected(isSelected);
                     child.animate().scaleX(isSelected ? 0.9f : 0.8f).scaleY(isSelected ? 0.9f : 0.8f).setDuration(200).start();
                 }
-
-                // Switch visibility (Complete Structure Logic)
-                if (id == 2) { // Event Tab
+                if (id == 2) { 
                     findViewById(R.id.property_layout).setVisibility(GONE);
                     findViewById(R.id.view_event).setVisibility(VISIBLE);
                 } else {
@@ -145,51 +145,163 @@ public class ViewProperty extends LinearLayout {
                 }
             });
             layoutPropertyGroup.addView(tab);
-
-            // Set initial state for the first tab
             if (i == 0) {
                 tab.setSelected(true);
-                tab.setScaleX(0.9f);
-                tab.setScaleY(0.9f);
+                tab.setScaleX(0.9f); tab.setScaleY(0.9f);
             } else {
-                tab.setScaleX(0.8f);
-                tab.setScaleY(0.8f);
+                tab.setScaleX(0.8f); tab.setScaleY(0.8f);
             }
         }
     }
 
-    public void loadDummyProperties() {
+    public void setBlock(laki.webide.core.Block block) {
+        this.currentBlock = block;
+        if (block == null) {
+            itemsContainer.removeAllViews();
+            return;
+        }
+
         ArrayList<ViewPropertyItems.PropertyConfig> configs = new ArrayList<>();
         
-        configs.add(new ViewPropertyItems.PropertyConfig(
-                PropertyItem.Type.INPUT, "id", "ID", R.drawable.ic_mtrl_id, "my_div_01"));
-        
-        configs.add(new ViewPropertyItems.PropertyConfig(
-                PropertyItem.Type.INPUT, "text", "Text", R.drawable.ic_mtrl_text_select, "Hello World"));
-        
-        configs.add(new ViewPropertyItems.PropertyConfig(
-                PropertyItem.Type.COLOR, "color", "Color", R.drawable.ic_mtrl_palette, "#FF0000"));
- configs.add(new ViewPropertyItems.PropertyConfig(
-                PropertyItem.Type.INPUT, "id", "ID2", R.drawable.ic_mtrl_id, "my_div_01"));
+        // Common Properties
+        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "id", "ID", R.drawable.ic_mtrl_id, block.attributes.getOrDefault("id", "")));
+        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "class", "Class", R.drawable.ic_mtrl_code, block.attributes.getOrDefault("class", "")));
 
-        configs.add(new ViewPropertyItems.PropertyConfig(
-                PropertyItem.Type.INPUT, "text", "Text2", R.drawable.ic_mtrl_text_select, "Hello World"));
+        String tag = block.mOpCode.replace("html_", "");
+        if (tag.equals("h")) {
+            // It's the combined heading block, the tag is in the hole
+            Object val = block.getArgValue(0);
+            tag = val != null ? val.toString() : "h1";
+        }
 
-        configs.add(new ViewPropertyItems.PropertyConfig(
-                PropertyItem.Type.COLOR, "color", "Color2", R.drawable.ic_mtrl_palette, "#FF0000"));
+        // Tag-Specific Properties
+        switch (tag) {
+            case "p": case "span": case "label": case "h1": case "h2": case "h3": case "h4": case "h5": case "h6":
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "text", "Text Content", R.drawable.ic_mtrl_text_select, block.attributes.getOrDefault("text", "")));
+                break;
+            case "img":
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "src", "Image Source", R.drawable.ic_mtrl_link, block.attributes.getOrDefault("src", "")));
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "alt", "Alt Text", R.drawable.ic_mtrl_formattext, block.attributes.getOrDefault("alt", "")));
+                break;
+            case "a":
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "href", "Hyperlink", R.drawable.ic_mtrl_link, block.attributes.getOrDefault("href", "")));
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.SELECTOR, "target", "Target", R.drawable.ic_mtrl_list, block.attributes.getOrDefault("target", "_self")));
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "text", "Link Text", R.drawable.ic_mtrl_text_select, block.attributes.getOrDefault("text", "")));
+                break;
+            case "input":
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.SELECTOR, "type", "Input Type", R.drawable.ic_mtrl_list, block.attributes.getOrDefault("type", "text")));
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "placeholder", "Placeholder", R.drawable.ic_mtrl_bulb, block.attributes.getOrDefault("placeholder", "")));
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "name", "Form Name", R.drawable.ic_mtrl_id, block.attributes.getOrDefault("name", "")));
+                break;
+            case "form":
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "action", "Action URL", R.drawable.ic_mtrl_link, block.attributes.getOrDefault("action", "")));
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.SELECTOR, "method", "Method", R.drawable.ic_mtrl_list, block.attributes.getOrDefault("method", "GET")));
+                break;
+            case "button":
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "text", "Label", R.drawable.ic_mtrl_text_select, block.attributes.getOrDefault("text", "")));
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.SELECTOR, "type", "Btn Type", R.drawable.ic_mtrl_list, block.attributes.getOrDefault("type", "button")));
+                break;
+            case "video": case "audio": case "iframe":
+                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "src", "Media Source", R.drawable.ic_mtrl_link, block.attributes.getOrDefault("src", "")));
+                break;
+        }
 
-        itemsContainer.setProperties(configs, item -> {
-            Toast.makeText(getContext(), "Clicked: " + item.getKey(), Toast.LENGTH_SHORT).show();
-        });
+        // Style Properties
+        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.COLOR, "color", "Text Color", R.drawable.ic_mtrl_palette, block.attributes.getOrDefault("color", "#000000")));
+        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.COLOR, "background-color", "BG Color", R.drawable.ic_mtrl_palette, block.attributes.getOrDefault("background-color", "#FFFFFF")));
+
+        itemsContainer.setProperties(configs, item -> handlePropertyClick(item));
+        syncSpinnerSelection();
     }
 
-    // Compatibility methods for testing in the current IDE
-    public void setBlock(laki.webide.core.Block block) {
-        // When you click a block, we reload the dummy properties to show the panel is working
-        loadDummyProperties();
+    private void handlePropertyClick(PropertyItem item) {
+        String key = item.getKey();
+        if (item.getType() == PropertyItem.Type.COLOR) {
+            showColorPickerDialog(key);
+        } else if (item.getType() == PropertyItem.Type.SELECTOR) {
+            showSelectorDialog(key);
+        } else {
+            showTextInputDialog(key);
+        }
+    }
+
+    private void showTextInputDialog(String key) {
+        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(getContext());
+        dialog.setTitle("Edit " + key.toUpperCase());
+        View view = LayoutInflater.from(getContext()).inflate(R.layout.property_popup_input_text, null);
+        EditText edInput = view.findViewById(R.id.ed_input);
+        edInput.setText(currentBlock.attributes.getOrDefault(key, ""));
+        dialog.setView(view);
+        dialog.setPositiveButton(Helper.getResString(R.string.common_word_save), (d, which) -> {
+            updateBlock(key, edInput.getText().toString());
+            setBlock(currentBlock);
+        });
+        dialog.setNegativeButton(Helper.getResString(R.string.common_word_cancel), null);
+        dialog.show();
+    }
+
+    private void showSelectorDialog(String key) {
+        String[] options;
+        switch (key) {
+            case "target": options = new String[]{"_self", "_blank", "_parent", "_top"}; break;
+            case "method": options = new String[]{"GET", "POST"}; break;
+            case "type": 
+                if (currentBlock.mOpCode.contains("input")) options = new String[]{"text", "password", "number", "email", "tel", "url", "date", "checkbox", "radio", "file"};
+                else options = new String[]{"button", "submit", "reset"};
+                break;
+            default: options = new String[]{"Default"}; break;
+        }
+
+        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(getContext());
+        dialog.setTitle("Select " + key.toUpperCase());
+        dialog.setItems(options, (d, which) -> {
+            updateBlock(key, options[which]);
+            setBlock(currentBlock);
+        });
+        dialog.show();
+    }
+
+    private void showColorPickerDialog(String key) {
+        String color = currentBlock.attributes.getOrDefault(key, "#FFFFFF");
+        ColorPickerDialog picker = new ColorPickerDialog((Activity) getContext(), color, true, true, sc_id);
+        picker.a(new ColorPickerDialog.b() {
+            @Override public void a(int var1) {
+                updateBlock(key, String.format("#%06X", (0xFFFFFF & var1)));
+                setBlock(currentBlock);
+            }
+            @Override public void a(String var1, int var2) {
+                updateBlock(key, "@color/" + var1);
+                setBlock(currentBlock);
+            }
+        });
+        picker.showAtLocation(this, Gravity.CENTER, 0, 0);
+    }
+
+    public void updateBlock(String key, String value) {
+        if (currentBlock == null) return;
+        currentBlock.attributes.put(key, value);
+        if (key.equals("id")) currentBlock.setArgValue(0, value);
+    }
+
+    private void syncSpinnerSelection() {
+        if (currentBlock == null || spnWidget == null) return;
+        Object idVal = currentBlock.getArgValue(0);
+        if (idVal == null) return;
+        String idStr = idVal.toString();
+        for (int i = 0; i < spnWidget.getCount(); i++) {
+            if (spnWidget.getItemAtPosition(i).toString().equals(idStr)) {
+                spnWidget.setSelection(i); break;
+            }
+        }
+    }
+
+    public void updateSpinner(ArrayList<String> ids) {
+        if (spnWidget == null) return;
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, ids);
+        spnWidget.setAdapter(adapter);
     }
 
     public void a(String sc_id, com.besome.sketch.beans.ProjectFileBean projectFileBean) {
-        // Initialization stub
+        this.sc_id = sc_id;
     }
 }

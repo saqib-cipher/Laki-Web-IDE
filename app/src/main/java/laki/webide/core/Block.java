@@ -4,15 +4,11 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-
-import laki.webide.R;
 
 public class Block extends BlockBase {
     public static final int BLOCK_TYPE_HAT = 2;
@@ -254,6 +250,23 @@ public class Block extends BlockBase {
             this.mColor = CategoryRegistry.getColor(this.category);
         } else {
             this.mColor = DefineBlock.getBlockColor(this.mOpCode, this.mType);
+        }
+    }
+
+    public void setSelectionVisual(boolean selected) {
+        if (mOpCode != null && mOpCode.startsWith("html_")) {
+            if (!labelsAndArgs.isEmpty() && labelsAndArgs.get(0) instanceof TextView) {
+                TextView tagLabel = (TextView) labelsAndArgs.get(0);
+                if (selected) {
+                    tagLabel.setTextColor(android.graphics.Color.YELLOW);
+                    tagLabel.setTypeface(null, Typeface.BOLD_ITALIC);
+                    tagLabel.setShadowLayer(5, 0, 0, android.graphics.Color.BLACK);
+                } else {
+                    tagLabel.setTextColor(-1); // White
+                    tagLabel.setTypeface(null, Typeface.BOLD);
+                    tagLabel.setShadowLayer(0, 0, 0, 0);
+                }
+            }
         }
     }
 

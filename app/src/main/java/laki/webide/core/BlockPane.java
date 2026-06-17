@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import java.util.ArrayList;
 import java.util.Iterator;
+import laki.webide.core.html.HtmlIdGenerator;
 
 public class BlockPane extends RelativeLayout {
     public static final int INSERT_ABOVE = 1;
@@ -24,6 +25,7 @@ public class BlockPane extends RelativeLayout {
     private int[] posArea;
     private ArrayList<Object[]> possibleTargets;
     private Block root;
+    private String currentFilename = "main";
 
     public BlockPane(Context context) {
         super(context);
@@ -165,6 +167,9 @@ public class BlockPane extends RelativeLayout {
             block2.category = block.category;
             block2.mColor = block.mColor;
             block2.setSpec(str, null); // Refresh visual parts with the new color
+
+            // Auto-fill HTML IDs and Classes for the new block
+            HtmlIdGenerator.autoFill(this, block2, currentFilename);
         } else {
             block2 = block;
         }
@@ -340,6 +345,25 @@ public class BlockPane extends RelativeLayout {
         return arrayList;
     }
 
+    /**
+     * Collects IDs of all HTML blocks connected to the root (When Page Load) block.
+     */
+    public ArrayList<String> getHtmlBlockIds() {
+        ArrayList<String> ids = new ArrayList<>();
+        if (this.root == null) return ids;
+        
+        ArrayList<Block> connectedBlocks = this.root.getAllChildren();
+        for (Block b : connectedBlocks) {
+            if (b != this.root && b.mOpCode != null && b.mOpCode.startsWith("html_")) {
+                String idVal = b.attributes.get("id");
+                if (idVal != null && !idVal.isEmpty()) {
+                    ids.add(idVal);
+                }
+            }
+        }
+        return ids;
+    }
+
     public Block getHitBlock(float f, float f2) {
         this.hitTarget = null;
         this.maxDepth = -1;
@@ -363,6 +387,14 @@ public class BlockPane extends RelativeLayout {
 
     public Block getRoot() {
         return this.root;
+    }
+
+    public void setCurrentFilename(String name) {
+        if (name != null && name.contains(".")) {
+            this.currentFilename = name.split("\\.")[0];
+        } else {
+            this.currentFilename = name;
+        }
     }
 
     public void hideFeedbackShape() {

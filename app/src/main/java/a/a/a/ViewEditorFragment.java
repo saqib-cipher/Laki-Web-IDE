@@ -24,7 +24,7 @@ import androidx.annotation.NonNull;
 
 import com.besome.sketch.beans.ProjectFileBean;
 import com.besome.sketch.beans.ViewBean;
-import com.besome.sketch.editor.view.ViewProperty;
+import laki.webide.core.panel.ViewProperty;
 
 import java.util.ArrayList;
 

@@ -57,7 +57,6 @@ public class ViewProperty extends LinearLayout implements Kw {
     private Jw propertyTargetChangeListener = null;
     private LinearLayout layoutPropertySeeAll;
     private ViewPropertyItems viewPropertyItems;
-    private HtmlBlockPropertyManager htmlPropertyManager;
     private SeeAllPropertiesFloatingItem seeAll;
     private View propertyLayout;
     private ViewEvents viewEvent;
@@ -71,6 +70,7 @@ public class ViewProperty extends LinearLayout implements Kw {
     private ObjectAnimator showAllShower;
     private ObjectAnimator showAllHider;
     private boolean showAllVisible = true;
+    private Block selectedBlock;
 
     public ViewProperty(Context context) {
         super(context);
@@ -155,8 +155,15 @@ public class ViewProperty extends LinearLayout implements Kw {
                 item.animate().scaleX(0.8f).scaleY(0.8f).start();
             }
         }
-        if (idsAdapter.getSelectedItemPosition() < projectActivityViews.size()) {
-            ViewBean viewBean = projectActivityViews.get(idsAdapter.getSelectedItemPosition());
+
+        ViewBean viewBean = null;
+        if (selectedBlock != null) {
+            viewBean = blockToViewBean(selectedBlock);
+        } else if (idsAdapter.getSelectedItemPosition() < projectActivityViews.size()) {
+            viewBean = projectActivityViews.get(idsAdapter.getSelectedItemPosition());
+        }
+
+        if (viewBean != null) {
             if (selectedGroupId == 0) {
                 propertyLayout.setVisibility(VISIBLE);
                 layoutPropertySeeAll.setVisibility(VISIBLE);
@@ -164,14 +171,28 @@ public class ViewProperty extends LinearLayout implements Kw {
                 viewPropertyItems.a(sc_id, viewBean);
                 a(viewBean);
                 viewEvent.setVisibility(GONE);
+
+                if (selectedBlock != null) {
+                    viewPropertyItems.setOnPropertyValueChangedListener(vBean -> {
+                        selectedBlock.attributes = vBean.parentAttributes;
+                    });
+                } else {
+                    viewPropertyItems.setOnPropertyValueChangedListener(vBean -> {
+                        if (propertyValueChangedListener != null) {
+                            propertyValueChangedListener.a(vBean);
+                        }
+                    });
+                }
             } else if (selectedGroupId == 1) {
                 propertyLayout.setVisibility(VISIBLE);
                 viewPropertyItems.e(viewBean);
                 layoutPropertySeeAll.setVisibility(GONE);
+                viewEvent.setVisibility(GONE);
             } else if (selectedGroupId == 2) {
                 propertyLayout.setVisibility(GONE);
                 viewEvent.setVisibility(VISIBLE);
                 viewEvent.setData(sc_id, projectFile, viewBean);
+                layoutPropertySeeAll.setVisibility(GONE);
             }
         }
     }
@@ -309,37 +330,49 @@ public class ViewProperty extends LinearLayout implements Kw {
         viewPropertyItems = new ViewPropertyItems(getContext());
         viewPropertyItems.setOrientation(HORIZONTAL);
         propertyContents.addView(viewPropertyItems);
-
-        htmlPropertyManager = new HtmlBlockPropertyManager(getContext());
-        htmlPropertyManager.setOrientation(HORIZONTAL);
-        htmlPropertyManager.setVisibility(GONE);
-        propertyContents.addView(htmlPropertyManager);
     }
 
     public void setBlock(Block block) {
+        this.selectedBlock = block;
         if (block == null) {
-            viewPropertyItems.setVisibility(VISIBLE);
-            htmlPropertyManager.setVisibility(GONE);
             spnWidget.setVisibility(VISIBLE);
-
-            // Restore view-specific UI
             imgSave.setVisibility(VISIBLE);
             imgDelete.setVisibility(VISIBLE);
             layoutPropertyGroup.setVisibility(VISIBLE);
             layoutPropertySeeAll.setVisibility(VISIBLE);
-            return;
+        } else {
+            spnWidget.setVisibility(GONE);
+            imgSave.setVisibility(GONE);
+            imgDelete.setVisibility(GONE);
+            layoutPropertyGroup.setVisibility(VISIBLE);
+            layoutPropertySeeAll.setVisibility(VISIBLE);
         }
-        viewPropertyItems.setVisibility(GONE);
-        htmlPropertyManager.setVisibility(VISIBLE);
-        htmlPropertyManager.setProjectId(sc_id);
-        htmlPropertyManager.bindBlock(block);
+        e();
+    }
+
+    private ViewBean blockToViewBean(Block block) {
+        ViewBean bean = new ViewBean();
+        bean.id = block.getTag().toString();
+        bean.type = mapOpCodeToType(block.mOpCode);
+        bean.convert = ViewBean.getViewTypeName(bean.type);
+        bean.parentAttributes = block.attributes;
         
-        // Hide spinner and other view-specific UI
-        spnWidget.setVisibility(GONE);
-        imgSave.setVisibility(GONE);
-        imgDelete.setVisibility(GONE);
-        layoutPropertyGroup.setVisibility(GONE);
-        layoutPropertySeeAll.setVisibility(GONE);
+        if (bean.supportsText()) {
+            bean.text.text = block.attributes.getOrDefault("text", "");
+        }
+        
+        return bean;
+    }
+
+    private int mapOpCodeToType(String opCode) {
+        if (opCode == null) return 0;
+        String tag = opCode.startsWith("html_") ? opCode.substring(5) : opCode;
+        for (int i = 101; i <= 129; i++) {
+            if (tag.equals(ViewBean.getViewTypeName(i))) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     private void selectView(ViewBean viewBean) {

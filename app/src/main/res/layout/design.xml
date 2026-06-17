@@ -174,7 +174,7 @@
             </LinearLayout>
         </LinearLayout>
 
-        <com.besome.sketch.editor.view.ViewProperty
+        <laki.webide.core.panel.ViewProperty
             android:id="@+id/view_property"
             android:layout_width="match_parent"
             android:layout_height="170dp"

@@ -2,6 +2,7 @@ package laki.webide.core.html;
 
 import android.view.View;
 import laki.webide.core.Block;
+import laki.webide.core.BlockArg;
 import laki.webide.core.BlockPane;
 
 /**
@@ -28,7 +29,12 @@ public class HtmlIdGenerator {
             
             block.attributes.put("id", generatedId);
             block.attributes.put("class", generatedClass);
-            block.setArgValue(1, generatedId); // ID is Hole 1 for headings
+            
+            // ID is Hole 1 for headings, set it and disable editing
+            block.setArgValue(1, generatedId); 
+            if (block.args.size() > 1 && block.args.get(1) instanceof BlockArg) {
+                ((BlockArg) block.args.get(1)).setEditable(false);
+            }
         } else {
             // 4. Generate the names for normal blocks
             String generatedId = filename + tag + index;
@@ -36,7 +42,12 @@ public class HtmlIdGenerator {
 
             block.attributes.put("id", generatedId);
             block.attributes.put("class", generatedClass);
-            block.setArgValue(0, generatedId); // ID is Hole 0 for others
+            
+            // ID is Hole 0 for others, set it and disable editing
+            block.setArgValue(0, generatedId); 
+            if (!block.args.isEmpty() && block.args.get(0) instanceof BlockArg) {
+                ((BlockArg) block.args.get(0)).setEditable(false);
+            }
         }
         
         // 5. Set default content based on tag

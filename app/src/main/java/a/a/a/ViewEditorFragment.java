@@ -1,9 +1,8 @@
 package a.a.a;
 
 import android.animation.ObjectAnimator;
-import android.content.Context;
-import android.content.Intent;
-import android.content.res.Configuration;
+import android.animation.ValueAnimator;
+import android.content.*;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -16,9 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewConfiguration;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
+import android.widget.*;
 
 import androidx.annotation.NonNull;
 
@@ -74,6 +71,11 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
     private ProjectFileBean projectFileBean;
     private ViewProperty viewProperty;
     private Block lastSelectedBlock;
+    
+    private boolean isSidebarCollapsed = false;
+    private int sidebarMaxWidth;
+    private int sidebarMinWidth;
+    private View sidebarContainer;
 
     public ViewEditorFragment() {
     }
@@ -94,11 +96,82 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
         
         this.viewProperty = requireActivity().findViewById(R.id.view_property);
         this.pane.setOnTouchListener(this);
+        
+        // Connect the bridge: Refresh spinner when ID changes in panel
+        if (this.viewProperty != null) {
+            this.viewProperty.setOnPropertyChangeListener(new ViewProperty.OnPropertyChangeListener() {
+                @Override
+                public void onIdChanged() {
+                    syncSpinner();
+                }
+                @Override
+                public void onIdSelected(String id) {
+                    Block found = pane.findBlockByHtmlId(id);
+                    if (found != null && found != lastSelectedBlock) {
+                        clearSelection();
+                        lastSelectedBlock = found;
+                        found.setSelectionVisual(true);
+                        viewProperty.setBlock(found);
+                    }
+                }
 
+                @Override
+                public boolean isIdUnique(String id) {
+                    return !pane.getHtmlBlockIds().contains(id);
+                }
+
+                @Override
+                public boolean isClassUnique(String className) {
+                    if (pane == null) return true;
+                    ArrayList<String> existingClasses = pane.getAllHtmlClasses();
+                    return !existingClasses.contains(className);
+                }
+
+                @Override
+                public ArrayList<String> getAllClasses() {
+                    return (pane != null) ? pane.getAllHtmlClasses() : new ArrayList<>();
+                }
+
+                @Override
+                public ArrayList<String> getAllIds() {
+                    return (pane != null) ? pane.getHtmlBlockIds() : new ArrayList<>();
+                }
+
+                @Override
+                public void onIdRenamed(String oldId, String newId) {
+                    if (pane == null || oldId.equals(newId)) return;
+                    ArrayList<Block> blocks = pane.getAllBlocks();
+                    for (Block b : blocks) {
+                        if ("web_css_sel_id".equals(b.mOpCode)) {
+                            Object val = b.getArgValue(0);
+                            if (val != null && oldId.equals(val.toString())) {
+                                b.setArgValue(0, newId);
+                                b.fixLayout();
+                            }
+                        }
+                    }
+                }
+
+                @Override
+                public void onClassRenamed(String oldClass, String newClass) {
+                    if (pane == null || oldClass.equals(newClass)) return;
+                    ArrayList<Block> blocks = pane.getAllBlocks();
+                    for (Block b : blocks) {
+                        if ("web_css_sel_class".equals(b.mOpCode)) {
+                            Object val = b.getArgValue(0);
+                            if (val != null && oldClass.equals(val.toString())) {
+                                b.setArgValue(0, newClass);
+                                b.fixLayout();
+                            }
+                        }
+                    }
+                }
+            });
+        }
         // Load HTML blocks into the new sidebar directly
         this.htmlSidebar.setBlockTouchListener(this);
         this.htmlSidebar.populate(HtmlBlocks.getAllHtmlBlocks());
-
+        setupSidebarToggle(viewGroup);
         // Setup Root block for HTML
         this.pane.setupRoot("When Page Load", "onPageLoad", this);
         
@@ -325,6 +398,8 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                         viewProperty.setBlock(block);
                         viewProperty.animate().translationY(0.0f).setDuration(300).start();
                     }
+                    // FIX: Allow click to reach block holes (selectors/inputs)
+                    block.actionClick(motionEvent.getX(), motionEvent.getY());
                 } else {
                     if (viewProperty != null) {
                         viewProperty.setBlock(null);
@@ -404,5 +479,39 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
     public void onSaveInstanceState(Bundle newInstanceState) {
         newInstanceState.putString("sc_id", sc_id);
         super.onSaveInstanceState(newInstanceState);
+    }
+
+    private void setupSidebarToggle(ViewGroup root) {
+        View btnToggle = root.findViewById(R.id.btn_sidebar_toggle);
+        ImageView imgToggle = root.findViewById(R.id.img_sidebar_toggle);
+        sidebarContainer = root.findViewById(R.id.layout_sidebar_container);
+        
+        sidebarMaxWidth = (int) LayoutUtil.getDip(requireContext(), 140.0f);
+        sidebarMinWidth = (int) LayoutUtil.getDip(requireContext(), 30.0f);
+
+        btnToggle.setOnClickListener(v -> {
+            isSidebarCollapsed = !isSidebarCollapsed;
+            ValueAnimator animator = isSidebarCollapsed ? 
+                ValueAnimator.ofInt(sidebarMaxWidth, sidebarMinWidth) : 
+                ValueAnimator.ofInt(sidebarMinWidth, sidebarMaxWidth);
+            
+            animator.addUpdateListener(animation -> {
+                int val = (Integer) animation.getAnimatedValue();
+                ViewGroup.LayoutParams lp = sidebarContainer.getLayoutParams();
+                lp.width = val;
+                sidebarContainer.setLayoutParams(lp);
+            });
+            
+            animator.setDuration(300);
+            animator.setInterpolator(new DecelerateInterpolator());
+            animator.start();
+
+            // Handle content visibility
+            htmlSidebar.animate().alpha(isSidebarCollapsed ? 0f : 1f).setDuration(200).start();
+
+            // Rotate arrow icon
+            imgToggle.animate().rotation(isSidebarCollapsed ? 180f : 0f).setDuration(300).start();
+            imgToggle.setImageResource(isSidebarCollapsed ? R.drawable.ic_mtrl_chevron_right_24 : R.drawable.ic_mtrl_chevron_left_24);
+        });
     }
 }

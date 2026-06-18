@@ -83,7 +83,7 @@ public class BlockPane extends RelativeLayout {
     }
 
     private void findCommandTargetsIn(Block block, Block block2, boolean z) {
-        while (block2.getVisibility() != 8) {
+        while (block2.getVisibility() != View.GONE) {
             if (!block2.isTerminal && (!z || -1 == block2.nextBlock)) {
                 int[] iArr = new int[INSERT_SUB1];
                 block2.getLocationOnScreen(iArr);
@@ -267,8 +267,8 @@ public class BlockPane extends RelativeLayout {
 
    public void calculateWidthHeight() {
       int var1 = this.getChildCount();
-      int var2 = this.getLayoutParams().width;
-      int var3 = this.getLayoutParams().width;
+      int var2 = 0;
+      int var3 = 0;
 
       for(int var4 = 0; var4 < var1; ++var4) {
          View var5 = this.getChildAt(var4);
@@ -278,8 +278,9 @@ public class BlockPane extends RelativeLayout {
          }
       }
 
-      this.getLayoutParams().width = var2;
-      this.getLayoutParams().height = var3;
+      this.getLayoutParams().width = Math.max(var2, ((View)getParent()).getWidth());
+      this.getLayoutParams().height = Math.max(var3, ((View)getParent()).getHeight());
+      requestLayout();
    }
     
    public void draggingDone() {
@@ -296,7 +297,7 @@ public class BlockPane extends RelativeLayout {
             View childAt = getChildAt(i2);
             if (childAt instanceof Block) {
                 Block block2 = (Block) childAt;
-                if (block2.getVisibility() != 8 && block2.parentBlock == null) {
+                if (block2.getVisibility() != View.GONE && block2.parentBlock == null) {
                     if (block.isReporter) {
                         findReporterTargetsIn(block2, block);
                     } else if (!block2.isReporter) {
@@ -325,24 +326,47 @@ public class BlockPane extends RelativeLayout {
     }
 
     public ArrayList<BlockBean> getBlocks() {
-        ArrayList<BlockBean> arrayList = new ArrayList();
-        Block block = (Block) findViewWithTag(Integer.valueOf(this.root.nextBlock));
-        if (block != null) {
-            Iterator it = block.getAllChildren().iterator();
-            while (it.hasNext()) {
-                arrayList.add(((Block) it.next()).getBean());
+        ArrayList<BlockBean> arrayList = new ArrayList<>();
+        ArrayList<Block> blocks = getAllBlocks();
+        for (Block b : blocks) {
+            if (b != this.root) {
+                arrayList.add(b.getBean());
             }
         }
         return arrayList;
     }
 
-    public ArrayList<Block> getAllBlocks() {
-        ArrayList<Block> arrayList = new ArrayList();
-        Block block = (Block) findViewWithTag(Integer.valueOf(this.root.nextBlock));
-        if (block != null) {
-            arrayList.addAll(block.getAllChildren());
+    private void collectAllConnected(Block block, ArrayList<Block> list, ArrayList<Integer> visited) {
+        if (block == null) return;
+        Integer tag = (Integer) block.getTag();
+        if (visited.contains(tag)) return;
+        visited.add(tag);
+        list.add(block);
+
+        if (block.nextBlock != -1) {
+            collectAllConnected((Block) findViewWithTag(block.nextBlock), list, visited);
         }
-        return arrayList;
+        if (block.subStack1 != -1) {
+            collectAllConnected((Block) findViewWithTag(block.subStack1), list, visited);
+        }
+        if (block.subStack2 != -1) {
+            collectAllConnected((Block) findViewWithTag(block.subStack2), list, visited);
+        }
+        if (block.args != null) {
+            for (View v : block.args) {
+                if (v instanceof Block) {
+                    collectAllConnected((Block) v, list, visited);
+                }
+            }
+        }
+    }
+
+    public ArrayList<Block> getAllBlocks() {
+        ArrayList<Block> list = new ArrayList<>();
+        if (this.root != null) {
+            collectAllConnected(this.root, list, new ArrayList<>());
+        }
+        return list;
     }
 
     /**
@@ -350,18 +374,48 @@ public class BlockPane extends RelativeLayout {
      */
     public ArrayList<String> getHtmlBlockIds() {
         ArrayList<String> ids = new ArrayList<>();
-        if (this.root == null) return ids;
-        
-        ArrayList<Block> connectedBlocks = this.root.getAllChildren();
+        ArrayList<Block> connectedBlocks = getAllBlocks();
         for (Block b : connectedBlocks) {
             if (b != this.root && b.mOpCode != null && b.mOpCode.startsWith("html_")) {
                 String idVal = b.attributes.get("id");
-                if (idVal != null && !idVal.isEmpty()) {
+                if (idVal != null && !idVal.isEmpty() && !ids.contains(idVal)) {
                     ids.add(idVal);
                 }
             }
         }
         return ids;
+    }
+
+    /**
+     * Collects all Classes from all HTML blocks connected to the root block.
+     */
+    public ArrayList<String> getAllHtmlClasses() {
+        ArrayList<String> classes = new ArrayList<>();
+        ArrayList<Block> connectedBlocks = getAllBlocks();
+        for (Block b : connectedBlocks) {
+            if (b != this.root && b.mOpCode != null && b.mOpCode.startsWith("html_")) {
+                String classVal = b.attributes.get("class");
+                if (classVal != null && !classVal.isEmpty()) {
+                    String[] parts = classVal.split("\\s+");
+                    for (String p : parts) {
+                        if (!p.isEmpty() && !classes.contains(p)) {
+                            classes.add(p);
+                        }
+                    }
+                }
+            }
+        }
+        return classes;
+    }
+
+    public Block findBlockByHtmlId(String id) {
+        if (id == null || this.root == null) return null;
+        ArrayList<Block> blocks = this.root.getAllChildren();
+        for (Block b : blocks) {
+            String bId = b.attributes.get("id");
+            if (id.equals(bId)) return b;
+        }
+        return null;
     }
 
     public Block getHitBlock(float f, float f2) {
@@ -398,7 +452,7 @@ public class BlockPane extends RelativeLayout {
     }
 
     public void hideFeedbackShape() {
-        this.feedbackShape.setVisibility(8);
+        this.feedbackShape.setVisibility(View.GONE);
     }
 
     public boolean hitTest(float f, float f2) {

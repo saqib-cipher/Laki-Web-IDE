@@ -1,5 +1,7 @@
 package laki.webide.core.panel;
 
+import androidx.appcompat.app.AlertDialog;
+import android.content.DialogInterface;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
@@ -30,13 +32,28 @@ public class ViewProperty extends LinearLayout {
     private LinearLayout layoutPropertyGroup;
     private Spinner spnWidget;
     private LinearLayout layoutPropertySeeAll;
-    
     private ObjectAnimator showAllShower;
     private ObjectAnimator showAllHider;
     private boolean showAllVisible = true;
 
     private String sc_id;
     private laki.webide.core.Block currentBlock;
+    private OnPropertyChangeListener changeListener;
+
+    public interface OnPropertyChangeListener {
+        void onIdChanged();
+        void onIdSelected(String id);
+        boolean isIdUnique(String id);
+        boolean isClassUnique(String className);
+        ArrayList<String> getAllClasses();
+        ArrayList<String> getAllIds();
+        void onIdRenamed(String oldId, String newId);
+        void onClassRenamed(String oldClass, String newClass);
+    }
+
+    public void setOnPropertyChangeListener(OnPropertyChangeListener l) {
+        this.changeListener = l;
+    }
 
     public ViewProperty(Context context) {
         super(context);
@@ -56,6 +73,19 @@ public class ViewProperty extends LinearLayout {
         layoutPropertyGroup = findViewById(R.id.layout_property_group);
         spnWidget = findViewById(R.id.spn_widget);
         layoutPropertySeeAll = findViewById(R.id.layout_property_see_all);
+
+        // --- FIX: Spinner Selection Listener ---
+        spnWidget.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedId = parent.getItemAtPosition(position).toString();
+                if (changeListener != null) {
+                    changeListener.onIdSelected(selectedId);
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
         
         // Setup Scrolling Effect (Ditto Logic)
         com.besome.sketch.lib.ui.CustomHorizontalScrollView hcvProperty = findViewById(R.id.hcv_property);
@@ -89,14 +119,11 @@ public class ViewProperty extends LinearLayout {
                 }
             }
         });
-
         // Setup Tabs
         setupTabs();
-
         // Setup the items container
         itemsContainer = new ViewPropertyItems(context);
         propertyContents.addView(itemsContainer);
-
         // Setup "See All"
         setupSeeAll();
     }
@@ -123,6 +150,7 @@ public class ViewProperty extends LinearLayout {
 
     private void setupTabs() {
         int[] labels = {R.string.property_group_basic, R.string.property_group_recent, R.string.property_group_event};
+
         for (int i = 0; i < labels.length; i++) {
             final int id = i;
             View tab = LayoutInflater.from(getContext()).inflate(R.layout.property_group_item, layoutPropertyGroup, false);
@@ -163,18 +191,28 @@ public class ViewProperty extends LinearLayout {
 
         ArrayList<ViewPropertyItems.PropertyConfig> configs = new ArrayList<>();
         
-        // Common Properties
-        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "id", "ID", R.drawable.ic_mtrl_id, block.attributes.getOrDefault("id", "")));
-        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "class", "Class", R.drawable.ic_mtrl_code, block.attributes.getOrDefault("class", "")));
+        // 1. Identification
+        String opCode = block.mOpCode;
+        boolean isCss = opCode != null && opCode.startsWith("web_css_sel");
 
-        String tag = block.mOpCode.replace("html_", "");
+        if (!isCss) {
+            configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "id", "ID", R.drawable.ic_mtrl_id, block.attributes.getOrDefault("id", "")));
+            configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "class", "Class", R.drawable.ic_mtrl_code, block.attributes.getOrDefault("class", "")));
+        }
+
+        String tag = opCode.replace("html_", "");
+        if (tag.equals("web_css_sel_class")) {
+            configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "css_class", "Selector .", R.drawable.ic_mtrl_code, block.getArgValue(0).toString()));
+        }
+        if (tag.equals("web_css_sel_id")) {
+            configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "css_id", "Selector #", R.drawable.ic_mtrl_id, block.getArgValue(0).toString()));
+        }
         if (tag.equals("h")) {
-            // It's the combined heading block, the tag is in the hole
             Object val = block.getArgValue(0);
             tag = val != null ? val.toString() : "h1";
         }
 
-        // Tag-Specific Properties
+        // 2. Category: Attributes (Functional)
         switch (tag) {
             case "p": case "span": case "label": case "h1": case "h2": case "h3": case "h4": case "h5": case "h6":
                 configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "text", "Text Content", R.drawable.ic_mtrl_text_select, block.attributes.getOrDefault("text", "")));
@@ -186,7 +224,6 @@ public class ViewProperty extends LinearLayout {
             case "a":
                 configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "href", "Hyperlink", R.drawable.ic_mtrl_link, block.attributes.getOrDefault("href", "")));
                 configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.SELECTOR, "target", "Target", R.drawable.ic_mtrl_list, block.attributes.getOrDefault("target", "_self")));
-                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "text", "Link Text", R.drawable.ic_mtrl_text_select, block.attributes.getOrDefault("text", "")));
                 break;
             case "input":
                 configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.SELECTOR, "type", "Input Type", R.drawable.ic_mtrl_list, block.attributes.getOrDefault("type", "text")));
@@ -201,14 +238,25 @@ public class ViewProperty extends LinearLayout {
                 configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "text", "Label", R.drawable.ic_mtrl_text_select, block.attributes.getOrDefault("text", "")));
                 configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.SELECTOR, "type", "Btn Type", R.drawable.ic_mtrl_list, block.attributes.getOrDefault("type", "button")));
                 break;
-            case "video": case "audio": case "iframe":
-                configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "src", "Media Source", R.drawable.ic_mtrl_link, block.attributes.getOrDefault("src", "")));
-                break;
         }
 
-        // Style Properties
+        // 3. Category: Layout & Flex (approx 8-9 items total for styling)
+        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.SELECTOR, "display", "Display", R.drawable.ic_mtrl_grid, block.attributes.getOrDefault("display", "block")));
+        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.SELECTOR, "flex-direction", "Flex Dir", R.drawable.ic_mtrl_swipe_horizontal, block.attributes.getOrDefault("flex-direction", "row")));
+        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.SELECTOR, "justify-content", "Justify", R.drawable.ic_mtrl_center, block.attributes.getOrDefault("justify-content", "start")));
+        
+        // 4. Category: Sizing
+        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "width", "Width", R.drawable.ic_mtrl_width, block.attributes.getOrDefault("width", "auto")));
+        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "height", "Height", R.drawable.ic_mtrl_height, block.attributes.getOrDefault("height", "auto")));
+        
+        // 5. Category: Spacing
+        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "margin", "Margin", R.drawable.ic_mtrl_margin, block.attributes.getOrDefault("margin", "0")));
+        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.INPUT, "padding", "Padding", R.drawable.ic_mtrl_padding, block.attributes.getOrDefault("padding", "0")));
+
+        // 6. Category: Typography & Color
         configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.COLOR, "color", "Text Color", R.drawable.ic_mtrl_palette, block.attributes.getOrDefault("color", "#000000")));
         configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.COLOR, "background-color", "BG Color", R.drawable.ic_mtrl_palette, block.attributes.getOrDefault("background-color", "#FFFFFF")));
+        configs.add(new ViewPropertyItems.PropertyConfig(PropertyItem.Type.SELECTOR, "text-align", "Text Align", R.drawable.ic_mtrl_center, block.attributes.getOrDefault("text-align", "left")));
 
         itemsContainer.setProperties(configs, item -> handlePropertyClick(item));
         syncSpinnerSelection();
@@ -226,23 +274,70 @@ public class ViewProperty extends LinearLayout {
     }
 
     private void showTextInputDialog(String key) {
-        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(getContext());
-        dialog.setTitle("Edit " + key.toUpperCase());
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getContext());
+        builder.setTitle("Edit " + key.toUpperCase());
         View view = LayoutInflater.from(getContext()).inflate(R.layout.property_popup_input_text, null);
         EditText edInput = view.findViewById(R.id.ed_input);
-        edInput.setText(currentBlock.attributes.getOrDefault(key, ""));
-        dialog.setView(view);
-        dialog.setPositiveButton(Helper.getResString(R.string.common_word_save), (d, which) -> {
-            updateBlock(key, edInput.getText().toString());
-            setBlock(currentBlock);
-        });
-        dialog.setNegativeButton(Helper.getResString(R.string.common_word_cancel), null);
+        
+        String initialValue = "";
+        if (key.equals("css_class") || key.equals("css_id")) {
+            initialValue = currentBlock.getArgValue(0).toString();
+        } else {
+            initialValue = currentBlock.attributes.getOrDefault(key, "");
+        }
+        edInput.setText(initialValue);
+
+        // --- Class/ID Sync Helper (CSS Blocks Only) ---
+        if (key.equals("css_class") || key.equals("css_id")) {
+            Button btnPick = new Button(getContext());
+            btnPick.setText("Pick from HTML");
+            btnPick.setOnClickListener(v -> {
+                ArrayList<String> items;
+                if (key.equals("css_id")) {
+                    items = (changeListener != null) ? changeListener.getAllIds() : new ArrayList<>();
+                } else {
+                    items = (changeListener != null) ? changeListener.getAllClasses() : new ArrayList<>();
+                }
+                
+                if (items.isEmpty()) {
+                    Toast.makeText(getContext(), "No connected HTML items found", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                new MaterialAlertDialogBuilder(getContext())
+                    .setTitle("Select Existing")
+                    .setItems(items.toArray(new String[0]), (d2, which) -> {
+                        edInput.setText(items.get(which));
+                    })
+                    .show();
+            });
+            ((LinearLayout) view).addView(btnPick);
+        }
+
+        builder.setView(view);
+        builder.setPositiveButton(Helper.getResString(R.string.common_word_save), null); // Set listener later to prevent auto-dismiss
+        builder.setNegativeButton(Helper.getResString(R.string.common_word_cancel), null);
+        
+        AlertDialog dialog = builder.create();
         dialog.show();
+        
+        // Override positive button to prevent dismissal on validation error
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String newValue = edInput.getText().toString();
+            if (updateBlock(key, newValue)) {
+                setBlock(currentBlock);
+                dialog.dismiss();
+            }
+        });
     }
 
     private void showSelectorDialog(String key) {
         String[] options;
         switch (key) {
+            case "display": options = new String[]{"block", "inline", "inline-block", "flex", "inline-flex", "grid", "none"}; break;
+            case "flex-direction": options = new String[]{"row", "row-reverse", "column", "column-reverse"}; break;
+            case "justify-content": options = new String[]{"flex-start", "flex-end", "center", "space-between", "space-around", "space-evenly"}; break;
+            case "text-align": options = new String[]{"left", "center", "right", "justify"}; break;
             case "target": options = new String[]{"_self", "_blank", "_parent", "_top"}; break;
             case "method": options = new String[]{"GET", "POST"}; break;
             case "type": 
@@ -277,10 +372,60 @@ public class ViewProperty extends LinearLayout {
         picker.showAtLocation(this, Gravity.CENTER, 0, 0);
     }
 
-    public void updateBlock(String key, String value) {
-        if (currentBlock == null) return;
+    public boolean updateBlock(String key, String value) {
+        if (currentBlock == null) return false;
+
+        if (key.equals("css_class") || key.equals("css_id")) {
+            currentBlock.setArgValue(0, value);
+            currentBlock.fixLayout();
+            return true;
+        }
+
+        // --- Uniqueness Checks for HTML Blocks ---
+        if (key.equals("id")) {
+            String oldId = currentBlock.attributes.getOrDefault("id", "");
+            if (changeListener != null && !changeListener.isIdUnique(value)) {
+                if (!value.equals(oldId)) {
+                    Toast.makeText(getContext(), "Error: ID '" + value + "' is already in use!", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            }
+            // If unique and valid, perform smart rename for CSS blocks
+            if (changeListener != null) {
+                changeListener.onIdRenamed(oldId, value);
+            }
+        }
+
+        if (key.equals("class")) {
+            String oldClass = currentBlock.attributes.getOrDefault("class", "");
+            if (changeListener != null && !changeListener.isClassUnique(value)) {
+                if (!value.equals(oldClass)) {
+                    Toast.makeText(getContext(), "Error: Class '" + value + "' must be unique!", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            }
+            // If unique and valid, perform smart rename for CSS blocks
+            if (changeListener != null) {
+                changeListener.onClassRenamed(oldClass, value);
+            }
+        }
+
         currentBlock.attributes.put(key, value);
-        if (key.equals("id")) currentBlock.setArgValue(0, value);
+        
+        if (key.equals("id")) {
+            // Smart Hole Detection: Heading uses Hole 1, others use Hole 0
+            String tag = currentBlock.mOpCode.replace("html_", "");
+            int holeIndex = tag.equals("h") ? 1 : 0;
+            
+            currentBlock.setArgValue(holeIndex, value);
+            currentBlock.fixLayout(); // Visual kick
+            
+            // Notify Fragment to refresh the top spinner
+            if (changeListener != null) {
+                changeListener.onIdChanged();
+            }
+        }
+        return true;
     }
 
     private void syncSpinnerSelection() {

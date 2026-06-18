@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/layout_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,11 +12,41 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <!-- Fixed Sidebar for Blocks -->
-        <laki.webide.core.html.HtmlSidebar
-            android:id="@+id/html_sidebar"
+        <!-- Sidebar Container -->
+        <RelativeLayout
+            android:id="@+id/layout_sidebar_container"
             android:layout_width="140dp"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:background="?attr/colorSurfaceContainer">
+
+            <laki.webide.core.html.HtmlSidebar
+                android:id="@+id/html_sidebar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <!-- Sidebar Toggle Button (Inside Sidebar Area) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btn_sidebar_toggle"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:layout_margin="3dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:id="@+id/img_sidebar_toggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="4dp"
+                    android:src="@drawable/ic_mtrl_chevron_left_24"
+                    app:tint="?attr/colorOnSurface"/>
+            </com.google.android.material.card.MaterialCardView>
+        </RelativeLayout>
 
         <!-- Block Workspace area (Canvas) -->
         <RelativeLayout

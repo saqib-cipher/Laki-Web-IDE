@@ -46,6 +46,7 @@ public class CssRegistry {
         define("easing").options("linear", "ease", "ease-in", "ease-out", "ease-in-out", "step-start", "step-end");
         define("transform").options("rotate(45deg)", "scale(1.5)", "translate(10px, 10px)", "skew(10deg)", "none");
         define("filter").options("blur(5px)", "brightness(0.5)", "contrast(200%)", "grayscale(100%)", "hue-rotate(90deg)", "invert(100%)", "opacity(50%)", "saturate(30%)", "sepia(100%)", "none");
+        define("h_tags").options("h1", "h2", "h3", "h4", "h5", "h6");
     }
 
     private static DataBuilder define(String target) {

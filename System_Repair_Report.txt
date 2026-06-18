@@ -1,0 +1,41 @@
+Laki Web IDE - System Repair & Improvement Report
+
+1. Data Persistence Gap (Critical)
+- Problem: Block.attributes map is updated in memory but not correctly serialized into the project's JSON.
+- Risk: Saved data like custom Classes, Links, and Colors disappear upon reopening the project.
+- Repair: Update getBean() in Block.java and the saving logic in BlockPane.java/BlockBean.java to ensure the attributes map is included in the saved data.
+
+2. ID Collision Risk
+- Problem: Users can manually type IDs in the Property Panel without a uniqueness check.
+- Risk: Duplicate IDs break generated HTML/CSS and cause Spinner selection errors.
+- Repair: Implement a Uniqueness Validator in the updateBlock logic that warns the user if an ID is already taken.
+
+3. Nesting Visualization
+- Problem: Deeply nested HTML structures (div > section > p) are visually identical in the workspace.
+- Risk: Difficult to track hierarchy in complex layouts.
+- Repair: Implement Substack Color Dimming or vertical guide lines for nested blocks to make the hierarchy clear.
+
+4. Undo/Redo Connectivity
+- Problem: Property Panel changes (colors, URLs) are not tracked by the Sketchware undo system.
+- Risk: Accidental edits cannot be reversed without manual re-typing.
+- Repair: Trigger a state "Snapshot" in cC.java (History Manager) whenever updateBlock is called in the Property Panel.
+
+5. CSS-HTML "Class" Synchronization
+- Problem: No direct connection between HTML class names and CSS rule selectors.
+- Risk: Typos in manual class entry break styling connectivity.
+- Repair: Provide a dropdown/selector in CSS blocks containing all classes currently defined in the HTML workspace.
+
+6. Asset Manager Integration
+- Problem: Image and Video sources require manual URL/path typing.
+- Risk: High chance of broken links due to typos.
+- Repair: Add an "Open Gallery" button in the Property Panel dialogs to link directly with the IDE's internal Asset Manager.
+
+7. Empty Workspace State
+- Problem: Initial workspace appearance is a plain white screen with a single block.
+- Risk: Unprofessional feel and lack of guidance for new users.
+- Repair: Add a subtle Background Grid or Watermark to the BlockPane for a professional canvas feel.
+
+Summary of Priorities:
+1. Persistence (Prevent data loss)
+2. Undo/Redo (Standard professional feature)
+3. Class Sync (Bridge between HTML and CSS)

@@ -129,6 +129,12 @@
                         android:layout_margin="2dp"
                         android:background="?attr/colorSurfaceVariant" >
                     </laki.webide.core.ViewLogicEditor>
+
+                    <android.webkit.WebView
+                        android:id="@+id/webview_preview"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:visibility="gone" />
                 </RelativeLayout>
             </LinearLayout>
 

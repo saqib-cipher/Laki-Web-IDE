@@ -583,20 +583,35 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
         com.google.android.material.button.MaterialButtonToggleGroup toggleGroup = root.findViewById(R.id.editor_preview_toggle);
         
         if (toggleGroup != null) {
+            android.webkit.WebView webViewPreview = root.findViewById(R.id.webview_preview);
             toggleGroup.check(R.id.btn_editor);
             toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
                 if (isChecked) {
                     if (checkedId == R.id.btn_preview) {
-                        toggleGroup.check(R.id.btn_editor);
                         if (projectFileBean != null) {
-                            Intent intent = new Intent(requireContext(), laki.webide.activities.preview.LiveActivity.class);
-                            intent.putExtra("sc_id", sc_id);
-                            intent.putExtra("xml", projectFileBean.getXmlName());
-                            intent.putExtra("title", projectFileBean.fileName);
-                            startActivity(intent);
+                            viewEditor.setVisibility(View.GONE);
+                            if (webViewPreview != null) {
+                                webViewPreview.setVisibility(View.VISIBLE);
+                                
+                                android.webkit.WebSettings settings = webViewPreview.getSettings();
+                                settings.setJavaScriptEnabled(true);
+                                settings.setDomStorageEnabled(true);
+                                settings.setCacheMode(android.webkit.WebSettings.LOAD_NO_CACHE);
+                                webViewPreview.setWebViewClient(new android.webkit.WebViewClient());
+                                
+                                laki.webide.managers.LivePreviewServer.startServer(requireContext(), sc_id);
+                                String url = laki.webide.managers.LivePreviewServer.getUrl(projectFileBean.fileName);
+                                webViewPreview.loadUrl(url);
+                            }
                         } else {
                             Toast.makeText(requireContext(), "No file loaded yet", Toast.LENGTH_SHORT).show();
+                            toggleGroup.check(R.id.btn_editor);
                         }
+                    } else if (checkedId == R.id.btn_editor) {
+                        if (webViewPreview != null) {
+                            webViewPreview.setVisibility(View.GONE);
+                        }
+                        viewEditor.setVisibility(View.VISIBLE);
                     }
                 }
             });

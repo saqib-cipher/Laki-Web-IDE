@@ -166,12 +166,18 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                         }
                     }
                 }
+
+                @Override
+                public void onPropertyChanged() {
+                    saveLayoutState();
+                }
             });
         }
         // Load HTML blocks into the new sidebar directly
         this.htmlSidebar.setBlockTouchListener(this);
         this.htmlSidebar.populate(HtmlBlocks.getAllHtmlBlocks());
         setupSidebarToggle(viewGroup);
+        setupPreviewToggle(viewGroup);
         // Setup Root block for HTML
         this.pane.setupRoot("When Page Load", "onPageLoad", this);
         
@@ -355,6 +361,7 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                         }
                         this.pane.draggingDone();
                         syncSpinner();
+                        saveLayoutState();
                     } else if (draggedView instanceof Block) {
                         this.dummy.getDummyPosition(this.posDummy);
                         
@@ -367,6 +374,7 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                         }
                         this.pane.draggingDone();
                         syncSpinner();
+                        saveLayoutState();
                     }
                 } else if (draggedView instanceof Block && ((Block) draggedView).getBlockType() == 0) {
                     this.pane.setVisibleBlock((Block) draggedView, 0);
@@ -381,6 +389,7 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                         ((Block) draggedView).topBlock().fixLayout();
                     }
                     this.pane.draggingDone();
+                    saveLayoutState();
                 }
                 this.dummy.setAllow(false);
                 showIconDelete(false);
@@ -429,6 +438,25 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
         this.projectFileBean = projectFileBean;
         if (this.pane != null && projectFileBean != null) {
             this.pane.setCurrentFilename(projectFileBean.fileName);
+            
+            // Load project block state
+            ArrayList<ViewBean> viewBeans = laki.webide.managers.WebProjectStateManager.loadProjectState(requireContext(), sc_id, projectFileBean);
+            if (viewBeans.isEmpty()) {
+                String projectName = yB.c(lC.b(sc_id), "my_ws_name");
+                String projectRoot = laki.webide.core.LakiFiles.getProjectRoot(projectName, sc_id, false);
+                String htmlPath = laki.webide.core.LakiFiles.getHtmlPath(projectRoot) + java.io.File.separator + projectFileBean.fileName;
+                if (laki.webide.utility.FileUtil.isExistFile(htmlPath)) {
+                    String htmlContent = laki.webide.utility.FileUtil.readFile(htmlPath);
+                    if (htmlContent != null && !htmlContent.trim().isEmpty()) {
+                        try {
+                            viewBeans = laki.webide.compiler.HtmlParser.parseHtml(htmlContent, sc_id, requireContext());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            laki.webide.managers.WebProjectStateManager.loadProjectStateIntoPane(this.pane, viewBeans, this);
         }
         if (viewProperty != null) {
             viewProperty.a(sc_id, this.projectFileBean);
@@ -473,6 +501,25 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
         if (lastSelectedBlock == null && viewProperty != null) {
             viewProperty.setTranslationY(LayoutUtil.getDip(requireContext(), 170.0f));
         }
+        if (this.pane != null && projectFileBean != null) {
+            ArrayList<ViewBean> viewBeans = laki.webide.managers.WebProjectStateManager.loadProjectState(requireContext(), sc_id, projectFileBean);
+            if (viewBeans.isEmpty()) {
+                String projectName = yB.c(lC.b(sc_id), "my_ws_name");
+                String projectRoot = laki.webide.core.LakiFiles.getProjectRoot(projectName, sc_id, false);
+                String htmlPath = laki.webide.core.LakiFiles.getHtmlPath(projectRoot) + java.io.File.separator + projectFileBean.fileName;
+                if (laki.webide.utility.FileUtil.isExistFile(htmlPath)) {
+                    String htmlContent = laki.webide.utility.FileUtil.readFile(htmlPath);
+                    if (htmlContent != null && !htmlContent.trim().isEmpty()) {
+                        try {
+                            viewBeans = laki.webide.compiler.HtmlParser.parseHtml(htmlContent, sc_id, requireContext());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            laki.webide.managers.WebProjectStateManager.loadProjectStateIntoPane(this.pane, viewBeans, this);
+        }
     }
 
     @Override
@@ -513,5 +560,40 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
             imgToggle.animate().rotation(isSidebarCollapsed ? 180f : 0f).setDuration(300).start();
             imgToggle.setImageResource(isSidebarCollapsed ? R.drawable.ic_mtrl_chevron_right_24 : R.drawable.ic_mtrl_chevron_left_24);
         });
+    }
+
+    private void saveLayoutState() {
+        if (projectFileBean == null || pane == null) return;
+        ArrayList<ViewBean> viewBeans = laki.webide.managers.WebProjectStateManager.blockTreeToViewBeans(pane);
+        laki.webide.managers.WebProjectStateManager.saveProjectState(requireContext(), sc_id, projectFileBean, viewBeans);
+        if (requireActivity() instanceof com.besome.sketch.design.DesignActivity designActivity) {
+            laki.webide.managers.WebProjectSyncManager.syncCurrentFile(designActivity.getProjectWorkspace(), sc_id, projectFileBean);
+        }
+    }
+
+    private void setupPreviewToggle(ViewGroup root) {
+        View btnEditor = root.findViewById(R.id.btn_editor);
+        View btnPreview = root.findViewById(R.id.btn_preview);
+        com.google.android.material.button.MaterialButtonToggleGroup toggleGroup = root.findViewById(R.id.editor_preview_toggle);
+        
+        if (toggleGroup != null) {
+            toggleGroup.check(R.id.btn_editor);
+            toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+                if (isChecked) {
+                    if (checkedId == R.id.btn_preview) {
+                        toggleGroup.check(R.id.btn_editor);
+                        if (projectFileBean != null) {
+                            Intent intent = new Intent(requireContext(), laki.webide.activities.preview.LiveActivity.class);
+                            intent.putExtra("sc_id", sc_id);
+                            intent.putExtra("xml", projectFileBean.getXmlName());
+                            intent.putExtra("title", projectFileBean.fileName);
+                            startActivity(intent);
+                        } else {
+                            Toast.makeText(requireContext(), "No file loaded yet", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+            });
+        }
     }
 }

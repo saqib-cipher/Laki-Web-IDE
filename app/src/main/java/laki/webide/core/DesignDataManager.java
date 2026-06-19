@@ -29,7 +29,7 @@ public class DesignDataManager {
             if (cssContent != null) {
                 java.util.regex.Matcher matcher;
                 if (menuName.equals("htmlClass") || menuName.equals("classname")) {
-                    matcher = java.util.regex.Pattern.compile("\\\\.([a-zA-Z0-9_-]+)").matcher(cssContent);
+                    matcher = java.util.regex.Pattern.compile("\\.([a-zA-Z0-9_-]+)").matcher(cssContent);
                     while (matcher.find()) {
                         set.add(matcher.group(1));
                     }

@@ -309,6 +309,10 @@
             android:configChanges="orientation|screenSize" />
 
         <activity
+            android:name="laki.webide.activities.preview.LiveActivity"
+            android:configChanges="orientation|screenSize" />
+
+        <activity
             android:name="laki.webide.activities.editor.HeadEditorActivity"
             android:configChanges="orientation|screenSize"
             android:theme="@style/Theme.SketchwarePro.SmallToolbar" />

@@ -49,6 +49,7 @@ public class ViewProperty extends LinearLayout {
         ArrayList<String> getAllIds();
         void onIdRenamed(String oldId, String newId);
         void onClassRenamed(String oldClass, String newClass);
+        void onPropertyChanged();
     }
 
     public void setOnPropertyChangeListener(OnPropertyChangeListener l) {
@@ -424,6 +425,9 @@ public class ViewProperty extends LinearLayout {
             if (changeListener != null) {
                 changeListener.onIdChanged();
             }
+        }
+        if (changeListener != null) {
+            changeListener.onPropertyChanged();
         }
         return true;
     }

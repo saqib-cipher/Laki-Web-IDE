@@ -32,7 +32,7 @@ public class WebProjectSyncManager {
             files.addAll(projectFileManager.c());
             
             for (ProjectFileBean file : files) {
-                syncFile(workspace, file, projectFileManager, projectDataManager, projectLibraryManager);
+                syncFile(workspace, sc_id, file, projectFileManager, projectDataManager, projectLibraryManager);
             }
         }
     }
@@ -40,7 +40,7 @@ public class WebProjectSyncManager {
     /**
      * Syncs a specific project file (HTML and its corresponding CSS) to disk.
      */
-    public static void syncFile(ProjectWorkspace workspace, ProjectFileBean file, hC projectFileManager, eC projectDataManager, iC projectLibraryManager) {
+    public static void syncFile(ProjectWorkspace workspace, String sc_id, ProjectFileBean file, hC projectFileManager, eC projectDataManager, iC projectLibraryManager) {
         if (!workspace.isSimpleProject) return;
 
         // Sync HTML
@@ -61,10 +61,8 @@ public class WebProjectSyncManager {
         LakiFiles.createSimpleProjectStructure(workspace.projectMyscPath);
 
         // Sync Designer State (HTML Tags & Visual History)
-        String tagsPath = LakiFiles.getPageHtmlTagsPath(workspace.projectMyscPath, file.fileName);
         ArrayList<ViewBean> currentViews = projectDataManager.d(file.getXmlName());
-        ArrayList<ViewBean> cleanViews = SketchwareUtil.sanitizeViewBeans(currentViews);
-        FileUtil.writeFile(tagsPath, new Gson().toJson(cleanViews));
+        laki.webide.managers.WebProjectStateManager.saveProjectState(null, sc_id, file, currentViews);
 
         // Sync extra page settings
         syncExtraSettings(workspace, file);
@@ -97,7 +95,7 @@ public class WebProjectSyncManager {
 
     public static void syncCurrentFile(ProjectWorkspace workspace, String sc_id, ProjectFileBean file) {
         if (workspace != null && workspace.isSimpleProject) {
-            syncFile(workspace, file, jC.b(sc_id), jC.a(sc_id), jC.c(sc_id));
+            syncFile(workspace, sc_id, file, jC.b(sc_id), jC.a(sc_id), jC.c(sc_id));
         }
     }
 }

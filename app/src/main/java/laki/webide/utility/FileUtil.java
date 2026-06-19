@@ -843,4 +843,5 @@ public class FileUtil {
         String mimeType = URLConnection.guessContentTypeFromName(path);
         return mimeType != null && mimeType.startsWith("image");
     }
+
 }

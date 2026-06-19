@@ -30,8 +30,10 @@ public class HtmlGenerator {
 
         List<ViewBean> roots = new ArrayList<>();
         for (ViewBean bean : allViews) {
-            if (bean.parent == null || bean.parent.isEmpty() || bean.parent.equals("root") || !allIds.contains(bean.parent)) {
-                roots.add(bean);
+            if (bean.parent == null || bean.parent.isEmpty() || (!allIds.contains("root") && bean.parent.equals("root")) || !allIds.contains(bean.parent)) {
+                if (!roots.contains(bean)) {
+                    roots.add(bean);
+                }
             }
         }
 
@@ -119,7 +121,7 @@ public class HtmlGenerator {
         if (bean.parentAttributes != null) {
             for (Map.Entry<String, String> entry : bean.parentAttributes.entrySet()) {
                 String key = entry.getKey();
-                if (!key.equals("html_tag") && !key.contains("layout_")) {
+                if (!key.equals("html_tag") && !key.equals("id") && !key.equals("class") && !key.equals("text") && !key.contains("layout_")) {
                     builder.addAttribute("", key, entry.getValue());
                 }
             }
@@ -246,6 +248,9 @@ public class HtmlGenerator {
         }
 
         String text = bean.text.text;
+        if ((text == null || text.isEmpty()) && bean.parentAttributes != null) {
+            text = bean.parentAttributes.get("text");
+        }
         String hint = bean.text.hint;
 
         if (tag.equals("input") || tag.equals("textarea")) {

@@ -38,7 +38,13 @@ public class LivePreviewServer {
                     new Thread(() -> handleConnection(socket)).start();
                 }
             } catch (IOException e) {
-                // Server stopped
+                // Server stopped or bind failed
+            } finally {
+                isRunning = false;
+                if (serverSocket != null) {
+                    try { serverSocket.close(); } catch (IOException ignored) {}
+                    serverSocket = null;
+                }
             }
         });
         serverThread.start();

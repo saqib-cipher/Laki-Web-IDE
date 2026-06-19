@@ -456,6 +456,9 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                     }
                 }
             }
+            if (sc_id != null) {
+                jC.a(sc_id).c.put(projectFileBean.getXmlName(), viewBeans);
+            }
             laki.webide.managers.WebProjectStateManager.loadProjectStateIntoPane(this.pane, viewBeans, this);
         }
         if (viewProperty != null) {
@@ -517,6 +520,9 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                         }
                     }
                 }
+            }
+            if (sc_id != null) {
+                jC.a(sc_id).c.put(projectFileBean.getXmlName(), viewBeans);
             }
             laki.webide.managers.WebProjectStateManager.loadProjectStateIntoPane(this.pane, viewBeans, this);
         }

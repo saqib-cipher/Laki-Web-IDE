@@ -23,6 +23,9 @@ public class WebProjectStateManager {
         String tagsPath = LakiFiles.getPageHtmlTagsPath(projectRoot, projectFile.getXmlName());
 
         ArrayList<ViewBean> cleanViews = SketchwareUtil.sanitizeViewBeans(viewBeans);
+        if (sc_id != null) {
+            a.a.a.jC.a(sc_id).c.put(projectFile.getXmlName(), cleanViews);
+        }
         FileUtil.writeFile(tagsPath, new Gson().toJson(cleanViews));
         
         // Notify live preview server
@@ -42,7 +45,11 @@ public class WebProjectStateManager {
                 try {
                     Type type = new TypeToken<ArrayList<ViewBean>>(){}.getType();
                     ArrayList<ViewBean> loadedViews = new Gson().fromJson(json, type);
-                    return SketchwareUtil.sanitizeViewBeans(loadedViews);
+                    ArrayList<ViewBean> cleanViews = SketchwareUtil.sanitizeViewBeans(loadedViews);
+                    if (sc_id != null) {
+                        a.a.a.jC.a(sc_id).c.put(projectFile.getXmlName(), cleanViews);
+                    }
+                    return cleanViews;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

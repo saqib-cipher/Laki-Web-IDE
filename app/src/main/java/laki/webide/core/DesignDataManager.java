@@ -19,6 +19,30 @@ import java.util.Map.Entry;
 import laki.webide.utility.FilePathUtil;
 
 public class DesignDataManager {
+    private static void addCssIdentifiers(Context context, String scId, String menuName, java.util.HashSet<String> set) {
+        String projectName = a.a.a.yB.c(a.a.a.lC.b(scId), "my_ws_name");
+        String projectRoot = laki.webide.core.LakiFiles.getProjectRoot(projectName, scId, false);
+        String coreCssPath = projectRoot + "/css/core.css";
+
+        if (laki.webide.utility.FileUtil.isExistFile(coreCssPath)) {
+            String cssContent = laki.webide.utility.FileUtil.readFile(coreCssPath);
+            if (cssContent != null) {
+                java.util.regex.Matcher matcher;
+                if (menuName.equals("htmlClass") || menuName.equals("classname")) {
+                    matcher = java.util.regex.Pattern.compile("\\\\.([a-zA-Z0-9_-]+)").matcher(cssContent);
+                    while (matcher.find()) {
+                        set.add(matcher.group(1));
+                    }
+                } else if (menuName.equals("htmlId")) {
+                    matcher = java.util.regex.Pattern.compile("#([a-zA-Z0-9_-]+)").matcher(cssContent);
+                    while (matcher.find()) {
+                        set.add(matcher.group(1));
+                    }
+                }
+            }
+        }
+    }
+
     public static final int VAR_TYPE_BOOLEAN = 0;
     public static final int VAR_TYPE_INT = 1;
     public static final int VAR_TYPE_STRING = 2;
@@ -395,6 +419,7 @@ public class DesignDataManager {
                 if (tag != null) set.add(tag);
             }
         }
+        addCssIdentifiers(context, scId, menuName, set);
         results.addAll(set);
         java.util.Collections.sort(results);
         return results;

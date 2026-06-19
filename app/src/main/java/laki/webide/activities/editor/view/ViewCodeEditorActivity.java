@@ -218,7 +218,8 @@ public class ViewCodeEditorActivity extends BaseAppCompatActivity {
                 String filename = getIntent().getStringExtra("title");
                 
                 // For Web projects, we use HtmlParser and skip circular dependency checks
-                HtmlParser.parseHtml(editedContent, sc_id, this); 
+                ArrayList<ViewBean> parsed = HtmlParser.parseHtml(editedContent, sc_id, this);
+                laki.webide.managers.WebProjectStateManager.saveProjectState(this, sc_id, projectFile, parsed);
 
                 // Update content only after validation
                 content = editedContent;
@@ -244,6 +245,7 @@ public class ViewCodeEditorActivity extends BaseAppCompatActivity {
         try {
             ArrayList<ViewBean> parsedLayout;
             parsedLayout = HtmlParser.parseHtml(content, sc_id, this);
+            laki.webide.managers.WebProjectStateManager.saveProjectState(this, sc_id, projectFile, parsedLayout);
             // For Web projects, we also persist the HTML directly to disk
             var workspace = new ProjectWorkspace(this, sc_id);
             workspace.a(filename, content);

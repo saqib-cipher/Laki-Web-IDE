@@ -124,8 +124,13 @@ public class ProjectWorkspace {
         ArrayList<SrcCodeBean> srcCodeBeans = new ArrayList<>();
         for (ProjectFileBean layout : projectFileManager.b()) {
             String xmlName = layout.getXmlName();
-            String headCode = laki.webide.managers.HeadEditorManager.getGeneratedHtml(sc_id, layout);
-            ArrayList<ViewBean> cleanBeans = laki.webide.utility.SketchwareUtil.sanitizeViewBeans(projectDataManager.d(xmlName));
+            String headCode = "";
+            try {
+                headCode = laki.webide.managers.HeadEditorManager.getGeneratedHtml(sc_id, layout);
+            } catch (Exception ignored) {}
+            ArrayList<ViewBean> cleanBeans = laki.webide.utility.SketchwareUtil.sanitizeViewBeans(
+                laki.webide.managers.WebProjectStateManager.loadProjectState(context, sc_id, layout)
+            );
             HtmlGenerator htmlGen = new HtmlGenerator(xmlName, laki.webide.utility.SketchwareUtil.cloneViewBeans(cleanBeans), headCode);
             String outputCode = htmlGen.generate();
             srcCodeBeans.add(new SrcCodeBean(xmlName.replace(".xml", ".html"), CommandBlock.applyCommands(xmlName, outputCode)));
@@ -143,8 +148,14 @@ public class ProjectWorkspace {
                     break;
                 }
             }
-            String headCode = laki.webide.managers.HeadEditorManager.getGeneratedHtml(sc_id, (fileBean != null ? fileBean : new ProjectFileBean(0, filename)));
-            ArrayList<ViewBean> cleanBeans = laki.webide.utility.SketchwareUtil.sanitizeViewBeans(projectDataManager.d(filename));
+            ProjectFileBean targetBean = (fileBean != null ? fileBean : new ProjectFileBean(0, filename));
+            String headCode = "";
+            try {
+                headCode = laki.webide.managers.HeadEditorManager.getGeneratedHtml(sc_id, targetBean);
+            } catch (Exception ignored) {}
+            ArrayList<ViewBean> cleanBeans = laki.webide.utility.SketchwareUtil.sanitizeViewBeans(
+                laki.webide.managers.WebProjectStateManager.loadProjectState(context, sc_id, targetBean)
+            );
             HtmlGenerator htmlGen = new HtmlGenerator(filename, laki.webide.utility.SketchwareUtil.cloneViewBeans(cleanBeans), headCode);
             return CommandBlock.applyCommands(filename, htmlGen.generate());
         } else if (filename.endsWith(".css")) {

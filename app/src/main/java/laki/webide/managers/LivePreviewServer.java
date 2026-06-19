@@ -103,7 +103,12 @@ public class LivePreviewServer {
                 path = "/html/main.html";
             }
             
-            File file = new File(currentProjectRoot, path);
+            String relativePath = path;
+            while (relativePath.startsWith("/")) {
+                relativePath = relativePath.substring(1);
+            }
+            
+            File file = new File(currentProjectRoot, relativePath);
             if (!file.exists() || file.isDirectory()) {
                 sendError(output, 404, "Not Found");
                 return;

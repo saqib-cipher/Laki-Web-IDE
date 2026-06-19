@@ -504,7 +504,7 @@ public class ExtraMenuBean {
 
             case "htmlId":
                 title = "Select HTML ID";
-                for (ViewBean bean : projectDataManager.d(logicEditor.M.getXmlName())) {
+                for (ViewBean bean : laki.webide.managers.WebProjectStateManager.loadProjectState(logicEditor, sc_id, logicEditor.M)) {
                     if (bean.id != null && !bean.id.isEmpty()) {
                         menus.add(bean.id);
                     }
@@ -514,7 +514,7 @@ public class ExtraMenuBean {
             case "htmlClass":
                 title = "Select HTML Class";
                 HashSet<String> classSet = new HashSet<>();
-                for (ViewBean bean : projectDataManager.d(logicEditor.M.getXmlName())) {
+                for (ViewBean bean : laki.webide.managers.WebProjectStateManager.loadProjectState(logicEditor, sc_id, logicEditor.M)) {
                     if (bean.classNames != null && !bean.classNames.isEmpty()) {
                         for (String className : bean.classNames.split("\\s+")) {
                             if (!className.isEmpty()) classSet.add(className);

@@ -43,10 +43,18 @@ public class WebProjectSyncManager {
     public static void syncFile(ProjectWorkspace workspace, String sc_id, ProjectFileBean file, hC projectFileManager, eC projectDataManager, iC projectLibraryManager) {
         if (!workspace.isSimpleProject) return;
 
-        // Sync HTML
-        String htmlCode = workspace.getFileSrc(file.getXmlName(), projectFileManager, projectDataManager, projectLibraryManager);
+        // Sync HTML directly from settings JSON file (pure Java)
+        ArrayList<ViewBean> currentViews = laki.webide.managers.WebProjectStateManager.loadProjectState(null, sc_id, file);
+        String headCode = "";
+        try {
+            headCode = laki.webide.managers.HeadEditorManager.getGeneratedHtml(sc_id, file);
+        } catch (Exception ignored) {}
+        
+        ArrayList<ViewBean> cleanBeans = laki.webide.utility.SketchwareUtil.sanitizeViewBeans(currentViews);
+        HtmlGenerator generator = new HtmlGenerator(file.getXmlName(), cleanBeans, headCode);
+        String htmlCode = generator.generate();
+        
         if (htmlCode == null || htmlCode.trim().isEmpty()) {
-            // If empty, generate a default structure
             HtmlGenerator defaultGen = new HtmlGenerator(file.getXmlName(), new ArrayList<>(), "");
             htmlCode = defaultGen.generate();
         }
@@ -59,10 +67,6 @@ public class WebProjectSyncManager {
 
         // Ensure project structure exists (Settings, etc.)
         LakiFiles.createSimpleProjectStructure(workspace.projectMyscPath);
-
-        // Sync Designer State (HTML Tags & Visual History)
-        ArrayList<ViewBean> currentViews = projectDataManager.d(file.getXmlName());
-        laki.webide.managers.WebProjectStateManager.saveProjectState(null, sc_id, file, currentViews);
 
         // Sync extra page settings
         syncExtraSettings(workspace, file);

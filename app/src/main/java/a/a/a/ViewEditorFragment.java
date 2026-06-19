@@ -456,9 +456,6 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                     }
                 }
             }
-            if (sc_id != null) {
-                jC.a(sc_id).c.put(projectFileBean.getXmlName(), viewBeans);
-            }
             laki.webide.managers.WebProjectStateManager.loadProjectStateIntoPane(this.pane, viewBeans, this);
         }
         if (viewProperty != null) {
@@ -520,9 +517,6 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                         }
                     }
                 }
-            }
-            if (sc_id != null) {
-                jC.a(sc_id).c.put(projectFileBean.getXmlName(), viewBeans);
             }
             laki.webide.managers.WebProjectStateManager.loadProjectStateIntoPane(this.pane, viewBeans, this);
         }
@@ -589,6 +583,7 @@ public class ViewEditorFragment extends qA implements View.OnClickListener, View
                 if (isChecked) {
                     if (checkedId == R.id.btn_preview) {
                         if (projectFileBean != null) {
+                            saveLayoutState();
                             viewEditor.setVisibility(View.GONE);
                             if (webViewPreview != null) {
                                 webViewPreview.setVisibility(View.VISIBLE);

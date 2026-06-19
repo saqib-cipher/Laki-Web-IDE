@@ -962,7 +962,11 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
                 var sc_id = DesignActivity.sc_id;
                 jC.d(sc_id).a();
                 jC.b(sc_id).m();
-                jC.a(sc_id).j();
+                try {
+                    jC.a(sc_id).j();
+                } catch (Exception e) {
+                    android.util.Log.e("DesignActivity", "Failed to save project data manager", e);
+                }
                 jC.d(sc_id).x();
                 jC.c(sc_id).l();
                 WebProjectSyncManager.sync(activity, sc_id);
@@ -996,7 +1000,11 @@ public class DesignActivity extends BaseAppCompatActivity implements View.OnClic
                 var sc_id = DesignActivity.sc_id;
                 jC.d(sc_id).a();
                 jC.b(sc_id).m();
-                jC.a(sc_id).j();
+                try {
+                    jC.a(sc_id).j();
+                } catch (Exception e) {
+                    android.util.Log.e("DesignActivity", "Failed to save project data manager", e);
+                }
                 jC.d(sc_id).x();
                 jC.c(sc_id).l();
                 jC.d(sc_id).h();

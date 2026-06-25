@@ -1,39 +1,66 @@
 package laki.webide.managers;
 
 import android.content.Context;
-import android.util.Log;
 import java.io.*;
-import java.util.Map;
-import fi.iki.elonen.NanoHTTPD;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import laki.webide.core.LakiFiles;
 
 public class LivePreviewServer {
-    private static InternalServer server;
+    private static ServerSocket serverSocket;
+    private static Thread serverThread;
+    private static boolean isRunning = false;
     private static String currentScId;
     private static String currentProjectRoot;
     public static long lastModifiedTime = System.currentTimeMillis();
     private static final int PORT = 8282;
 
     public static synchronized void startServer(Context context, String scId) {
-        if (server != null && server.isAlive() && scId.equals(currentScId)) return;
+        if (isRunning && scId.equals(currentScId)) return;
+        
         stopServer();
+        
         currentScId = scId;
         String projectName = a.a.a.yB.c(a.a.a.lC.b(scId), "my_ws_name");
         currentProjectRoot = LakiFiles.getProjectRoot(projectName, scId, false);
+        isRunning = true;
         
-        try {
-            server = new InternalServer(PORT);
-            server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
-            Log.d("LivePreviewServer", "Server started on port " + PORT);
-        } catch (IOException e) {
-            Log.e("LivePreviewServer", "Couldn't start server", e);
-        }
+        serverThread = new Thread(() -> {
+            try {
+                serverSocket = new ServerSocket(PORT);
+                while (isRunning) {
+                    Socket socket = serverSocket.accept();
+                    if (!isRunning) {
+                        try { socket.close(); } catch (IOException e) {}
+                        break;
+                    }
+                    new Thread(() -> handleConnection(socket)).start();
+                }
+            } catch (IOException e) {
+                // Server stopped or bind failed
+            } finally {
+                isRunning = false;
+                if (serverSocket != null) {
+                    try { serverSocket.close(); } catch (IOException ignored) {}
+                    serverSocket = null;
+                }
+            }
+        });
+        serverThread.start();
     }
 
     public static synchronized void stopServer() {
-        if (server != null) {
-            server.stop();
-            server = null;
+        isRunning = false;
+        if (serverSocket != null) {
+            try {
+                serverSocket.close();
+            } catch (IOException e) {}
+            serverSocket = null;
+        }
+        if (serverThread != null) {
+            serverThread.interrupt();
+            serverThread = null;
         }
     }
 
@@ -47,64 +74,57 @@ public class LivePreviewServer {
         return "http://localhost:" + PORT + "/html/" + htmlName;
     }
 
-    private static class InternalServer extends NanoHTTPD {
-        public InternalServer(int port) {
-            super(port);
-        }
-
-        @Override
-        public Response serve(IHTTPSession session) {
-            String uri = session.getUri();
+    private static void handleConnection(Socket socket) {
+        try (InputStream input = socket.getInputStream();
+             OutputStream output = socket.getOutputStream()) {
             
-            // 1. Live Reload Check
-            if (uri.equals("/__live_check")) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8));
+            String requestLine = reader.readLine();
+            if (requestLine == null || requestLine.isEmpty()) return;
+            
+            String[] parts = requestLine.split(" ");
+            if (parts.length < 2) return;
+            
+            String method = parts[0];
+            String fullPath = parts[1];
+            
+            int qIdx = fullPath.indexOf('?');
+            String path = qIdx != -1 ? fullPath.substring(0, qIdx) : fullPath;
+            
+            if (path.equals("/__live_check")) {
                 String json = "{\"lastModified\":" + lastModifiedTime + "}";
-                return newFixedLengthResponse(Response.Status.OK, "application/json", json);
+                byte[] responseBytes = json.getBytes(StandardCharsets.UTF_8);
+                sendHeaders(output, 200, "application/json", responseBytes.length);
+                output.write(responseBytes);
+                output.flush();
+                return;
             }
-
-            // 2. Handle Root Redirect
-            if (uri.equals("/")) {
-                uri = "/html/main.html";
+            
+            if (path.contains("..")) {
+                sendError(output, 403, "Forbidden");
+                return;
             }
-
-            // 3. Resolve File Path
-            String relativePath = uri.startsWith("/") ? uri.substring(1) : uri;
+            
+            if (path.equals("/")) {
+                path = "/html/main.html";
+            }
+            
+            String relativePath = path;
+            while (relativePath.startsWith("/")) {
+                relativePath = relativePath.substring(1);
+            }
+            
             File file = new File(currentProjectRoot, relativePath);
-
             if (!file.exists() || file.isDirectory()) {
-                return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "File Not Found: " + uri);
+                sendError(output, 404, "Not Found");
+                return;
             }
-
-            try {
-                String mimeType = getMimeType(uri);
-                InputStream inputStream = new FileInputStream(file);
-                
-                // 4. Inject Live Reload Script into HTML
-                if (mimeType.equals("text/html")) {
-                    return serveHtmlWithInjection(inputStream);
-                }
-
-                // 5. Standard Response with CORS
-                Response response = newChunkedResponse(Response.Status.OK, mimeType, inputStream);
-                response.addHeader("Access-Control-Allow-Origin", "*");
-                response.addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-                return response;
-
-            } catch (FileNotFoundException e) {
-                return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Error reading file");
-            }
-        }
-
-        private Response serveHtmlWithInjection(InputStream inputStream) {
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line).append("\n");
-                }
-                String html = sb.toString();
-
+            
+            byte[] fileBytes = readFileToBytes(file);
+            String mimeType = getMimeType(path);
+            
+            if (mimeType.equals("text/html")) {
+                String htmlStr = new String(fileBytes, StandardCharsets.UTF_8);
                 String script = "\n<script>\n" +
                     "  (function() {\n" +
                     "    var lastUpdate = null;\n" +
@@ -126,44 +146,80 @@ public class LivePreviewServer {
                     "    checkUpdate();\n" +
                     "  })();\n" +
                     "</script>\n";
-
-                int bodyEndIdx = html.toLowerCase().lastIndexOf("</body>");
+                int bodyEndIdx = htmlStr.toLowerCase().lastIndexOf("</body>");
                 if (bodyEndIdx != -1) {
-                    html = html.substring(0, bodyEndIdx) + script + html.substring(bodyEndIdx);
+                    htmlStr = htmlStr.substring(0, bodyEndIdx) + script + htmlStr.substring(bodyEndIdx);
                 } else {
-                    html += script;
+                    htmlStr += script;
                 }
-
-                Response response = newFixedLengthResponse(Response.Status.OK, "text/html", html);
-                response.addHeader("Access-Control-Allow-Origin", "*");
-                response.addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-                return response;
-            } catch (IOException e) {
-                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "Injection Failed");
+                fileBytes = htmlStr.getBytes(StandardCharsets.UTF_8);
             }
-        }
-
-        private String getMimeType(String uri) {
-            String ext = "";
-            int i = uri.lastIndexOf('.');
-            if (i > 0) ext = uri.substring(i + 1).toLowerCase();
             
-            return switch (ext) {
-                case "html", "htm" -> "text/html";
-                case "css" -> "text/css";
-                case "js" -> "application/javascript";
-                case "png" -> "image/png";
-                case "jpg", "jpeg" -> "image/jpeg";
-                case "gif" -> "image/gif";
-                case "svg" -> "image/svg+xml";
-                case "webp" -> "image/webp";
-                case "json" -> "application/json";
-                case "woff" -> "font/woff";
-                case "woff2" -> "font/woff2";
-                case "ttf" -> "font/ttf";
-                case "otf" -> "font/otf";
-                default -> "application/octet-stream";
-            };
+            sendHeaders(output, 200, mimeType, fileBytes.length);
+            output.write(fileBytes);
+            output.flush();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException e) {}
         }
+    }
+
+    private static void sendHeaders(OutputStream output, int status, String mimeType, int length) throws IOException {
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8), true);
+        writer.print("HTTP/1.1 " + status + " OK\r\n");
+        writer.print("Content-Type: " + mimeType + "\r\n");
+        writer.print("Content-Length: " + length + "\r\n");
+        writer.print("Connection: close\r\n");
+        writer.print("\r\n");
+        writer.flush();
+    }
+
+    private static void sendError(OutputStream output, int status, String message) throws IOException {
+        byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8), true);
+        writer.print("HTTP/1.1 " + status + " " + message + "\r\n");
+        writer.print("Content-Type: text/plain\r\n");
+        writer.print("Content-Length: " + bytes.length + "\r\n");
+        writer.print("Connection: close\r\n");
+        writer.print("\r\n");
+        writer.flush();
+        output.write(bytes);
+        output.flush();
+    }
+
+    private static byte[] readFileToBytes(File file) throws IOException {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            byte[] data = new byte[(int) file.length()];
+            int bytesRead = 0;
+            while (bytesRead < data.length) {
+                int read = fis.read(data, bytesRead, data.length - bytesRead);
+                if (read == -1) break;
+                bytesRead += read;
+            }
+            return data;
+        }
+    }
+
+    private static String getMimeType(String path) {
+        String ext = "";
+        int i = path.lastIndexOf('.');
+        if (i > 0) ext = path.substring(i + 1).toLowerCase();
+        
+        return switch (ext) {
+            case "html", "htm" -> "text/html";
+            case "css" -> "text/css";
+            case "js" -> "application/javascript";
+            case "png" -> "image/png";
+            case "jpg", "jpeg" -> "image/jpeg";
+            case "gif" -> "image/gif";
+            case "svg" -> "image/svg+xml";
+            case "webp" -> "image/webp";
+            case "json" -> "application/json";
+            default -> "application/octet-stream";
+        };
     }
 }
